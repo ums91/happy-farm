@@ -23,13 +23,13 @@
       </header>
       <main class="game-shell">
         <section class="world-panel" aria-label="Farm world">
-          <div class="world-label"><span class="live-dot"></span> MY FARM <span class="world-coords">GREEN VALLEY · 01</span></div>
+          <div class="world-label"><span class="live-dot"></span> <span id="farm-name-label">MY FARM</span> <span class="world-coords">GREEN VALLEY · 01</span></div>
           <div id="game" class="game-canvas"></div>
           <div class="world-hint">Right-click and drag to explore · Scroll to zoom · Select a field</div>
         </section>
         <aside class="side-panel">
           <div class="panel-heading"><span>FARM JOURNAL</span><span class="journal-icon">✦</span></div>
-          <div class="profile-card"><div class="avatar">👩‍🌾</div><div><strong>New Farmer</strong><small>Your farm adventure begins!</small></div><span class="level">LV 1</span></div>
+          <div class="profile-card"><div class="avatar">👩‍🌾</div><div><strong id="farmer-name">New Farmer</strong><small>Your farm adventure begins!</small></div><span class="level">LV 1</span><button class="profile-edit" id="edit-farm-profile" title="Edit farmer and farm name" aria-label="Edit farmer and farm name">✎</button></div>
           <div class="progress-label"><span>FARM PROGRESS</span><strong id="progress-text">0 / 100 XP</strong></div>
           <div class="progress-track"><span id="progress-fill"></span></div>
           <div class="panel-heading tools-heading">YOUR FARM TOOLS</div>
@@ -46,7 +46,7 @@
         </aside>
       </main>
       <footer class="footer"><span>HAPPY FARM <b>·</b> DEVELOPMENT BUILD 0.2.0</span><span>GROW · HARVEST · MAKE IT YOURS</span></footer>
-      <div class="modal-backdrop" id="market-modal" aria-hidden="true"><section class="market-window" role="dialog" aria-modal="true"><header class="market-header"><div><small>HAPPY FARM TRADING POST</small><h2>Farm Market</h2></div><button class="modal-close" data-close-modal>×</button></header><div class="market-tabs"><button class="market-tab active" data-market-tab="seeds">🌱 Seeds</button><button class="market-tab" data-market-tab="animals">🐮 Animals</button><button class="market-tab" data-market-tab="feed">🥣 Animal Feed</button><button class="market-tab" data-market-tab="decor">🌳 Decorations</button></div><p class="market-intro" id="market-intro">Buy seeds, then choose Plant and tap a prepared field.</p><div class="market-items" id="market-items"></div><footer class="market-footer">🪙 Your balance <strong id="market-balance">250 coins</strong></footer></section></div><div class="toast" id="game-toast" role="status"></div>
+      <div class="modal-backdrop" id="market-modal" aria-hidden="true"><section class="market-window" role="dialog" aria-modal="true"><header class="market-header"><div><small>HAPPY FARM TRADING POST</small><h2>Farm Market</h2></div><button class="modal-close" data-close-modal>×</button></header><div class="market-tabs"><button class="market-tab active" data-market-tab="seeds">🌱 Seeds</button><button class="market-tab" data-market-tab="animals">🐮 Animals</button><button class="market-tab" data-market-tab="feed">🥣 Animal Feed</button><button class="market-tab" data-market-tab="decor">🌳 Decorations</button><button class="market-tab" data-market-tab="buildings">🏗️ Buildings</button></div><p class="market-intro" id="market-intro">Buy seeds, then choose Plant and tap a prepared field.</p><div class="market-items" id="market-items"></div><footer class="market-footer">🪙 Your balance <strong id="market-balance">250 coins</strong></footer></section></div><div class="toast" id="game-toast" role="status"></div>
     </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
