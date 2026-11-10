@@ -837,3 +837,60 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
   .left-nav button{flex-basis:29px!important;width:29px!important;min-width:29px!important;height:29px!important;min-height:29px!important}
   .left-nav button span{font-size:16px!important}
 }
+
+
+/* Mobile layout v2: reserve a dedicated row for navigation; never overlay the farm. */
+@media (max-width:700px){
+  html,body,#app{width:100%;height:100%;min-height:0;max-height:100%;overflow:hidden}
+  body{overscroll-behavior:none}
+  #app{
+    box-sizing:border-box!important;
+    height:100vh!important;height:100dvh!important;min-height:0!important;
+    display:grid!important;grid-template-rows:auto minmax(0,1fr) auto!important;
+    gap:4px!important;padding:env(safe-area-inset-top) 5px env(safe-area-inset-bottom)!important;
+    overflow:hidden!important;
+  }
+  .topbar{position:relative!important;inset:auto!important;flex:none!important;width:100%!important;min-height:56px!important;height:auto!important;max-height:104px!important;overflow:hidden!important}
+  .game-shell{
+    position:relative!important;inset:auto!important;
+    display:flex!important;flex-direction:column!important;align-items:stretch!important;
+    width:100%!important;height:100%!important;min-height:0!important;max-height:none!important;
+    flex:none!important;gap:4px!important;margin:0!important;padding:0!important;overflow:hidden!important;
+  }
+  .game-shell>.left-nav{
+    position:relative!important;inset:auto!important;transform:none!important;float:none!important;
+    order:0!important;display:flex!important;flex:0 0 36px!important;
+    flex-direction:row!important;align-items:center!important;justify-content:center!important;
+    width:max-content!important;max-width:100%!important;height:36px!important;min-height:36px!important;
+    margin:0 auto!important;padding:2px 6px!important;gap:6px!important;
+    overflow:hidden!important;z-index:2!important;
+  }
+  .game-shell>.left-nav button{
+    position:relative!important;display:grid!important;place-items:center!important;
+    flex:0 0 30px!important;width:30px!important;min-width:30px!important;
+    height:30px!important;min-height:30px!important;padding:0!important;
+  }
+  .game-shell>.left-nav button span{font-size:17px!important;line-height:1!important}
+  .game-shell>.left-nav button small{display:none!important}
+  .game-shell>.world-panel{
+    position:relative!important;inset:auto!important;order:1!important;
+    display:block!important;flex:1 1 0!important;flex-shrink:1!important;
+    width:100%!important;height:0!important;min-height:0!important;max-height:100%!important;
+    margin:0!important;overflow:hidden!important;isolation:isolate!important;
+  }
+  .game-shell>.world-panel>#game{
+    position:absolute!important;inset:0!important;width:100%!important;height:100%!important;
+    min-height:0!important;touch-action:none!important;
+  }
+  .game-shell>.world-panel>#game canvas{
+    display:block!important;width:100%!important;height:100%!important;
+    max-width:100%!important;max-height:100%!important;object-fit:fill!important;touch-action:none!important;
+  }
+  .game-shell>.world-panel>.field-toolbar{z-index:5!important}
+  .game-shell>.activity-drawer{z-index:8!important;top:42px!important;left:8px!important}
+  .footer{min-height:15px!important;height:15px!important;padding:0 3px!important;overflow:hidden!important}
+}
+@media(max-width:390px){
+  .game-shell>.left-nav{flex-basis:33px!important;height:33px!important;min-height:33px!important}
+  .game-shell>.left-nav button{flex-basis:27px!important;width:27px!important;min-width:27px!important;height:27px!important;min-height:27px!important}
+}
