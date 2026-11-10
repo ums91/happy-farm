@@ -90,6 +90,11 @@ export class FarmScene extends Phaser.Scene {
     this.plotGraphics = this.add.graphics();
     this.overlay = this.add.graphics();
     this.drawWorld();
+    this.load.image('animal-cow', `${import.meta.env.BASE_URL}assets/animals/cow.png`);
+    this.load.image('animal-hen', `${import.meta.env.BASE_URL}assets/animals/hen.png`);
+    this.load.image('animal-chick', `${import.meta.env.BASE_URL}assets/animals/chick.png`);
+    this.load.once(Phaser.Loader.Events.COMPLETE, () => this.renderOwnedAnimals());
+    this.load.start();
     this.loadFarm();
     this.ensureQuestAndEventCycles();
     this.drawScenery();
@@ -491,76 +496,37 @@ export class FarmScene extends Phaser.Scene {
       const startX=center.x-(rowWidth-1)*spacingX/2+col*spacingX;
       const startY=center.y-(totalRows-1)*spacingY/2+row*spacingY;
       const actor=this.add.container(startX,startY);actor.setDepth(startY+index);
-      const scale=cow?1.04:0.72;
+      const scale=cow?0.82:0.66;
       actor.setScale(scale);
-      actor.add(this.add.ellipse(0,8,cow?43:27,9,0x263e25,0.24));
-      const legs:Phaser.GameObjects.Graphics[]=[];
-      const legXs=cow?[-13,-5,10,18]:[-7,5];
-      legXs.forEach((lx)=>{
-        const leg=this.add.graphics();
+      actor.add(this.add.ellipse(0,7,cow?38:26,8,0x263e25,0.22));
+      const texture=cow?'animal-cow':'animal-hen';
+      if(this.textures.exists(texture)){
+        const sprite=this.add.image(0,-2,texture).setDisplaySize(cow?60:42,cow?60:42);
+        actor.add(sprite);
+        this.tweens.add({targets:sprite,y:-4,duration:cow?1250:900,yoyo:true,repeat:-1,ease:'Sine.inOut',delay:index*100});
+      }else{
+        // Keep the original vector animal as a graceful fallback while artwork loads.
+        const body=this.add.graphics();
         if(cow){
-          leg.fillStyle(0xf2eee0,1);leg.fillRoundedRect(lx-3,-10,6,17,2);
-          leg.fillStyle(0x51483f,1);leg.fillRoundedRect(lx-3,4,7,5,2);
+          body.fillStyle(0xf6f1e5,1);body.fillEllipse(-2,-14,39,27);body.fillStyle(0x4b4540,1);body.fillEllipse(-13,-19,13,10);body.fillEllipse(2,-8,12,9);body.fillStyle(0xf4eee0,1);body.fillEllipse(15,-19,19,21);body.fillStyle(0xe6b7a8,1);body.fillEllipse(25,-15,15,10);body.fillStyle(0x4a4038,1);body.fillCircle(19,-24,1.5);
         }else{
-          leg.fillStyle(0xc58b42,1);leg.fillRoundedRect(lx-1.5,-7,3,13,1);
-          leg.lineStyle(1.5,0xb97932,1);leg.beginPath();leg.moveTo(lx,5);leg.lineTo(lx-4,7);leg.moveTo(lx,5);leg.lineTo(lx+4,7);leg.strokePath();
+          body.fillStyle(0xf0dfbd,1);body.fillEllipse(-1,-11,25,20);body.fillStyle(0xf5ead1,1);body.fillEllipse(7,-17,11,11);body.fillStyle(0xd94f42,1);body.fillEllipse(4,-25,4,5);body.fillCircle(9,-25,3);body.fillStyle(0xd99c3c,1);body.fillTriangle(12,-17,22,-14,12,-12);body.fillStyle(0x352e28,1);body.fillCircle(9,-19,1.5);
         }
-        actor.add(leg);legs.push(leg);
-      });
-      const tail=this.add.graphics();
-      if(cow){
-        tail.lineStyle(3,0xf2eee0,1);tail.beginPath();tail.moveTo(-17,-16);tail.lineTo(-25,-8);tail.lineTo(-27,-2);tail.strokePath();
-        tail.lineStyle(4,0x3f3934,1);tail.beginPath();tail.moveTo(-27,-2);tail.lineTo(-30,2);tail.strokePath();
-      }else{
-        tail.fillStyle(0xf6f0df,1);tail.fillTriangle(-12,-15,-24,-23,-18,-10);tail.fillTriangle(-11,-13,-25,-12,-17,-7);
+        actor.add(body);
       }
-      actor.add(tail);
-      const body=this.add.graphics();
-      if(cow){
-        body.fillStyle(0xaaa497,0.32);body.fillEllipse(-1,-9,40,24);
-        body.fillStyle(0xf6f1e5,1);body.fillEllipse(-2,-14,39,27);
-        body.fillStyle(0x4b4540,1);body.fillEllipse(-13,-19,13,10);body.fillEllipse(2,-8,12,9);body.fillEllipse(-2,-5,7,5);
-        body.fillStyle(0xffffff,0.45);body.fillEllipse(-8,-23,14,5);
-        body.fillStyle(0xf4eee0,1);body.fillEllipse(15,-19,19,21);
-        body.fillStyle(0x4a433d,1);body.fillEllipse(11,-27,7,5);
-        body.fillStyle(0xf2eee2,1);body.fillEllipse(19,-22,18,17);
-        body.fillStyle(0xe6b7a8,1);body.fillEllipse(25,-15,15,10);
-        body.fillStyle(0xf7c9b5,1);body.fillEllipse(24,-17,11,6);
-        body.fillStyle(0x4a4038,1);body.fillEllipse(19,-23,2,2);body.fillEllipse(29,-17,1.2,1);
-        body.fillStyle(0x3b3530,1);body.fillCircle(19,-24,1.5);
-        body.fillStyle(0xf2eee2,1);body.fillTriangle(11,-27,6,-33,15,-30);body.fillTriangle(23,-28,29,-33,28,-25);
-        body.fillStyle(0xd8a982,1);body.fillTriangle(14,-29,14,-35,18,-29);body.fillTriangle(23,-29,26,-35,27,-28);
-        body.fillStyle(0xe9c5b4,1);body.fillEllipse(13,-14,5,3);
-        body.fillStyle(0xe8b7a8,1);body.fillEllipse(-1,-1,12,7);
-        body.fillStyle(0xc98f86,1);body.fillCircle(-4,1,1.2);body.fillCircle(1,2,1.2);body.fillCircle(5,1,1.2);
-      }else{
-        body.fillStyle(0xc7a56d,0.25);body.fillEllipse(0,-8,30,22);
-        body.fillStyle(0xf0dfbd,1);body.fillEllipse(-1,-11,25,20);
-        body.fillStyle(0xfff4df,1);body.fillEllipse(-7,-13,12,12);
-        body.fillStyle(0xd2b17c,1);body.fillEllipse(-1,-8,15,10);
-        body.fillStyle(0xc69b5e,1);body.fillEllipse(-5,-8,12,7);
-        body.lineStyle(1,0xa9844e,0.8);body.beginPath();body.moveTo(-10,-9);body.lineTo(-3,-5);body.moveTo(-7,-12);body.lineTo(0,-8);body.strokePath();
-        body.fillStyle(0xf5ead1,1);body.fillEllipse(7,-17,11,11);
-        body.fillStyle(0xd94f42,1);body.fillEllipse(4,-25,4,5);body.fillCircle(9,-25,3);body.fillCircle(13,-22,2.5);
-        body.fillStyle(0xd99c3c,1);body.fillTriangle(12,-17,22,-14,12,-12);
-        body.fillStyle(0x352e28,1);body.fillCircle(9,-19,1.5);
-        body.fillStyle(0xffffff,0.9);body.fillCircle(9.5,-19.5,0.55);
-        body.fillStyle(0xe4cda5,1);body.fillTriangle(-9,-14,-17,-20,-13,-9);
-      }
-      actor.add(body);
-      if(!cow){
-        const wing=this.add.graphics();wing.fillStyle(0xd4b17b,1);wing.fillEllipse(-4,-10,13,8);
-        wing.lineStyle(1,0xa98552,0.85);wing.beginPath();wing.moveTo(-9,-10);wing.lineTo(-3,-7);wing.moveTo(-7,-13);wing.lineTo(0,-9);wing.strokePath();
-        actor.add(wing);
-        this.tweens.add({targets:wing,angle:-7,duration:650,yoyo:true,repeat:-1,ease:'Sine.inOut',delay:index*130});
-      }
-      this.tweens.add({targets:body,angle:cow?0.8:1.2,duration:cow?1250:950,yoyo:true,repeat:-1,ease:'Sine.inOut',delay:index*100});
-      this.tweens.add({targets:tail,angle:cow?7:-5,duration:cow?1100:850,yoyo:true,repeat:-1,ease:'Sine.inOut',delay:index*90});
-      legs.forEach((leg,legIndex)=>this.tweens.add({targets:leg,angle:(legIndex%2===0?1:-1)*(cow?10:14),duration:cow?360:280,yoyo:true,repeat:-1,ease:'Sine.inOut',delay:index*100+legIndex*65}));
+      this.tweens.add({targets:actor,angle:cow?0.6:1,duration:cow?1400:1000,yoyo:true,repeat:-1,ease:'Sine.inOut',delay:index*100});
       this.animalActors.push(actor);
       const marginX=bounds.width/2-(cow?28:19),marginY=bounds.height/2-(cow?25:18);
       this.wanderAnimal(actor,center.x,center.y,marginX,marginY,cow);
     });
+    // A small chick companion brings life to an occupied chicken run without changing save data.
+    if(this.animals.some(a=>a.id==='hen')&&this.textures.exists('animal-chick')){
+      const chick=this.add.container(henPos.x+15,henPos.y+13);chick.setDepth(henPos.y+14);
+      chick.add(this.add.ellipse(0,4,15,4,0x263e25,0.18));
+      chick.add(this.add.image(0,-1,'animal-chick').setDisplaySize(22,22));
+      this.animalActors.push(chick);
+      this.wanderAnimal(chick,henPos.x,henPos.y,Math.max(5,this.paddockSize('hen').width/2-15),Math.max(5,this.paddockSize('hen').height/2-15),false);
+    }
   }
 
   private wanderAnimal(actor:Phaser.GameObjects.Container,cx:number,cy:number,limitX:number,limitY:number,cow:boolean):void{
