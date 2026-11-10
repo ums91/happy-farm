@@ -293,7 +293,8 @@ export class FarmScene extends Phaser.Scene {
     g.fillEllipse(silo.x + 31, silo.y - 52, 29, 12);
     g.fillStyle(0x8b4939, 1);
     g.fillTriangle(silo.x + 15, silo.y - 48, silo.x + 31, silo.y - 64, silo.x + 47, silo.y - 48);
-    this.drawAdditionalBuildings(g);\n    // Flowering borders near the path.
+    this.drawAdditionalBuildings(g);
+    // Flowering borders near the path.
     [[-330, 145], [-300, 165], [315, 135], [345, 158], [-360, 320], [365, 330]].forEach(([x, y], i) => {
       g.fillStyle(0x4d873f, 0.85);
       g.fillEllipse(x!, y! + 4, 17, 7);
