@@ -37,6 +37,9 @@ export class FarmScene extends Phaser.Scene {
   private plotGraphics!: Phaser.GameObjects.Graphics;
   private overlay!: Phaser.GameObjects.Graphics;
   private selected: Plot | null = null;
+  private cropHoverTooltip: HTMLDivElement|null = null;
+  private hoveredCropPlot: Plot|null = null;
+  private hoverPointer = {x:0,y:0};
   private activeTool: Tool = 'select';
   private coins = 250;
   private xp = 0;
@@ -77,6 +80,7 @@ export class FarmScene extends Phaser.Scene {
     this.loadFarm();
     this.drawScenery();
     this.renderOwnedAnimals();
+    this.createCropHoverTooltip();
     this.bindWorldInput();
     this.bindToolbar();
     this.bindCropSelector();
@@ -84,7 +88,7 @@ export class FarmScene extends Phaser.Scene {
     this.bindSideRail();
     this.refreshHud();
     this.refreshSelection();
-    this.time.addEvent({ delay: 1000, loop: true, callback: () => { this.updateCropLifecycle(); this.updateProduction(); if(this.activeBuilding==='coop'||this.activeBuilding==='barn')this.renderBuildingPanel(this.activeBuilding);else if(this.activeBuilding)this.renderGenericBuildingPanel(this.activeBuilding); } });
+    this.time.addEvent({ delay: 1000, loop: true, callback: () => { this.updateCropLifecycle(); this.updateProduction(); this.refreshCropHoverTooltip(); if(this.activeBuilding==='coop'||this.activeBuilding==='barn')this.renderBuildingPanel(this.activeBuilding);else if(this.activeBuilding)this.renderGenericBuildingPanel(this.activeBuilding); } });
     this.input.on('wheel', (_pointer: Phaser.Input.Pointer, _objects: unknown[], _dx: number, dy: number) => {
       this.cameras.main.setZoom(Phaser.Math.Clamp(this.cameras.main.zoom - dy * 0.001, 0.55, 1.35));
     });
@@ -579,6 +583,7 @@ export class FarmScene extends Phaser.Scene {
       this.handleWorldTap(pointer);
     });
     this.input.on('pointermove',(pointer:Phaser.Input.Pointer)=>{
+      if(!pointer.wasTouch)this.updateCropHover(pointer);
       if(pointer.wasTouch&&this.touchPositions.has(pointer.id)){
         const touch=this.touchPositions.get(pointer.id)!;
         const previousX=touch.x,previousY=touch.y;
@@ -635,6 +640,29 @@ export class FarmScene extends Phaser.Scene {
       if(this.touchPositions.size===0){this.touchGesture=false;this.pinchDistance=0;}
     });
     this.input.mouse?.disableContextMenu();
+  }
+
+
+  private createCropHoverTooltip():void {
+    const host=document.getElementById('game');if(!host)return;
+    const tip=document.createElement('div');tip.className='crop-hover-tooltip';tip.setAttribute('role','status');tip.style.display='none';host.appendChild(tip);this.cropHoverTooltip=tip;
+  }
+  private updateCropHover(pointer:Phaser.Input.Pointer):void {
+    if(!this.cropHoverTooltip)return;
+    const world=this.cameras.main.getWorldPoint(pointer.x,pointer.y),tile=this.toTile(world.x,world.y);
+    const plot=tile?this.plots.get(this.key(tile.col,tile.row)):undefined;
+    if(!plot||!['growing','ready','withered'].includes(plot.state)){this.hoveredCropPlot=null;this.cropHoverTooltip.style.display='none';return;}
+    this.hoveredCropPlot=plot;this.hoverPointer={x:pointer.x,y:pointer.y};this.refreshCropHoverTooltip();
+  }
+  private refreshCropHoverTooltip():void {
+    const tip=this.cropHoverTooltip,plot=this.hoveredCropPlot;if(!tip||!plot)return;
+    if(!['growing','ready','withered'].includes(plot.state)){tip.style.display='none';this.hoveredCropPlot=null;return;}
+    const crop=CROPS[plot.crop];let status='';
+    if(plot.state==='ready')status='Ready to harvest!';
+    else if(plot.state==='withered')status='Withered · Plow to clear';
+    else {const ms=Math.max(0,plot.readyAt-Date.now()),seconds=Math.ceil(ms/1000),mins=Math.floor(seconds/60),secs=seconds%60;status='Harvest in '+(mins>0?mins+'m ':'')+secs+'s';}
+    tip.innerHTML='<strong>'+crop.emoji+' '+crop.name+'</strong><span>'+status+'</span>';
+    tip.style.left=Math.min(this.scale.width-160,this.hoverPointer.x+14)+'px';tip.style.top=Math.max(8,this.hoverPointer.y-48)+'px';tip.style.display='flex';
   }
 
   private applyTool(plot: Plot): void {
