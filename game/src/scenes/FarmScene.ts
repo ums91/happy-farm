@@ -113,7 +113,7 @@ export class FarmScene extends Phaser.Scene {
     this.refreshSelection();
     this.time.addEvent({ delay: 1000, loop: true, callback: () => { if((this.questRefreshAt>0&&Date.now()>=this.questRefreshAt)||(this.eventStartedAt>0&&Date.now()-this.eventStartedAt>=604800000)){this.ensureQuestAndEventCycles();this.renderSideRail();} this.updateCropLifecycle(); this.updateProduction(); this.updateFruitTrees(); this.refreshCropHoverTooltip(); if(this.activeBuilding==='coop'||this.activeBuilding==='barn')this.renderBuildingPanel(this.activeBuilding);else if(this.activeBuilding)this.renderGenericBuildingPanel(this.activeBuilding); } });
     this.input.on('wheel', (_pointer: Phaser.Input.Pointer, _objects: unknown[], _dx: number, dy: number) => {
-      this.cameras.main.setZoom(Phaser.Math.Clamp(this.cameras.main.zoom - dy * 0.001, 0.55, 1.35));
+      const camera=this.cameras.main;const anchor=camera.getWorldPoint(_pointer.x,_pointer.y);camera.setZoom(Phaser.Math.Clamp(camera.zoom-dy*0.0015,0.55,1.8));const after=camera.getWorldPoint(_pointer.x,_pointer.y);camera.scrollX+=anchor.x-after.x;camera.scrollY+=anchor.y-after.y;
     });
   }
 
@@ -672,13 +672,18 @@ export class FarmScene extends Phaser.Scene {
         touch.x=pointer.x;touch.y=pointer.y;
         const pts=Array.from(this.touchPositions.values());
         if(pts.length>=2){
+          const camera=this.cameras.main;
+          const midpoint={x:(pts[0]!.x+pts[1]!.x)/2,y:(pts[0]!.y+pts[1]!.y)/2};
           const distance=Phaser.Math.Distance.Between(pts[0]!.x,pts[0]!.y,pts[1]!.x,pts[1]!.y);
           if(this.pinchDistance>0&&distance>0){
-            this.cameras.main.setZoom(Phaser.Math.Clamp(this.cameras.main.zoom*(distance/this.pinchDistance),0.55,1.35));
+            const anchor=camera.getWorldPoint(midpoint.x,midpoint.y);
+            camera.setZoom(Phaser.Math.Clamp(camera.zoom*(distance/this.pinchDistance),0.55,2.0));
+            const after=camera.getWorldPoint(midpoint.x,midpoint.y);
+            camera.scrollX+=anchor.x-after.x;camera.scrollY+=anchor.y-after.y;
           }
           this.pinchDistance=distance;this.touchGesture=true;return;
         }
-        if(Math.hypot(pointer.x-touch.startX,pointer.y-touch.startY)>10){
+        if(Math.hypot(pointer.x-touch.startX,pointer.y-touch.startY)>7){
           this.cameraDragging=true;this.touchGesture=true;
         }
         if(this.cameraDragging){
