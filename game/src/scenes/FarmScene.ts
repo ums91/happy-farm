@@ -208,17 +208,34 @@ export class FarmScene extends Phaser.Scene {
     this.refreshHud();
   }
 
+  private scheduleGrowth(plot: Plot, delay: number): void {
+    const id = this.key(plot.col, plot.row);
+    this.growthTimers.get(id)?.remove(false);
+    this.growthTimers.set(id, this.time.delayedCall(delay, () => {
+      plot.state = 'ready';
+      plot.growth = 100;
+      this.redrawPlot(plot);
+      if (this.selected === plot) this.refreshSelection();
+    }));
+  }
+
   private redrawPlot(plot: Plot): void {
+    const id = this.key(plot.col, plot.row);
+    this.plotOverlays.get(id)?.destroy();
+    this.plotOverlays.delete(id);
+    if (plot.state === 'grass') return;
     const p = this.toWorld(plot.col, plot.row);
     const g = this.add.graphics();
-    if (plot.state !== 'grass') {
-      this.diamond(g, p.x, p.y, 0x805332, 0x68452f);
-      g.lineStyle(2, 0xb78655, 0.9);
-      for (let i = -2; i <= 2; i += 1) {
-        g.beginPath(); g.moveTo(p.x - 25, p.y + i * 5); g.lineTo(p.x + 25, p.y + i * 5); g.strokePath();
-      }
-      if (plot.state === 'growing' || plot.state === 'ready') this.drawCrop(g, p.x, p.y, plot);
+    this.plotOverlays.set(id, g);
+    this.diamond(g, p.x, p.y, 0x805332, 0x68452f);
+    g.lineStyle(2, 0xb78655, 0.9);
+    for (let i = -2; i <= 2; i += 1) {
+      g.beginPath();
+      g.moveTo(p.x - 25, p.y + i * 5);
+      g.lineTo(p.x + 25, p.y + i * 5);
+      g.strokePath();
     }
+    if (plot.state === 'growing' || plot.state === 'ready') this.drawCrop(g, p.x, p.y, plot);
   }
 
   private drawCrop(g: Phaser.GameObjects.Graphics, x: number, y: number, plot: Plot): void {
