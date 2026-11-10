@@ -21,7 +21,7 @@
           <div class="resource coin-resource"><span class="resource-icon coin">🪙</span><strong id="coins">250</strong><button aria-label="Open market" id="coins-plus">＋</button></div>
           <div class="resource xp-resource"><span class="resource-icon star">⭐</span><strong id="xp">Level 1 · 0 XP</strong></div>
         </div>
-        <div class="top-actions"><button id="cloud-account" title="Cloud save account">☁ Sign in</button><button id="cloud-account" title="Cloud save account">☁ Sign in</button>
+        <div class="top-actions"><button id="cloud-account" title="Cloud save account">☁ Sign in</button>
           <button id="top-quests" title="Quests">📜</button><button id="top-orders" title="Orders">📦</button><button id="top-inventory" title="Inventory">🎒</button><button id="top-settings" title="Settings">⚙</button>
         </div>
       </header>
@@ -64,16 +64,6 @@
       </main>
       <footer class="footer"><span>HAPPY FARM <b>·</b> DEVELOPMENT BUILD 0.2.0</span><span>GROW · HARVEST · MAKE IT YOURS</span></footer>
       <div class="modal-backdrop" id="market-modal" aria-hidden="true"><section class="market-window" role="dialog" aria-modal="true"><header class="market-header"><div><small>HAPPY FARM TRADING POST</small><h2>Farm Market</h2></div><button class="modal-close" data-close-modal>×</button></header><div class="market-tabs"><button class="market-tab active" data-market-tab="seeds">🌱 Seeds</button><button class="market-tab" data-market-tab="sell">🪙 Sell</button><button class="market-tab" data-market-tab="animals">🐮 Animals</button><button class="market-tab" data-market-tab="feed">🥣 Animal Feed</button><button class="market-tab" data-market-tab="decor">🌳 Decorations</button><button class="market-tab" data-market-tab="buildings">🏗️ Buildings</button></div><p class="market-intro" id="market-intro">Buy seeds, then choose Plant and tap a prepared field.</p><div class="market-items" id="market-items"></div><footer class="market-footer">🪙 Your balance <strong id="market-balance">250 coins</strong></footer></section></div><div class="daily-reward-backdrop" id="daily-reward-modal" aria-hidden="true"><section class="daily-reward-card" role="dialog" aria-modal="true" aria-labelledby="daily-reward-title"><div class="daily-reward-sparkle">🎁</div><small>WELCOME BACK, FARMER</small><h2 id="daily-reward-title">Farm Daily Reward</h2><p id="daily-reward-copy">A little gift to help your farm grow.</p><div class="daily-reward-prize"><span>🪙</span><strong id="daily-reward-amount">100</strong><small>COINS</small></div><button id="daily-reward-claim">Collect 100 coins</button><p class="daily-reward-next" id="daily-reward-next">Next reward available in 12 hours.</p></section></div><div class="toast" id="game-toast" role="status"></div>
-      <div class="cloud-account-backdrop" id="cloud-account-modal" aria-hidden="true">
-        <section class="cloud-account-card" role="dialog" aria-modal="true" aria-labelledby="cloud-account-title">
-          <header><div><small>HAPPY FARM CLOUD</small><h2 id="cloud-account-title">Save your farm everywhere</h2></div><button id="cloud-account-close" type="button" aria-label="Close">×</button></header>
-          <p class="cloud-save-status" id="cloud-save-status" data-status="unconfigured">Cloud saves need setup</p>
-          <form id="cloud-auth-form"><label for="cloud-email">Email</label><input id="cloud-email" type="email" autocomplete="email" required /><label for="cloud-password">Password</label><input id="cloud-password" type="password" autocomplete="current-password" minlength="6" required /><button id="cloud-auth-submit" type="submit">Sign in</button></form>
-          <button id="cloud-auth-mode" class="cloud-text-button" type="button">Need an account? Create one</button>
-          <div class="cloud-account-actions"><button id="cloud-sync-now" type="button">Sync now</button><button id="cloud-sign-out" type="button">Sign out</button></div>
-          <small>Your device keeps a local backup. Cloud sync is enabled only after you configure Supabase.</small>
-        </section>
-      </div>
       <div class="cloud-account-backdrop" id="cloud-account-modal" aria-hidden="true">
         <section class="cloud-account-card" role="dialog" aria-modal="true" aria-labelledby="cloud-account-title">
           <header><div><small>HAPPY FARM CLOUD</small><h2 id="cloud-account-title">Save your farm everywhere</h2></div><button id="cloud-account-close" type="button" aria-label="Close">×</button></header>
