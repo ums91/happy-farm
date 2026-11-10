@@ -22,28 +22,34 @@
         </div>
       </header>
       <main class="game-shell">
+        <aside class="left-rail">
+          <section class="rail-profile"><div class="profile-card"><div class="avatar">👩‍🌾</div><div><strong id="farmer-name">New Farmer</strong><small>Your farm adventure begins!</small></div><span class="level">LV 1</span></div><div class="progress-label"><span>FARM PROGRESS</span><strong id="progress-text">0 / 100 XP</strong></div><div class="progress-track"><span id="progress-fill"></span></div></section>
+          <section class="rail-section"><h2>📜 Farm Quests</h2><div id="rail-quests" class="rail-cards"></div></section>
+          <section class="rail-section"><h2>🚚 Orders & Delivery</h2><div id="rail-orders" class="rail-cards"></div></section>
+          <section class="rail-section"><h2>🐄 Farmyard</h2><p id="animal-status">Visit the Coop or Dairy Barn to manage animals.</p><button class="care-button" id="animal-action">Collect & feed</button></section>
+        </aside>
         <section class="world-panel" aria-label="Farm world">
           <div class="world-label"><span class="live-dot"></span> <span id="farm-name-label">MY FARM</span> <span class="world-coords">GREEN VALLEY · 01</span></div>
           <div id="game" class="game-canvas"></div>
-          <div class="world-hint">Right-click and drag to explore · Scroll to zoom · Select a field</div>
-        </section>
-        <aside class="side-panel">
-          <div class="panel-heading"><span>FARM JOURNAL</span><span class="journal-icon">✦</span></div>
-          <div class="profile-card"><div class="avatar">👩‍🌾</div><div><strong id="farmer-name">New Farmer</strong><small>Your farm adventure begins!</small></div><span class="level">LV 1</span><button class="profile-edit" id="edit-farm-profile" title="Edit farmer and farm name" aria-label="Edit farmer and farm name">✎</button></div>
-          <div class="progress-label"><span>FARM PROGRESS</span><strong id="progress-text">0 / 100 XP</strong></div>
-          <div class="progress-track"><span id="progress-fill"></span></div>
-          <div class="panel-heading tools-heading">YOUR FARM TOOLS</div>
-          <div class="tool-grid" id="tool-grid">
-            <button class="tool active" data-tool="select"><span>↖</span><small>Select</small></button>
-            <button class="tool" data-tool="plow"><span>⌁</span><small>Plow</small></button>
-            <button class="tool" data-tool="plant"><span>♧</span><small>Plant</small></button>
-            <button class="tool" data-tool="water"><span>♒</span><small>Water</small></button>
-            <button class="tool" data-tool="harvest"><span>✧</span><small>Harvest</small></button>
-            <button class="tool" data-tool="move"><span>✥</span><small>Move</small></button>
+          <div class="world-hint">Select a field to choose seeds · Right-click drag to explore · Scroll to zoom</div>
+          <div class="field-toolbar">
+            <div class="tool-grid" id="tool-grid">
+              <button class="tool active" data-tool="select"><span>↖</span><small>Select</small></button>
+              <button class="tool" data-tool="plow"><span>⌁</span><small>Plow</small></button>
+              <button class="tool" data-tool="plant"><span>🌱</span><small>Plant</small></button>
+              <button class="tool" data-tool="water"><span>♒</span><small>Water</small></button>
+              <button class="tool" data-tool="harvest"><span>✧</span><small>Harvest</small></button>
+              <button class="tool" data-tool="move"><span>✥</span><small>Move</small></button>
+            </div>
+            <div class="field-actions">
+              <button class="nav-button" id="market-open">🏪 Market</button>
+              <button class="nav-button" id="inventory-open">🎒 Inventory <b id="inventory-count">3</b></button>
+              <button class="nav-button" id="buildings-open">🏠 Buildings</button>
+              <button class="nav-button" id="decor-open">🌳 Decor</button>
+              <button class="nav-button" id="edit-farm-shortcut">✎ Edit Farm</button>
+            </div>
           </div>
-          <div class="crop-choice"><label for="crop-picker">🌱 Choose crop to plant</label><select id="crop-picker" aria-label="Choose crop to plant"><option value="wheat">🌾 Wheat</option></select><small id="selected-seed-count">3 available</small></div><div class="inventory-summary">🌱 Wheat seeds: <b id="wheat-count">3</b><small class="crop-tip">More crops unlock as your farmer levels up. Ripe crops must be harvested before they wither.</small></div><div class="selected-card" id="selection"><span class="selection-kicker">YOUR LAND</span><strong>Choose a field</strong><p>Pick a plot and get your farm growing. Every little seed counts!</p></div>
-          <div class="animal-care" id="animal-care"><strong>🐄 Barn & coop</strong><p id="animal-status">Visit the Market to welcome your first animals.</p><button class="care-button" id="animal-action">Collect & feed</button><small class="feed-note">Feed is required: hens need hen feed; cows need cow feed.</small></div><div class="season-card"><span class="sun">☀</span><span><strong>Lovely sunny day!</strong><small>Perfect weather for farming.</small></span></div>
-        </aside>
+        </section>
       </main>
       <footer class="footer"><span>HAPPY FARM <b>·</b> DEVELOPMENT BUILD 0.2.0</span><span>GROW · HARVEST · MAKE IT YOURS</span></footer>
       <div class="modal-backdrop" id="market-modal" aria-hidden="true"><section class="market-window" role="dialog" aria-modal="true"><header class="market-header"><div><small>HAPPY FARM TRADING POST</small><h2>Farm Market</h2></div><button class="modal-close" data-close-modal>×</button></header><div class="market-tabs"><button class="market-tab active" data-market-tab="seeds">🌱 Seeds</button><button class="market-tab" data-market-tab="animals">🐮 Animals</button><button class="market-tab" data-market-tab="feed">🥣 Animal Feed</button><button class="market-tab" data-market-tab="decor">🌳 Decorations</button><button class="market-tab" data-market-tab="buildings">🏗️ Buildings</button></div><p class="market-intro" id="market-intro">Buy seeds, then choose Plant and tap a prepared field.</p><div class="market-items" id="market-items"></div><footer class="market-footer">🪙 Your balance <strong id="market-balance">250 coins</strong></footer></section></div><div class="toast" id="game-toast" role="status"></div>
