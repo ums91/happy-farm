@@ -1,0 +1,45 @@
+name: Validate Happy Farm build
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'game/**'
+      - '.github/workflows/validate-game.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validate-happy-farm-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Typecheck and production build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        working-directory: game
+        run: npm install
+
+      - name: Typecheck
+        working-directory: game
+        run: npm run typecheck
+
+      - name: Build Phaser client
+        working-directory: game
+        env:
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
+        run: npm run build
