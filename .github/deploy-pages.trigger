@@ -1,1 +1,1 @@
-Deploy the current Happy Farm game build to GitHub Pages when this file changes.
+Deploy current Happy Farm build after TypeScript fix.
