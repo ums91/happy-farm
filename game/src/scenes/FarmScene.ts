@@ -1398,7 +1398,7 @@ export class FarmScene extends Phaser.Scene {
     };
     try {
       localStorage.setItem(this.saveKey, JSON.stringify(save));
-      localStorage.setItem('happyFarmLocalUpdatedAtV1', String(Math.max(Date.now(), Number(localStorage.getItem('happyFarmLocalUpdatedAtV1') || 0))));
+      localStorage.setItem('happyFarmLocalUpdatedAtV1', String(Math.max(Date.now(), Number(localStorage.getItem('happyFarmLocalUpdatedAtV1') || 0) + 1)));
       queueCloudSave();
     } catch {
       // Storage may be disabled or full; gameplay remains available for this session.
