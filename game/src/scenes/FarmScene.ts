@@ -567,8 +567,8 @@ export class FarmScene extends Phaser.Scene {
     const targetY=Phaser.Math.Clamp(cy+Phaser.Math.Between(-Math.max(4,limitY-5),Math.max(4,limitY-5)),cy-limitY,cy+limitY);
     const duration=Phaser.Math.Between(cow?2600:1500,cow?4300:2800);
     this.tweens.add({targets:actor,x:targetX,y:targetY,duration,ease:'Sine.inOut',
-      onStart:()=>actor.setScale((cow?1.04:0.58)*(targetX<actor.x?-1:1),cow?1.04:0.58),
-      onComplete:()=>{if(actor.active){actor.setScale(cow?1.04:0.58, cow?1.04:0.58);this.time.delayedCall(Phaser.Math.Between(450,1500),()=>this.wanderAnimal(actor,cx,cy,limitX,limitY,cow));}}
+      onStart:()=>actor.setScale((cow?1.04:0.72)*(targetX<actor.x?-1:1),cow?1.04:0.72),
+      onComplete:()=>{if(actor.active){actor.setScale(cow?1.04:0.72, cow?1.04:0.72);this.time.delayedCall(Phaser.Math.Between(450,1500),()=>this.wanderAnimal(actor,cx,cy,limitX,limitY,cow));}}
     });
   }
 
