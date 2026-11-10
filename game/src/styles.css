@@ -344,3 +344,7 @@ button,.tool,select{touch-action:manipulation}
   .tool{min-height:44px}
 }
 .quest-cycle-note{margin:0 0 10px;color:#8c7959;font-size:12px;font-weight:700}
+
+.profile-card{position:relative}.profile-edit{margin-left:auto;width:28px;height:28px;border:1px solid #dfc995;border-radius:9px;background:#fff8e6;color:#7e693f;font-size:16px;cursor:pointer}.profile-edit:hover{background:#eaf4d9}
+.building-levels{display:flex;gap:8px;margin:12px 0;color:#d7c9a9;font-size:24px}.building-levels .reached{color:#e7b747;text-shadow:0 1px #9d7835}
+@media(max-width:700px){.profile-edit{width:32px;height:32px;flex:0 0 32px}}
