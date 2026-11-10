@@ -1,1 +1,1 @@
-Deploy Happy Farm gameplay, market and save-system upgrade.
+Deploy Happy Farm animal care and production upgrade.
