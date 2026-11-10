@@ -1,1 +1,1 @@
-Deploy current Happy Farm build after TypeScript fix.
+Deploy Happy Farm gameplay, market and save-system upgrade.
