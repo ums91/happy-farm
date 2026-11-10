@@ -12,6 +12,7 @@ let currentUserEmail: string | null = null;
 let syncInProgress = false;
 let cloudReady = false;
 let saveTimer: ReturnType<typeof setTimeout> | undefined;
+let cloudSaveQueued = false;
 let cloudInitialized = false;
 
 function setStatus(next: CloudStatus, message?: string): void {
@@ -54,8 +55,13 @@ function localSnapshot(): Record<string, unknown> | null {
 }
 
 async function syncWithCloud(): Promise<void> {
-  if (!client || !currentUserId || syncInProgress || !navigator.onLine) return;
+  if (!client || !currentUserId || !navigator.onLine) return;
+  if (syncInProgress) {
+    cloudSaveQueued = true;
+    return;
+  }
   syncInProgress = true;
+  cloudSaveQueued = false;
   setStatus('syncing');
   try {
     const { data: remote, error } = await client.from('farm_saves')
@@ -93,13 +99,24 @@ async function syncWithCloud(): Promise<void> {
     setStatus('error');
   } finally {
     syncInProgress = false;
+    if (cloudSaveQueued && client && currentUserId && navigator.onLine && cloudReady) {
+      scheduleCloudSave();
+    }
   }
+}
+
+function scheduleCloudSave(): void {
+  if (saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    saveTimer = undefined;
+    void syncWithCloud();
+  }, 1800);
 }
 
 export function queueCloudSave(): void {
   if (!client || !currentUserId || !cloudReady) return;
-  if (saveTimer) clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => { void syncWithCloud(); }, 1800);
+  cloudSaveQueued = true;
+  if (!syncInProgress) scheduleCloudSave();
 }
 
 function showAccountModal(): void {
@@ -173,7 +190,12 @@ export function initializeCloudSaves(): void {
   }
 
   client = createClient(supabaseUrl, supabaseKey);
-  window.addEventListener('online', () => { if (currentUserId) void syncWithCloud(); });
+  window.addEventListener('online', () => {
+    if (currentUserId) {
+      if (cloudSaveQueued && cloudReady) scheduleCloudSave();
+      else void syncWithCloud();
+    }
+  });
   window.addEventListener('offline', () => setStatus('offline'));
   client.auth.onAuthStateChange((_event, session) => {
     currentUserId = session?.user.id || null;
