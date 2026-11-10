@@ -11,7 +11,7 @@ interface AnimalProduce { eggs: number; milk: number }
 type BuildingId = 'coop'|'barn'|'silo'|'bakery'|'greenhouse'|'windmill';
 type ProductId='flour'|'bread'|'pastry'|'grapes';
 interface ProductionJob { recipe:string; readyAt:number }
-interface FarmSave { version: 15; harvestedCrops?:Partial<Record<CropId,number>>; fruitInventory?:Record<'apples'|'pears'|'cherries',number>; fruitTreeReadyAt?:Record<string,number>; farmerName?:string; farmName?:string; buildingLevels?:Partial<Record<BuildingId,number>>; productionJobs?:Partial<Record<BuildingId,ProductionJob|null>>; crafted?:Partial<Record<ProductId,number>>; randomQuests?: Array<{id:string;title:string;description:string;target:number;coins:number;xp:number;icon:string;metric:'harvests'|'hens'|'cows'|'eggs'|'milk'}>; claimedQuests?: string[]; ordersCompleted?: Record<string,number>; animals: Animal[]; harvests: number; coins: number; xp: number; selectedCrop?: CropId; decor?: Record<string,{col:number;row:number}>; feed: { hen: number; cow: number }; buildings?: BuildingProgress; produce?: AnimalProduce; inventory: Record<CropId, number>; plots: Array<{ col:number; row:number; state:PlotState; watered:boolean; growth:number; crop?:CropId; readyAt?:number; witherAt?:number }> }
+interface FarmSave { version: 15; questRefreshAt?:number; questProgressBaseline?:Partial<Record<'harvests'|'hens'|'cows'|'eggs'|'milk',number>>; eventStartedAt?:number; eventStartHarvests?:number; eventClaimed?:boolean; claimedMilestones?:number[]; harvestedCrops?:Partial<Record<CropId,number>>; fruitInventory?:Record<'apples'|'pears'|'cherries',number>; fruitTreeReadyAt?:Record<string,number>; farmerName?:string; farmName?:string; buildingLevels?:Partial<Record<BuildingId,number>>; productionJobs?:Partial<Record<BuildingId,ProductionJob|null>>; crafted?:Partial<Record<ProductId,number>>; randomQuests?: Array<{id:string;title:string;description:string;target:number;coins:number;xp:number;icon:string;metric:'harvests'|'hens'|'cows'|'eggs'|'milk'}>; claimedQuests?: string[]; ordersCompleted?: Record<string,number>; animals: Animal[]; harvests: number; coins: number; xp: number; selectedCrop?: CropId; decor?: Record<string,{col:number;row:number}>; feed: { hen: number; cow: number }; buildings?: BuildingProgress; produce?: AnimalProduce; inventory: Record<CropId, number>; plots: Array<{ col:number; row:number; state:PlotState; watered:boolean; growth:number; crop?:CropId; readyAt?:number; witherAt?:number }> }
 const CROPS: Record<CropId,{name:string;emoji:string;cost:number;reward:number;xp:number;growMs:number;color:number;unlockLevel:number}> = {
  wheat:{name:'Wheat',emoji:'🌾',cost:5,reward:18,xp:5,growMs:15000,color:0xe4b83f,unlockLevel:1},
  carrot:{name:'Carrot',emoji:'🥕',cost:9,reward:31,xp:8,growMs:22000,color:0xef873e,unlockLevel:1},
@@ -68,6 +68,12 @@ export class FarmScene extends Phaser.Scene {
   private claimedQuests: string[] = [];
   private randomQuests: Array<{id:string;title:string;description:string;target:number;coins:number;xp:number;icon:string;metric:'harvests'|'hens'|'cows'|'eggs'|'milk'}> = [];
   private questCycle = 0;
+  private questRefreshAt=0;
+  private questProgressBaseline:Record<'harvests'|'hens'|'cows'|'eggs'|'milk',number>={harvests:0,hens:0,cows:0,eggs:0,milk:0};
+  private eventStartedAt=0;
+  private eventStartHarvests=0;
+  private eventClaimed=false;
+  private claimedMilestones:number[]=[];
   private ordersCompleted: Record<string,number> = {};
   private cameraDragging = false;
   private dragPoint = new Phaser.Math.Vector2();
@@ -82,6 +88,7 @@ export class FarmScene extends Phaser.Scene {
     this.overlay = this.add.graphics();
     this.drawWorld();
     this.loadFarm();
+    this.ensureQuestAndEventCycles();
     this.drawScenery();
     this.initializeFruitTrees();
     this.renderFruitTreeBadges();
@@ -911,6 +918,8 @@ export class FarmScene extends Phaser.Scene {
   private bindSideRail():void {
     const quests=document.getElementById('rail-quests');
     quests?.addEventListener('click',e=>{const b=(e.target as HTMLElement).closest<HTMLButtonElement>('[data-claim-quest]');if(b)this.claimQuest(b.dataset.claimQuest||'');});
+    document.getElementById('rail-events')?.addEventListener('click',e=>{if((e.target as HTMLElement).closest('[data-claim-event]'))this.claimEvent();});
+    document.getElementById('rail-rewards')?.addEventListener('click',e=>{const b=(e.target as HTMLElement).closest<HTMLButtonElement>('[data-claim-milestone]');if(b)this.claimMilestone(Number(b.dataset.claimMilestone));});
     document.getElementById('rail-orders')?.addEventListener('click',e=>{const b=(e.target as HTMLElement).closest<HTMLButtonElement>('[data-fulfil-order]');if(b)this.fulfilOrder(b.dataset.fulfilOrder||'');});
     this.renderSideRail();
   }
@@ -918,6 +927,8 @@ export class FarmScene extends Phaser.Scene {
     const q=document.getElementById('rail-quests'),o=document.getElementById('rail-orders');
     if(q)q.innerHTML=this.renderQuests(true);
     if(o)o.innerHTML=this.renderOrders();
+    const events=document.getElementById('rail-events');if(events)events.innerHTML=this.renderEvents();
+    const rewards=document.getElementById('rail-rewards');if(rewards)rewards.innerHTML=this.renderRewards();
   }
   private openFieldSeedPicker():void {
     if(!this.selected)return;
@@ -1126,12 +1137,20 @@ export class FarmScene extends Phaser.Scene {
     modal?.classList.add('open'); modal?.setAttribute('aria-hidden','false'); this.renderInventory();
   }
   private questProgress(metric:'harvests'|'hens'|'cows'|'eggs'|'milk'):number {
-    if(metric==='harvests')return this.harvests;
-    if(metric==='hens')return this.animals.filter(a=>a.id==='hen').length;
-    if(metric==='cows')return this.animals.filter(a=>a.id==='cow').length;
-    if(metric==='eggs')return this.produce.eggs;
-    return this.produce.milk;
+    const total=metric==='harvests'?this.harvests:metric==='hens'?this.animals.filter(a=>a.id==='hen').length:metric==='cows'?this.animals.filter(a=>a.id==='cow').length:metric==='eggs'?this.produce.eggs:this.produce.milk;
+    return Math.max(0,total-(this.questProgressBaseline[metric]||0));
   }
+  private ensureQuestAndEventCycles():void {
+    const now=Date.now();
+    if(!this.questRefreshAt){this.questRefreshAt=now+86400000;if(!this.randomQuests.length){this.questProgressBaseline={harvests:this.harvests,hens:this.animals.filter(a=>a.id==='hen').length,cows:this.animals.filter(a=>a.id==='cow').length,eggs:this.produce.eggs,milk:this.produce.milk};this.createRandomQuests();}}
+    else if(now>=this.questRefreshAt){this.questProgressBaseline={harvests:this.harvests,hens:this.animals.filter(a=>a.id==='hen').length,cows:this.animals.filter(a=>a.id==='cow').length,eggs:this.produce.eggs,milk:this.produce.milk};this.claimedQuests=[];this.createRandomQuests();this.questRefreshAt=now+86400000;}
+    if(!this.eventStartedAt||now-this.eventStartedAt>=604800000){this.eventStartedAt=now;this.eventStartHarvests=this.harvests;this.eventClaimed=false;}
+    this.saveFarm();
+  }
+  private renderEvents():string {const progress=Math.max(0,this.harvests-this.eventStartHarvests),target=20,done=progress>=target,remaining=Math.max(0,604800000-(Date.now()-this.eventStartedAt)),days=Math.floor(remaining/86400000),hours=Math.floor(remaining%86400000/3600000);return '<article class="market-item quest-card"><div class="market-art">🎉</div><div class="market-copy"><strong>Weekly Harvest Festival</strong><small>Harvest 20 crops before the festival ends. '+days+'d '+hours+'h remaining.</small><div class="quest-track"><i style="width:'+Math.min(100,progress/target*100)+'%"></i></div><small>'+Math.min(target,progress)+' / '+target+' harvests · Reward: 300 coins + 80 XP</small></div><button class="market-buy" data-claim-event '+(!done||this.eventClaimed?'disabled':'')+'>'+(this.eventClaimed?'Claimed':done?'Claim reward':'In progress')+'</button></article>';}
+  private claimEvent():void {if(this.eventClaimed||this.harvests-this.eventStartHarvests<20)return;this.eventClaimed=true;this.coins+=300;this.xp+=80;this.saveFarm();this.refreshHud();this.toast('Harvest Festival complete · +300 coins · +80 XP');}
+  private renderRewards():string {return [10,25,50,100].map(n=>{const claimed=this.claimedMilestones.includes(n),done=this.harvests>=n;return '<article class="market-item quest-card"><div class="market-art">🏅</div><div class="market-copy"><strong>'+n+' Lifetime Harvests</strong><small>'+Math.min(n,this.harvests)+' / '+n+' crops · Reward: '+n*10+' coins + '+n*2+' XP</small><div class="quest-track"><i style="width:'+Math.min(100,this.harvests/n*100)+'%"></i></div></div><button class="market-buy" data-claim-milestone="'+n+'" '+(!done||claimed?'disabled':'')+'>'+(claimed?'Claimed':done?'Claim reward':'In progress')+'</button></article>';}).join('');}
+  private claimMilestone(n:number):void {if(![10,25,50,100].includes(n)||this.harvests<n||this.claimedMilestones.includes(n))return;this.claimedMilestones.push(n);this.coins+=n*10;this.xp+=n*2;this.saveFarm();this.refreshHud();this.toast('Harvest milestone reward collected!');}
   private createRandomQuests():void {
     this.questCycle++;
     const pool = [
@@ -1242,7 +1261,7 @@ export class FarmScene extends Phaser.Scene {
       this.coins = Math.max(0, Math.floor(save.coins));
       this.farmerName=typeof save.farmerName==='string'&&save.farmerName.trim()?save.farmerName.slice(0,24):'New Farmer';
       this.farmName=typeof save.farmName==='string'&&save.farmName.trim()?save.farmName.slice(0,28):'My Farm';
-      if(save.buildingLevels&&typeof save.buildingLevels==='object')for(const id of ['coop','barn','silo','bakery','greenhouse','windmill'] as BuildingId[])this.buildingLevels[id]=Math.max(this.buildingLevels[id],Math.min(5,Math.floor(Number(save.buildingLevels[id])||0)));this.randomQuests = Array.isArray(save.randomQuests) ? save.randomQuests : [];
+      if(save.buildingLevels&&typeof save.buildingLevels==='object')for(const id of ['coop','barn','silo','bakery','greenhouse','windmill'] as BuildingId[])this.buildingLevels[id]=Math.max(this.buildingLevels[id],Math.min(5,Math.floor(Number(save.buildingLevels[id])||0)));this.randomQuests = Array.isArray(save.randomQuests) ? save.randomQuests : [];this.questRefreshAt=Number(save.questRefreshAt)||0;if(save.questProgressBaseline)this.questProgressBaseline={...this.questProgressBaseline,...save.questProgressBaseline};this.eventStartedAt=Number(save.eventStartedAt)||0;this.eventStartHarvests=Math.max(0,Number(save.eventStartHarvests)||0);this.eventClaimed=Boolean(save.eventClaimed);this.claimedMilestones=Array.isArray(save.claimedMilestones)?save.claimedMilestones.filter((n:number)=>[10,25,50,100].includes(n)):[];
       this.questCycle = this.randomQuests.length ? Math.max(1,...this.randomQuests.map(q=>Number((q.id.match(/-(\\d+)-\\d+$/)||[])[1])||1)) : 0;
       this.claimedQuests = Array.isArray(save.claimedQuests) ? save.claimedQuests.filter((id:string)=>(['first-harvest','busy-farmer','first-hen','first-cow','better-coop','bigger-silo'].includes(id) || this.randomQuests.some(q=>q.id===id))) : [];
       this.ordersCompleted = save.version >= 9 && save.ordersCompleted && typeof save.ordersCompleted === 'object' ? Object.fromEntries(Object.entries(save.ordersCompleted).map(([id,count])=>[id,Math.max(0,Math.floor(Number(count)||0))]).filter(([id])=>['egg-crate','milk-run','farm-breakfast'].includes(String(id)))) : {};
@@ -1290,6 +1309,7 @@ export class FarmScene extends Phaser.Scene {
       productionJobs:{...this.productionJobs},
       crafted:{...this.crafted},
       randomQuests: this.randomQuests,
+      questRefreshAt:this.questRefreshAt, questProgressBaseline:{...this.questProgressBaseline}, eventStartedAt:this.eventStartedAt, eventStartHarvests:this.eventStartHarvests, eventClaimed:this.eventClaimed, claimedMilestones:[...this.claimedMilestones],
       ordersCompleted: {...this.ordersCompleted},
       claimedQuests: [...this.claimedQuests],
       animals: this.animals,
