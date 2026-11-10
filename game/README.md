@@ -1,6 +1,6 @@
 # Happy Farm — Modular Game Client
 
-This directory contains the next-generation Phaser + TypeScript client. It is intentionally isolated from the root-level prototype while the new build is developed and validated.
+This directory contains the Phaser + TypeScript game client that is being prepared to replace the original root-level prototype on GitHub Pages.
 
 ## Requirements
 - Node.js 20 or newer
