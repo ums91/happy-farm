@@ -826,7 +826,6 @@ export class FarmScene extends Phaser.Scene {
     host.innerHTML='<section class="inventory-section"><h3>🌱 Field '+(this.selected? (this.selected.col+1)+', '+(this.selected.row+1):'')+' · '+selected+'</h3><p>Selected crop: '+CROPS[this.selectedCrop].emoji+' '+CROPS[this.selectedCrop].name+' · Seeds in bag: '+this.inventory[this.selectedCrop]+'</p><div class="quest-list">'+rows+'</div><button class="market-buy field-sow" id="field-sow" '+(!canSow?'disabled':'')+'>'+(canSow?'🌱 Prepare soil & sow '+CROPS[this.selectedCrop].name:'Buy seeds or choose an available field')+'</button></section>';
   }
   private buyFieldSeed():void {
-    const selected=document.querySelector<HTMLButtonElement>('[data-field-seed].chosen');
     const id=(document.querySelector<HTMLButtonElement>('[data-field-buy].chosen')?.dataset.fieldBuy||this.selectedCrop) as CropId;
     if(!CROPS[id]||Math.floor(this.xp/100)+1<CROPS[id].unlockLevel)return;
     const cost=CROPS[id].cost;if(this.coins<cost){this.toast('Not enough coins to buy these seeds.');return;}
