@@ -230,27 +230,23 @@ export class FarmScene extends Phaser.Scene {
     // Layered orchard trees: trunk, canopy shadow, clustered leaves and sunlit highlights.
     ['tree1','tree2','tree3','tree4','tree5','tree6','tree7','tree8'].forEach((id, i) => {
       const pos=this.decor[id]!; const p = this.toWorld(pos.col, pos.row);
-      const palette = [0x397b3c, 0x4b8d43, 0x5b9948, 0x47833d];
-      g.fillStyle(0x3f6e38, 0.24);
-      g.fillEllipse(p.x + 5, p.y + 4, 62, 17);
-      g.fillStyle(0x765338, 1);
-      g.fillRoundedRect(p.x - 6, p.y - 28, 12, 37, 3);
-      g.fillStyle(0x65452f, 0.55);
-      g.fillRect(p.x - 2, p.y - 24, 3, 28);
-      g.fillStyle(palette[i % palette.length]!, 1);
-      g.fillCircle(p.x, p.y - 42, 24);
-      g.fillCircle(p.x - 17, p.y - 34, 17);
-      g.fillCircle(p.x + 17, p.y - 34, 17);
-      g.fillCircle(p.x - 9, p.y - 56, 15);
-      g.fillCircle(p.x + 10, p.y - 54, 14);
-      g.fillStyle(0x8fc96a, 0.85);
-      g.fillCircle(p.x - 10, p.y - 55, 9);
-      g.fillCircle(p.x + 12, p.y - 43, 6);
-      if (i % 3 === 0) {
-        g.fillStyle(0xe8a34b, 1);
-        g.fillCircle(p.x + 18, p.y - 30, 3);
-        g.fillCircle(p.x - 18, p.y - 42, 3);
-      }
+      const palette = [0x356f36, 0x477f3b, 0x568d43, 0x3d7838];
+      const canopyY = p.y - 49;
+      // Soft cast shadow, branching trunk and layered foliage give the tree a fuller silhouette.
+      g.fillStyle(0x294c2a, 0.22); g.fillEllipse(p.x + 7, p.y + 5, 76, 20);
+      g.fillStyle(0x5a3b27, 1);
+      g.fillPoints([{x:p.x-7,y:p.y-5},{x:p.x-5,y:p.y-39},{x:p.x-14,y:p.y-54},{x:p.x-10,y:p.y-57},{x:p.x,y:p.y-43},{x:p.x+9,y:p.y-58},{x:p.x+13,y:p.y-54},{x:p.x+5,y:p.y-34},{x:p.x+8,y:p.y-4}], true);
+      g.lineStyle(2,0x9b7046,0.8);g.beginPath();g.moveTo(p.x-2,p.y-9);g.lineTo(p.x-3,p.y-38);g.lineTo(p.x-11,p.y-51);g.moveTo(p.x+2,p.y-34);g.lineTo(p.x+10,p.y-53);g.strokePath();
+      const leaf = palette[i % palette.length]!;
+      g.fillStyle(0x244f2b,0.48);
+      g.fillEllipse(p.x,canopyY+8,77,52);
+      g.fillStyle(leaf,1);
+      [[0,0,24],[-24,8,19],[24,8,20],[-14,-17,19],[14,-20,20],[-34,-7,13],[34,-5,14],[0,18,20]].forEach(([dx,dy,r])=>g.fillCircle(p.x+dx!,canopyY+dy!,r!));
+      g.fillStyle(0x75a94f,0.82);
+      [[-17,-18,7],[8,-25,8],[25,-4,6],[-30,4,6],[1,9,7]].forEach(([dx,dy,r])=>g.fillCircle(p.x+dx!,canopyY+dy!,r!));
+      g.fillStyle(0x2c6233,0.58);
+      [[-13,2],[7,-8],[22,13],[-27,-7],[0,-31]].forEach(([dx,dy])=>g.fillCircle(p.x+dx!,canopyY+dy!,3));
+      if (i % 3 === 0) { g.fillStyle(0xe9a34b,1); [[-19,2],[18,12],[5,-19]].forEach(([dx,dy])=>g.fillCircle(p.x+dx!,canopyY+dy!,3)); }
     });
     // Small garden beds and stepping stones around the homestead.
     const homePos=this.decor.farmhouse!; const barnPos=this.decor.barn!;
@@ -363,50 +359,45 @@ export class FarmScene extends Phaser.Scene {
   }
 
   private drawBuilding(g: Phaser.GameObjects.Graphics, x: number, y: number, wall: number, roof: number, label: string): void {
-    // Ground shadow and foundation.
-    g.fillStyle(0x385a31, 0.24);
-    g.fillEllipse(x + 4, y + 13, 108, 31);
-    g.fillStyle(0x8b704a, 1);
-    g.fillRoundedRect(x - 38, y + 1, 76, 9, 3);
-    // Side wall adds an isometric side plane.
-    g.fillStyle(Phaser.Display.Color.IntegerToColor(wall).darken(18).color, 1);
-    g.fillPoints([{x:x + 31,y:y - 34},{x:x + 43,y:y - 26},{x:x + 43,y:y + 8},{x:x + 31,y:y + 5}], true);
-    g.fillStyle(wall, 1);
-    g.fillRect(x - 31, y - 36, 62, 42);
-    g.fillStyle(0xf4e5bd, 1);
-    g.fillRect(x - 31, y - 36, 62, 5);
-    // Roof with a darker fascia and a warm sunlit front.
-    g.fillStyle(0x603b31, 1);
-    g.fillTriangle(x - 47, y - 32, x, y - 72, x + 47, y - 32);
-    g.fillStyle(roof, 1);
-    g.beginPath();
-    g.moveTo(x - 43, y - 35);
-    g.lineTo(x, y - 69);
-    g.lineTo(x + 43, y - 35);
-    g.lineTo(x + 31, y - 29);
-    g.lineTo(x, y - 58);
-    g.lineTo(x - 31, y - 29);
-    g.closePath();
-    g.fillPath();
-    g.lineStyle(2, 0xf0b879, 0.8);
-    g.beginPath(); g.moveTo(x, y - 65); g.lineTo(x, y - 57); g.strokePath();
-    // Door, windows, flower boxes and chimney.
-    g.fillStyle(0x69442f, 1);
-    g.fillRoundedRect(x - 8, y - 8, 16, 14, 2);
-    g.fillStyle(0xd9b77d, 1);
-    g.fillCircle(x + 4, y - 1, 1.3);
-    g.fillStyle(0x9dd9e8, 1);
-    g.fillRect(x - 25, y - 24, 12, 12);
-    g.fillRect(x + 13, y - 24, 12, 12);
-    g.lineStyle(2, 0xf8edcf, 1);
-    g.strokeRect(x - 25, y - 24, 12, 12);
-    g.strokeRect(x + 13, y - 24, 12, 12);
-    g.lineStyle(2, 0xf8edcf, 0.9);
-    g.beginPath(); g.moveTo(x - 19, y - 24); g.lineTo(x - 19, y - 12); g.moveTo(x - 25, y - 18); g.lineTo(x - 13, y - 18); g.strokePath();
-    g.beginPath(); g.moveTo(x + 19, y - 24); g.lineTo(x + 19, y - 12); g.moveTo(x + 13, y - 18); g.lineTo(x + 25, y - 18); g.strokePath();
-    g.fillStyle(0xffffff, 0.92);
-    g.fillRoundedRect(x - 35, y + 12, 70, 15, 6);
-    this.sceneryLabels.push(this.add.text(x, y + 19, label, { fontFamily: 'Arial', fontSize: '8px', fontStyle: 'bold', color: '#526c39' }).setOrigin(0.5));
+    // Grounding, masonry foundation and a shaded side wall.
+    g.fillStyle(0x29482b,0.24);g.fillEllipse(x+7,y+16,124,32);
+    g.fillStyle(0x766044,1);g.fillRoundedRect(x-43,y+1,88,10,3);
+    g.fillStyle(0xb69a6a,1);g.fillRect(x-42,y-2,86,4);
+    const side=Phaser.Display.Color.IntegerToColor(wall).darken(25).color;
+    g.fillStyle(side,1);g.fillPoints([{x:x+31,y:y-37},{x:x+48,y:y-27},{x:x+48,y:y+8},{x:x+31,y:y+5}],true);
+    g.fillStyle(wall,1);g.fillRect(x-31,y-38,62,44);
+    g.fillStyle(Phaser.Display.Color.IntegerToColor(wall).lighten(12).color,1);g.fillRect(x-31,y-38,62,5);
+    // Roof fascia and two planes with fine shingle seams.
+    g.fillStyle(0x50352d,1);g.fillTriangle(x-51,y-33,x,y-77,x+51,y-33);
+    g.fillStyle(roof,1);g.fillPoints([{x:x-46,y:y-35},{x:x,y:y-72},{x:x+45,y:y-35},{x:x+31,y:y-29},{x:x,y:y-57},{x:x-31,y:y-29}],true);
+    g.fillStyle(Phaser.Display.Color.IntegerToColor(roof).darken(20).color,1);
+    g.fillPoints([{x:x,y:y-72},{x:x+45,y:y-35},{x:x+31,y:y-29},{x:x,y:y-57}],true);
+    g.lineStyle(1.2,0xf0c58a,0.6);
+    for(let row=0;row<3;row++){const yy=y-61+row*9;g.beginPath();g.moveTo(x-28+row*9,yy);g.lineTo(x-7+row*3,yy-15);g.moveTo(x+5+row*5,yy-4);g.lineTo(x+25+row*4,yy+7);g.strokePath();}
+    g.lineStyle(2,0x704638,0.9);g.beginPath();g.moveTo(x-43,y-34);g.lineTo(x,y-70);g.lineTo(x+44,y-34);g.strokePath();
+    // Chimney, cap and a small drifting smoke puff.
+    g.fillStyle(0x9a5a43,1);g.fillRect(x+24,y-75,11,27);g.fillStyle(0x633d32,1);g.fillRect(x+22,y-77,15,4);
+    g.fillStyle(0xffffff,0.22);g.fillCircle(x+33,y-86,4);g.fillCircle(x+38,y-93,3);
+    // Plaster highlights, timber framing and recessed door.
+    g.fillStyle(0xffffff,0.16);g.fillRect(x-27,y-31,54,3);
+    g.lineStyle(3,0x79543a,0.85);g.beginPath();g.moveTo(x-28,y-35);g.lineTo(x-28,y+2);g.moveTo(x+28,y-35);g.lineTo(x+28,y+2);g.moveTo(x-29,y-6);g.lineTo(x+29,y-6);g.strokePath();
+    g.fillStyle(0x4c3328,1);g.fillRoundedRect(x-9,y-12,18,19,2);
+    g.fillStyle(0x8b6543,1);g.fillRect(x-6,y-9,12,16);g.fillStyle(0xe6c77d,1);g.fillCircle(x+4,y-2,1.5);
+    // Glass windows with reflections, muntins and flower boxes.
+    [-20,20].forEach(wx=>{
+      g.fillStyle(0x31566a,1);g.fillRect(x+wx-7,y-28,14,15);
+      g.fillStyle(0x9ed9e9,1);g.fillRect(x+wx-5,y-26,10,11);
+      g.fillStyle(0xffffff,0.65);g.fillTriangle(x+wx-5,y-26,x+wx+4,y-26,x+wx-5,y-17);
+      g.lineStyle(2,0xf8e9c9,1);g.strokeRect(x+wx-7,y-28,14,15);
+      g.beginPath();g.moveTo(x+wx,y-27);g.lineTo(x+wx,y-14);g.moveTo(x+wx-6,y-21);g.lineTo(x+wx+6,y-21);g.strokePath();
+      g.fillStyle(0x805238,1);g.fillRect(x+wx-9,y-12,18,3);
+      g.fillStyle(0x4d873e,1);g.fillEllipse(x+wx-4,y-15,7,5);g.fillEllipse(x+wx+4,y-15,7,5);
+      g.fillStyle(0xf0b2a5,1);g.fillCircle(x+wx,y-18,2);
+    });
+    // Small siding boards on the visible side.
+    g.lineStyle(1,0xffffff,0.2);for(let yy=y-1;yy<y+7;yy+=4){g.beginPath();g.moveTo(x+34,yy);g.lineTo(x+45,yy+3);g.strokePath();}
+    g.fillStyle(0xfffdf0,0.94);g.fillRoundedRect(x-38,y+12,76,16,7);
+    this.sceneryLabels.push(this.add.text(x,y+20,label,{fontFamily:'Arial',fontSize:'8px',fontStyle:'bold',color:'#526c39'}).setOrigin(0.5));
   }
 
   private touchPositions = new Map<number,{x:number;y:number;startX:number;startY:number}>();
@@ -619,27 +610,45 @@ export class FarmScene extends Phaser.Scene {
   }
 
   private drawCrop(g: Phaser.GameObjects.Graphics, x: number, y: number, plot: Plot): void {
-    const height = plot.state === 'ready' ? 25 : plot.state === 'withered' ? 9 : 8 + Math.round(plot.growth / 100 * 17);
-    g.lineStyle(3, plot.state === 'withered' ? 0x8b7950 : 0x397d39, 1);
-    g.beginPath(); g.moveTo(x, y + 2); g.lineTo(x - 2, y - height); g.strokePath();
-    g.beginPath(); g.moveTo(x - 1, y - height * 0.45); g.lineTo(x - 12, y - height * 0.7); g.strokePath();
-    g.beginPath(); g.moveTo(x - 1, y - height * 0.65); g.lineTo(x + 11, y - height * 0.9); g.strokePath();
-    g.fillStyle(plot.state === 'ready' ? CROPS[plot.crop].color : plot.state === 'withered' ? 0x9b875b : 0x70a94f, 1);
-    g.fillCircle(x - 2, y - height, plot.state === 'ready' ? 5 : 3);
-    if (plot.state === 'withered') {
-      g.lineStyle(2, 0x8b7950, 0.9); g.beginPath(); g.moveTo(x - 10, y - 5); g.lineTo(x + 9, y - 15); g.moveTo(x - 5, y - 12); g.lineTo(x + 9, y - 7); g.strokePath();
-      g.fillStyle(0x8b7950, 1); g.fillEllipse(x - 8, y - 7, 8, 4); g.fillEllipse(x + 7, y - 9, 8, 4);
-    } else if (plot.state === 'ready') {
-      g.fillStyle(0xf6d86b, 1);
-      g.fillEllipse(x - 9, y - 12, 8, 5);
-      g.fillEllipse(x + 7, y - 17, 8, 5);
-      g.fillStyle(0x4f8d3c, 1);
-      g.fillEllipse(x + 10, y - 7, 9, 5);
-    } else {
-      g.fillStyle(0x75b85a, 1);
-      g.fillEllipse(x - 8, y - 7, 8, 4);
-      g.fillEllipse(x + 7, y - 9, 8, 4);
+    const crop=CROPS[plot.crop];
+    const stage=plot.state==='ready'?1:plot.state==='withered'?0:Math.max(0.18,plot.growth/100);
+    const h=plot.state==='ready'?27:plot.state==='withered'?8:8+Math.round(stage*18);
+    if(plot.state==='withered'){
+      g.lineStyle(2,0x927b54,1);g.beginPath();g.moveTo(x,y+2);g.lineTo(x-4,y-h);g.moveTo(x-2,y-5);g.lineTo(x-12,y-11);g.moveTo(x-3,y-8);g.lineTo(x+8,y-13);g.strokePath();
+      g.fillStyle(0x9b875b,1);g.fillEllipse(x-8,y-7,8,4);g.fillEllipse(x+7,y-9,8,4);return;
     }
+    const stem=plot.watered?0x347e43:0x438b3d;
+    const leafColor=plot.watered?0x5eaa4d:0x78b64f;
+    const stems=crop.name==='Wheat'?3:crop.name==='Corn'?2:4;
+    for(let n=0;n<stems;n++){
+      const ox=(n-(stems-1)/2)*5;
+      const topY=y-h-(n%2)*3;
+      g.lineStyle(crop.name==='Wheat'?2.2:2.8,stem,1);g.beginPath();g.moveTo(x+ox,y+2);g.lineTo(x+ox+(n%2?2:-2),topY);g.strokePath();
+      if(crop.name==='Wheat'){
+        g.fillStyle(0x6b9e43,1);g.fillEllipse(x+ox-5,topY+8,11,4);g.fillEllipse(x+ox+5,topY+14,10,4);
+        if(plot.state==='ready'){
+          g.lineStyle(2,0xc99a37,1);for(let k=0;k<4;k++){g.beginPath();g.moveTo(x+ox,topY+2+k*4);g.lineTo(x+ox+(k%2?5:-5),topY-2+k*4);g.strokePath();}
+          g.fillStyle(0xe8c45b,1);g.fillEllipse(x+ox,topY-2,5,10);
+        }
+      }else if(crop.name==='Carrot'){
+        g.fillStyle(leafColor,1);g.fillEllipse(x+ox-5,topY+5,13,5);g.fillEllipse(x+ox+5,topY+2,12,5);g.fillEllipse(x+ox,topY-3,5,10);
+        if(plot.state==='ready'){g.fillStyle(0xf28b32,1);g.fillTriangle(x+ox-5,y-4,x+ox+5,y-4,x+ox,y+10);g.fillStyle(0x4c923e,1);g.fillTriangle(x+ox,y-4,x+ox-5,y-13,x+ox-1,y-7);g.fillTriangle(x+ox,y-4,x+ox+6,y-14,x+ox+2,y-7);}
+      }else if(crop.name==='Corn'){
+        g.fillStyle(leafColor,1);g.fillPoints([{x:x+ox,y:topY+15},{x:x+ox-13,y:topY+4},{x:x+ox-4,y:topY+18}],true);g.fillPoints([{x:x+ox,y:topY+18},{x:x+ox+13,y:topY+6},{x:x+ox+4,y:topY+20}],true);
+        if(plot.state==='ready'){g.fillStyle(0xf0cf59,1);g.fillRoundedRect(x+ox-3,topY+1,7,16,3);g.fillStyle(0xffe68b,1);for(let k=0;k<3;k++)g.fillCircle(x+ox-1,topY+4+k*4,1);}
+      }else{
+        g.fillStyle(leafColor,1);g.fillEllipse(x+ox-6,topY+8,14,6);g.fillEllipse(x+ox+6,topY+4,14,6);g.fillEllipse(x+ox,topY-1,10,6);
+        if(plot.state==='ready'){
+          const fruit=crop.name==='Strawberry'?0xd94c53:crop.name==='Tomato'?0xd94b38:crop.name==='Pumpkin'?0xe58b35:crop.name==='Blueberry'?0x536cb5:0x3b9b55;
+          g.fillStyle(fruit,1);
+          if(crop.name==='Pumpkin'){g.fillEllipse(x+ox,topY+9,15,12);g.lineStyle(1,0xb96128,0.8);g.beginPath();g.moveTo(x+ox,topY+3);g.lineTo(x+ox,topY+15);g.strokePath();}
+          else if(crop.name==='Watermelon'){g.fillEllipse(x+ox,topY+9,16,10);g.lineStyle(1,0x1e713f,1);g.beginPath();g.moveTo(x+ox-5,topY+6);g.lineTo(x+ox-3,topY+12);g.moveTo(x+ox+2,topY+5);g.lineTo(x+ox+4,topY+12);g.strokePath();}
+          else {g.fillCircle(x+ox,topY+8,6);g.fillStyle(0x4e8c3d,1);g.fillEllipse(x+ox+3,topY+2,7,3);}
+          if(crop.name==='Strawberry'){g.fillStyle(0xffe6a0,1);g.fillCircle(x+ox-2,topY+7,0.8);g.fillCircle(x+ox+2,topY+9,0.8);}
+        }
+      }
+    }
+    if(plot.state==='ready'&&crop.name==='Wheat'){g.fillStyle(0xf4d16c,1);g.fillEllipse(x,y-h-6,5,12);}
   }
 
   private drawSelection(): void {
