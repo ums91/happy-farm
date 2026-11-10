@@ -26,7 +26,7 @@ export class FarmScene extends Phaser.Scene {
 
   create(): void {
     this.cameras.main.setZoom(0.88);
-    this.cameras.main.centerOn(0, 0);
+    this.cameras.main.centerOn(0, 240);
     this.plotGraphics = this.add.graphics();
     this.overlay = this.add.graphics();
     this.drawWorld();
