@@ -46,7 +46,7 @@ The game continues to save locally in `localStorage` under `happyFarmPhaserSaveV
 ### Sync behavior
 
 - Saves are keyed by Supabase Auth user ID.
-- On sign-in, a newer cloud save is restored; otherwise the local farm is uploaded.
+- On sign-in, a newer cloud save is restored; otherwise the local farm is uploaded. A pre-existing local farm without a cloud timestamp is treated as the source of truth on its first sign-in and uploaded, protecting saves created before cloud sync was added.
 - Existing game save calls still write locally first, then schedule a debounced cloud upsert.
 - Offline or failed cloud operations do not block gameplay. Use **Sync now** after reconnecting.
 - If a cloud save exists on a new device, it is restored. If no cloud row exists, the player's existing local farm is uploaded.
