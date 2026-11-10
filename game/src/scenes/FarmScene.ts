@@ -6,7 +6,7 @@ type CropId = 'wheat' | 'carrot' | 'corn' | 'strawberry' | 'tomato' | 'pumpkin' 
 interface Plot { col: number; row: number; state: PlotState; watered: boolean; growth: number; crop: CropId; readyAt: number; witherAt: number }
 type AnimalId = 'hen' | 'cow';
 interface Animal { id: AnimalId; readyAt: number }
-interface FarmSave { version: 5; animals: Animal[]; harvests: number; coins: number; xp: number; feed: { hen: number; cow: number }; inventory: Record<CropId, number>; plots: Array<{ col:number; row:number; state:PlotState; watered:boolean; growth:number; crop?:CropId; readyAt?:number; witherAt?:number }> }
+interface FarmSave { version: 5; animals: Animal[]; harvests: number; coins: number; xp: number; selectedCrop?: CropId; feed: { hen: number; cow: number }; inventory: Record<CropId, number>; plots: Array<{ col:number; row:number; state:PlotState; watered:boolean; growth:number; crop?:CropId; readyAt?:number; witherAt?:number }> }
 const CROPS: Record<CropId,{name:string;emoji:string;cost:number;reward:number;xp:number;growMs:number;color:number;unlockLevel:number}> = {
  wheat:{name:'Wheat',emoji:'🌾',cost:5,reward:18,xp:5,growMs:15000,color:0xe4b83f,unlockLevel:1},
  carrot:{name:'Carrot',emoji:'🥕',cost:9,reward:31,xp:8,growMs:22000,color:0xef873e,unlockLevel:1},
@@ -428,7 +428,10 @@ export class FarmScene extends Phaser.Scene {
         if (plot.state === 'grass' || plot.state === 'withered') { plot.state = 'tilled'; plot.witherAt = 0; plot.readyAt = 0; plot.growth = 0; }
         break;
       case 'plant':
-        if (plot.state === 'tilled' && this.inventory[this.selectedCrop] > 0) { plot.state = 'growing'; plot.crop = this.selectedCrop; plot.growth = 0; plot.witherAt = 0; this.inventory[this.selectedCrop]--; this.scheduleGrowth(plot, CROPS[this.selectedCrop].growMs); }
+        if (plot.state === 'tilled') {
+          if (this.inventory[this.selectedCrop] > 0) { plot.state = 'growing'; plot.crop = this.selectedCrop; plot.growth = 0; plot.witherAt = 0; this.inventory[this.selectedCrop]--; this.scheduleGrowth(plot, CROPS[this.selectedCrop].growMs); }
+          else this.toast(`No ${CROPS[this.selectedCrop].name} seeds. Buy seeds from the Market first.`);
+        }
         break;
       case 'water':
         if (plot.state === 'growing' && !plot.watered) { plot.watered = true; this.scheduleGrowth(plot, Math.max(1500, Math.ceil((plot.readyAt - Date.now()) / 2))); }
@@ -650,6 +653,7 @@ export class FarmScene extends Phaser.Scene {
       if (![1,2,3,4,5].includes(save.version) || !Array.isArray(save.plots)) return;
       this.coins = Math.max(0, Math.floor(save.coins));
       this.xp = Math.max(0, Math.floor(save.xp));
+      if (save.selectedCrop && save.selectedCrop in CROPS && Math.floor(this.xp / 100) + 1 >= CROPS[save.selectedCrop as CropId].unlockLevel) this.selectedCrop = save.selectedCrop as CropId;
       if (save.version >= 2 && save.inventory) this.inventory = {...this.inventory,...save.inventory};
       if (save.version >= 4 && save.feed) this.feed = {...this.feed,...save.feed};
       if (save.version >= 3) { this.animals = Array.isArray(save.animals) ? save.animals : []; this.harvests = Number(save.harvests) || 0; }
@@ -678,6 +682,7 @@ export class FarmScene extends Phaser.Scene {
       harvests: this.harvests,
       coins: this.coins,
       xp: this.xp,
+      selectedCrop: this.selectedCrop,
       inventory: {...this.inventory},
       feed: {...this.feed},
       plots: Array.from(this.plots.values()).map(plot => ({
