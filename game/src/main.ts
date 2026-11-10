@@ -1,6 +1,9 @@
 import Phaser from 'phaser';
 import { FarmScene } from './scenes/FarmScene';
 import './styles.css';
+import { initializeMusicControls } from './services/music';
+
+initializeMusicControls();
 
 const game = new Phaser.Game({
   type: Phaser.AUTO,
