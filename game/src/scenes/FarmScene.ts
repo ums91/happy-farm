@@ -35,7 +35,7 @@ export class FarmScene extends Phaser.Scene {
   private activeTool: Tool = 'select';
   private coins = 250;
   private xp = 0;
-  private inventory: Record<CropId,number> = {wheat:3,carrot:0,corn:0,strawberry:0};
+  private inventory: Record<CropId,number> = {wheat:3,carrot:0,corn:0,strawberry:0,tomato:0,pumpkin:0,blueberry:0,watermelon:0};
   private selectedCrop: CropId = 'wheat';
   private animals: Animal[] = [];
   private feed: Record<AnimalId, number> = { hen: 0, cow: 0 };
@@ -433,8 +433,7 @@ export class FarmScene extends Phaser.Scene {
         if (plot.state === 'growing' && !plot.watered) { plot.watered = true; this.scheduleGrowth(plot, Math.max(1500, Math.ceil((plot.readyAt - Date.now()) / 2))); }
         break;
       case 'harvest':
-        if (plot.state === 'withered') { g.lineStyle(2, 0x8b7950, 0.9); g.beginPath(); g.moveTo(x - 10, y - 5); g.lineTo(x + 9, y - 15); g.moveTo(x - 5, y - 12); g.lineTo(x + 9, y - 7); g.strokePath(); }
-    else if (plot.state === 'ready') { const crop=CROPS[plot.crop]; plot.state='tilled'; plot.growth=0; plot.readyAt=0; plot.witherAt=0; plot.watered=false; this.growthTimers.get(this.key(plot.col,plot.row))?.remove(false); this.growthTimers.delete(this.key(plot.col,plot.row)); this.coins+=crop.reward; this.xp+=crop.xp; this.harvests += 1; this.toast(`${crop.emoji} ${crop.name} harvested · +${crop.reward} coins`); }
+        if (plot.state === 'ready') { const crop=CROPS[plot.crop]; plot.state='tilled'; plot.growth=0; plot.readyAt=0; plot.witherAt=0; plot.watered=false; this.growthTimers.get(this.key(plot.col,plot.row))?.remove(false); this.growthTimers.delete(this.key(plot.col,plot.row)); this.coins+=crop.reward; this.xp+=crop.xp; this.harvests += 1; this.toast(`${crop.emoji} ${crop.name} harvested · +${crop.reward} coins`); }
         break;
       case 'select':
         break;
@@ -529,7 +528,10 @@ export class FarmScene extends Phaser.Scene {
     g.beginPath(); g.moveTo(x - 1, y - height * 0.65); g.lineTo(x + 11, y - height * 0.9); g.strokePath();
     g.fillStyle(plot.state === 'ready' ? CROPS[plot.crop].color : plot.state === 'withered' ? 0x9b875b : 0x70a94f, 1);
     g.fillCircle(x - 2, y - height, plot.state === 'ready' ? 5 : 3);
-    if (plot.state === 'ready') {
+    if (plot.state === 'withered') {
+      g.lineStyle(2, 0x8b7950, 0.9); g.beginPath(); g.moveTo(x - 10, y - 5); g.lineTo(x + 9, y - 15); g.moveTo(x - 5, y - 12); g.lineTo(x + 9, y - 7); g.strokePath();
+      g.fillStyle(0x8b7950, 1); g.fillEllipse(x - 8, y - 7, 8, 4); g.fillEllipse(x + 7, y - 9, 8, 4);
+    } else if (plot.state === 'ready') {
       g.fillStyle(0xf6d86b, 1);
       g.fillEllipse(x - 9, y - 12, 8, 5);
       g.fillEllipse(x + 7, y - 17, 8, 5);
