@@ -42,8 +42,8 @@ export class FarmScene extends Phaser.Scene {
   constructor() { super('FarmScene'); }
 
   create(): void {
-    this.cameras.main.setZoom(0.88);
-    this.cameras.main.centerOn(0, 240);
+    this.fitFarmToViewport();
+    this.scale.on('resize', () => this.fitFarmToViewport());
     this.plotGraphics = this.add.graphics();
     this.overlay = this.add.graphics();
     this.drawWorld();
@@ -57,6 +57,17 @@ export class FarmScene extends Phaser.Scene {
     this.input.on('wheel', (_pointer: Phaser.Input.Pointer, _objects: unknown[], _dx: number, dy: number) => {
       this.cameras.main.setZoom(Phaser.Math.Clamp(this.cameras.main.zoom - dy * 0.001, 0.55, 1.35));
     });
+  }
+
+  private fitFarmToViewport(): void {
+    const camera = this.cameras.main;
+    const width = Math.max(320, this.scale.width);
+    const height = Math.max(360, this.scale.height);
+    // Fit the complete isometric field with a little breathing room on every edge.
+    const fitX = (width - 72) / 980;
+    const fitY = (height - 96) / 560;
+    camera.setZoom(Phaser.Math.Clamp(Math.min(1.05, fitX, fitY), 0.58, 1.05));
+    camera.centerOn(0, 245);
   }
 
   private key(col: number, row: number): string { return col + ':' + row; }
