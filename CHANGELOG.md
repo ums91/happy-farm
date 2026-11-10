@@ -10,6 +10,8 @@ Notable changes are documented here using the principles of Keep a Changelog.
 - Isometric tile-world foundation with original vector placeholder scenery.
 - Camera zoom/pan, plot selection and plow/plant/water/harvest interaction scaffold.
 - Timed crop maturation and accelerated growth when watered.
+- FarmVille 1-inspired visual refresh: bright sky-and-meadow palette, cream-and-wood framed HUD, rounded resource counters, farmer profile, progress meter and tactile farm-tool buttons.
+- Richer isometric farm dressing with a fence line, flower patches, layered fruit-tree canopies and more detailed mature crops.
 - Manual-only GitHub Pages deployment workflow for publishing the game client.
 
 ### Changed
