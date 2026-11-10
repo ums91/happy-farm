@@ -1,8 +1,11 @@
 name: Deploy Happy Farm to GitHub Pages
 
-# Manual-only deployment to avoid consuming Actions minutes on every commit.
+# Deploy only when the dedicated trigger file changes; normal commits do not consume Actions minutes.
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - '.github/deploy-pages.trigger'
 
 permissions:
   contents: read
