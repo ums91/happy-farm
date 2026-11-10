@@ -1,10 +1,7 @@
 name: Documentation checks
 
+# Run on demand only to conserve GitHub Actions minutes.
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
