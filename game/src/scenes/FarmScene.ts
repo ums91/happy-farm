@@ -247,7 +247,7 @@ export class FarmScene extends Phaser.Scene {
     this.sceneryLabels.forEach(x=>x.destroy()); this.sceneryLabels=[];
     const g = this.add.graphics(); this.sceneryGraphics.push(g);
     // Layered orchard trees: trunk, canopy shadow, clustered leaves and sunlit highlights.
-    ['tree1','tree2','tree3','tree4','tree5','tree6','tree7','tree8','appleTree1','appleTree2','pearTree1','cherryTree1'].forEach((id, i) => {
+    (['tree1','tree2','tree3','tree4','tree5','tree6','tree7','tree8',...Object.keys(this.decor).filter(id=>id.startsWith('appleTree')||id.startsWith('pearTree')||id.startsWith('cherryTree'))]).forEach((id, i) => {
       const pos=this.decor[id]!; const p = this.toWorld(pos.col, pos.row);
       const palette = [0x356f36, 0x477f3b, 0x568d43, 0x3d7838];
       const canopyY = p.y - 49;
@@ -903,7 +903,7 @@ export class FarmScene extends Phaser.Scene {
       if (![1,2,3,4,5,6,7,8,9,10].includes(save.version) || !Array.isArray(save.plots)) return;
       this.coins = Math.max(0, Math.floor(save.coins));
       this.randomQuests = Array.isArray(save.randomQuests) ? save.randomQuests : [];
-      this.questCycle = this.randomQuests.length ? 1 : 0;
+      this.questCycle = this.randomQuests.length ? Math.max(1,...this.randomQuests.map(q=>Number((q.id.match(/-(\\d+)-\\d+$/)||[])[1])||1)) : 0;
       this.claimedQuests = Array.isArray(save.claimedQuests) ? save.claimedQuests.filter((id:string)=>(['first-harvest','busy-farmer','first-hen','first-cow','better-coop','bigger-silo'].includes(id) || this.randomQuests.some(q=>q.id===id))) : [];
       this.ordersCompleted = save.version >= 9 && save.ordersCompleted && typeof save.ordersCompleted === 'object' ? Object.fromEntries(Object.entries(save.ordersCompleted).map(([id,count])=>[id,Math.max(0,Math.floor(Number(count)||0))]).filter(([id])=>['egg-crate','milk-run','farm-breakfast'].includes(String(id)))) : {};
       this.xp = Math.max(0, Math.floor(save.xp));
