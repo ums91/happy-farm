@@ -74,6 +74,16 @@ Happy Farm is a separate Phaser/TypeScript web game. The preservation project's 
 
 The preservation repository is GPL-3.0. This roadmap records it as a design/behaviour reference only. No Python source, SWF files, Flash client code, recovered binary game data, or FarmVille artwork has been copied into Happy Farm. If future implementation directly adapts GPL-covered code, Happy Farm's distribution and source-availability obligations must be reviewed and the derivative component must retain GPL-compatible licensing and notices. The preservation repository's README itself describes automatic downloads of large archived WARC/asset collections; ownership and provenance of each recovered game asset must be checked independently before any reuse. The repository's GPL notice does not, by itself, establish that Zynga-originated game assets are GPL-licensed.
 
+## Phase 2 — Buildings and animal production (v1.0)
+
+- Added a dedicated chicken coop and made the coop and dairy barn interactive from the farm scene.
+- Added animal housing capacity: 2 animals at level 1, with +2 capacity per upgrade, up to level 5.
+- Added persistent building upgrade levels and capacity checks when purchasing animals.
+- Animal care now stores eggs and milk in a dedicated produce inventory instead of immediately converting them into coins.
+- Added produce selling: eggs sell for 12 coins and milk for 28 coins; sales also award XP.
+- Added save schema v6 with backward-compatible loading for save versions 1–5.
+- Next improvements: dedicated building art, richer animal assignment and production feedback, storage capacity, and building-specific interactions.
+
 ## Phase 1 — Advanced crop system (v0.9)
 
 - Expanded the data-driven seed catalogue to wheat, carrot, corn, strawberry, tomato, pumpkin, blueberry and watermelon.
