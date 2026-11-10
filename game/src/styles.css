@@ -523,3 +523,7 @@ button,.tool,select{touch-action:manipulation}
 .cloud-account-actions{display:flex;gap:10px;margin:12px 0}
 .cloud-account-actions button:last-child{background:#e9eee5;color:#4d624c}
 .cloud-account-card>small{display:block;color:#71806d;line-height:1.5}
+
+/* Respect hidden state for signed-in cloud account controls. */
+.cloud-account-card [hidden]{display:none!important}
+.cloud-account-identity{font-size:13px;font-weight:700;color:#477a43;margin:8px 0}

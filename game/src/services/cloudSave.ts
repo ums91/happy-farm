@@ -8,6 +8,7 @@ const supabaseKey = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.met
 type CloudStatus = 'offline' | 'signed-out' | 'syncing' | 'synced' | 'error' | 'unconfigured';
 let client: SupabaseClient | null = null;
 let currentUserId: string | null = null;
+let currentUserEmail: string | null = null;
 let syncInProgress = false;
 let cloudReady = false;
 let saveTimer: ReturnType<typeof setTimeout> | undefined;
@@ -28,7 +29,19 @@ function setStatus(next: CloudStatus, message?: string): void {
     label.dataset.status = next;
   }
   const button = document.getElementById('cloud-account');
-  if (button) button.textContent = currentUserId ? '☁ Account' : '☁ Sign in';
+  if (button) {
+    button.textContent = currentUserId ? '☁ Signed in' : '☁ Sign in';
+    button.title = currentUserId ? `Signed in${currentUserEmail ? ` as ${currentUserEmail}` : ''}` : 'Cloud save account';
+  }
+  const authForm = document.getElementById('cloud-auth-form');
+  const modeButton = document.getElementById('cloud-auth-mode');
+  const accountIdentity = document.getElementById('cloud-account-identity');
+  if (authForm) authForm.hidden = Boolean(currentUserId);
+  if (modeButton) modeButton.hidden = Boolean(currentUserId);
+  if (accountIdentity) {
+    accountIdentity.hidden = !currentUserId;
+    accountIdentity.textContent = currentUserEmail ? `Signed in as ${currentUserEmail}` : 'You are signed in.';
+  }
 }
 
 function localSnapshot(): Record<string, unknown> | null {
@@ -150,7 +163,7 @@ export function initializeCloudSaves(): void {
     if (!client) return;
     const { error } = await client.auth.signOut();
     if (error) setStatus('error', error.message);
-    else { currentUserId = null; cloudReady = false; setStatus('signed-out'); hideAccountModal(); }
+    else { currentUserId = null; currentUserEmail = null; cloudReady = false; setStatus('signed-out'); hideAccountModal(); }
   });
   document.getElementById('cloud-sync-now')?.addEventListener('click', () => { void syncWithCloud(); });
 
@@ -164,6 +177,7 @@ export function initializeCloudSaves(): void {
   window.addEventListener('offline', () => setStatus('offline'));
   client.auth.onAuthStateChange((_event, session) => {
     currentUserId = session?.user.id || null;
+    currentUserEmail = session?.user.email || null;
     if (currentUserId) {
       cloudReady = false;
       window.setTimeout(() => { void syncWithCloud(); }, 0);
@@ -175,6 +189,8 @@ export function initializeCloudSaves(): void {
   void client.auth.getSession().then(({ data, error }) => {
     if (error) { setStatus('error', error.message); return; }
     currentUserId = data.session?.user.id || null;
+    currentUserEmail = data.session?.user.email || null;
+    setStatus(currentUserId ? 'synced' : 'signed-out', currentUserId ? `Signed in as ${currentUserEmail || 'your account'} · checking cloud save…` : undefined);
     if (currentUserId) void syncWithCloud();
     else setStatus('signed-out');
   });

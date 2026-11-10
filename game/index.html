@@ -68,6 +68,7 @@
         <section class="cloud-account-card" role="dialog" aria-modal="true" aria-labelledby="cloud-account-title">
           <header><div><small>HAPPY FARM CLOUD</small><h2 id="cloud-account-title">Save your farm everywhere</h2></div><button id="cloud-account-close" type="button" aria-label="Close">×</button></header>
           <p class="cloud-save-status" id="cloud-save-status" data-status="unconfigured">Cloud saves need setup</p>
+          <p id="cloud-account-identity" class="cloud-account-identity" hidden></p>
           <form id="cloud-auth-form"><label for="cloud-email">Email</label><input id="cloud-email" type="email" autocomplete="email" required /><label for="cloud-password">Password</label><input id="cloud-password" type="password" autocomplete="current-password" minlength="6" required /><button id="cloud-auth-submit" type="submit">Sign in</button></form>
           <button id="cloud-auth-mode" class="cloud-text-button" type="button">Need an account? Create one</button>
           <div class="cloud-account-actions"><button id="cloud-sync-now" type="button">Sync now</button><button id="cloud-sign-out" type="button">Sign out</button></div>
