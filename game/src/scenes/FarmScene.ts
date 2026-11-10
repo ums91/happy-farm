@@ -11,7 +11,7 @@ interface AnimalProduce { eggs: number; milk: number }
 type BuildingId = 'coop'|'barn'|'silo'|'bakery'|'greenhouse'|'windmill';
 type ProductId='flour'|'bread'|'pastry'|'grapes';
 interface ProductionJob { recipe:string; readyAt:number }
-interface FarmSave { version: 15; questRefreshAt?:number; questProgressBaseline?:Partial<Record<'harvests'|'hens'|'cows'|'eggs'|'milk',number>>; eventStartedAt?:number; eventStartHarvests?:number; eventClaimed?:boolean; claimedMilestones?:number[]; harvestedCrops?:Partial<Record<CropId,number>>; fruitInventory?:Record<'apples'|'pears'|'cherries',number>; fruitTreeReadyAt?:Record<string,number>; farmerName?:string; farmName?:string; buildingLevels?:Partial<Record<BuildingId,number>>; productionJobs?:Partial<Record<BuildingId,ProductionJob|null>>; crafted?:Partial<Record<ProductId,number>>; randomQuests?: Array<{id:string;title:string;description:string;target:number;coins:number;xp:number;icon:string;metric:'harvests'|'hens'|'cows'|'eggs'|'milk'}>; claimedQuests?: string[]; ordersCompleted?: Record<string,number>; animals: Animal[]; harvests: number; coins: number; xp: number; selectedCrop?: CropId; decor?: Record<string,{col:number;row:number}>; feed: { hen: number; cow: number }; buildings?: BuildingProgress; produce?: AnimalProduce; inventory: Record<CropId, number>; plots: Array<{ col:number; row:number; state:PlotState; watered:boolean; growth:number; crop?:CropId; readyAt?:number; witherAt?:number }> }
+interface FarmSave { version: 16; questRefreshAt?:number; questProgressBaseline?:Partial<Record<'harvests'|'hens'|'cows'|'eggs'|'milk',number>>; eventStartedAt?:number; eventStartHarvests?:number; eventClaimed?:boolean; claimedMilestones?:number[]; harvestedCrops?:Partial<Record<CropId,number>>; fruitInventory?:Record<'apples'|'pears'|'cherries',number>; fruitTreeReadyAt?:Record<string,number>; farmerName?:string; farmName?:string; buildingLevels?:Partial<Record<BuildingId,number>>; productionJobs?:Partial<Record<BuildingId,ProductionJob|null>>; crafted?:Partial<Record<ProductId,number>>; randomQuests?: Array<{id:string;title:string;description:string;target:number;coins:number;xp:number;icon:string;metric:'harvests'|'hens'|'cows'|'eggs'|'milk'}>; claimedQuests?: string[]; ordersCompleted?: Record<string,number>; animals: Animal[]; harvests: number; coins: number; xp: number; selectedCrop?: CropId; decor?: Record<string,{col:number;row:number}>; feed: { hen: number; cow: number }; buildings?: BuildingProgress; produce?: AnimalProduce; inventory: Record<CropId, number>; plots: Array<{ col:number; row:number; state:PlotState; watered:boolean; growth:number; crop?:CropId; readyAt?:number; witherAt?:number }> }
 const CROPS: Record<CropId,{name:string;emoji:string;cost:number;reward:number;xp:number;growMs:number;color:number;unlockLevel:number}> = {
  wheat:{name:'Wheat',emoji:'🌾',cost:5,reward:18,xp:5,growMs:15000,color:0xe4b83f,unlockLevel:1},
  carrot:{name:'Carrot',emoji:'🥕',cost:9,reward:31,xp:8,growMs:22000,color:0xef873e,unlockLevel:1},
@@ -741,7 +741,7 @@ export class FarmScene extends Phaser.Scene {
     this.input.on('pointerupoutside',(pointer:Phaser.Input.Pointer)=>{
       if(pointer.wasTouch)this.touchPositions.delete(pointer.id);
       this.cameraDragging=false;
-      if(this.movingDecor||this.movingPlotKey){this.movingDecor=null;this.movingPlotKey=null;}
+      if(this.movingDecor||this.movingPlotKey){this.saveFarm();this.movingDecor=null;this.movingPlotKey=null;this.lastMoveWarning='';}
       if(this.touchPositions.size===0){this.touchGesture=false;this.pinchDistance=0;}
     });
     this.input.mouse?.disableContextMenu();
@@ -1281,7 +1281,7 @@ export class FarmScene extends Phaser.Scene {
       const raw = localStorage.getItem(this.saveKey);
       if (!raw) return;
       const save = JSON.parse(raw) as any;
-      if (![1,2,3,4,5,6,7,8,9,10,11,12,13,14,15].includes(save.version) || !Array.isArray(save.plots)) return;
+      if (![1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16].includes(save.version) || !Array.isArray(save.plots)) return;
       this.coins = Math.max(0, Math.floor(save.coins));
       this.farmerName=typeof save.farmerName==='string'&&save.farmerName.trim()?save.farmerName.slice(0,24):'New Farmer';
       this.farmName=typeof save.farmName==='string'&&save.farmName.trim()?save.farmName.slice(0,28):'My Farm';
@@ -1290,7 +1290,15 @@ export class FarmScene extends Phaser.Scene {
       this.claimedQuests = Array.isArray(save.claimedQuests) ? save.claimedQuests.filter((id:string)=>(['first-harvest','busy-farmer','first-hen','first-cow','better-coop','bigger-silo'].includes(id) || this.randomQuests.some(q=>q.id===id))) : [];
       this.ordersCompleted = save.version >= 9 && save.ordersCompleted && typeof save.ordersCompleted === 'object' ? Object.fromEntries(Object.entries(save.ordersCompleted).map(([id,count])=>[id,Math.max(0,Math.floor(Number(count)||0))]).filter(([id])=>['egg-crate','milk-run','farm-breakfast'].includes(String(id)))) : {};
       this.xp = Math.max(0, Math.floor(save.xp));
-      if(save.decor && typeof save.decor==='object') for(const [id,pos] of Object.entries(save.decor as Record<string,{col:number;row:number}>)){if((id in this.decor || /^(appleTree|pearTree|cherryTree|flowerbed|fountain|scarecrow|bench|bakery|greenhouse|windmill)\\d*$/.test(id)) && Number.isInteger(pos.col)&&Number.isInteger(pos.row)&&pos.col>=0&&pos.col<COLS&&pos.row>=0&&pos.row<ROWS)this.decor[id]={col:pos.col,row:pos.row};}
+      if(save.decor && typeof save.decor==='object' && !Array.isArray(save.decor)) {
+        const restored:Record<string,{col:number;row:number}>={};
+        for(const [id,value] of Object.entries(save.decor as Record<string,unknown>)) {
+          const pos=value as {col?:unknown;row?:unknown};
+          const allowed=id in this.decor || /^(appleTree|pearTree|cherryTree|flowerbed|fountain|scarecrow|bench|bakery|greenhouse|windmill)\\d*$/.test(id);
+          if(allowed && Number.isInteger(pos?.col) && Number.isInteger(pos?.row) && Number(pos.col)>=0 && Number(pos.col)<COLS && Number(pos.row)>=0 && Number(pos.row)<ROWS) restored[id]={col:Number(pos.col),row:Number(pos.row)};
+        }
+        this.decor={...this.decor,...restored};
+      }
       if (save.selectedCrop && save.selectedCrop in CROPS && Math.floor(this.xp / 100) + 1 >= CROPS[save.selectedCrop as CropId].unlockLevel) this.selectedCrop = save.selectedCrop as CropId;
       if (save.version >= 2 && save.inventory) this.inventory = {...this.inventory,...save.inventory};
       if (save.version >= 4 && save.feed) this.feed = {...this.feed,...save.feed};
@@ -1323,7 +1331,7 @@ export class FarmScene extends Phaser.Scene {
 
   private saveFarm(): void {
     const save: FarmSave = {
-      version: 15,
+      version: 16,
       harvestedCrops:{...this.harvestedCrops},
       fruitInventory:{...this.fruitInventory},
       fruitTreeReadyAt:{...this.fruitTreeReadyAt},
@@ -1341,7 +1349,7 @@ export class FarmScene extends Phaser.Scene {
       coins: this.coins,
       xp: this.xp,
       selectedCrop: this.selectedCrop,
-      decor: this.decor,
+      decor: Object.fromEntries(Object.entries(this.decor).map(([id,pos])=>[id,{col:pos.col,row:pos.row}])),
       inventory: {...this.inventory},
       feed: {...this.feed},
       buildings: {...this.buildings},
