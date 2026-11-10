@@ -1,10 +1,15 @@
 name: Deploy Happy Farm to GitHub Pages
 
-# Deploy only when the dedicated trigger file changes; normal commits do not consume Actions minutes.
+# Every game update is built and published automatically. Documentation-only changes stay quiet.
 on:
   workflow_dispatch:
   push:
+    branches:
+      - main
     paths:
+      - 'game/**'
+      - 'index.html'
+      - '.github/workflows/deploy-pages.yml'
       - '.github/deploy-pages.trigger'
 
 permissions:
