@@ -82,13 +82,12 @@ The preservation repository is GPL-3.0. This roadmap records it as a design/beha
 - Animal care now stores eggs and milk in a dedicated produce inventory instead of immediately converting them into coins.
 - Added produce selling: eggs sell for 12 coins and milk for 28 coins; sales also award XP.
 - Added save schema v6 with backward-compatible loading for save versions 1–5.
+- Added species-specific building controls to collect produce or feed idle animals independently.
+- Added live per-animal production progress and countdowns in the coop and dairy barn.
+- Added produce storage limits (10 units at Level 1, +5 per building level); full storage blocks collection without discarding ready products.
+- Building upgrades now increase both animal housing and produce storage.
 - Next improvements: dedicated building art, richer animal assignment and production feedback, storage capacity, and building-specific interactions.
-
-## Phase 1 — Advanced crop system (v0.9)
-
-- Expanded the data-driven seed catalogue to wheat, carrot, corn, strawberry, tomato, pumpkin, blueberry and watermelon.
-- Added level gates for higher-tier seeds and XP awards per harvest.
-- Added visible growth stages driven by persisted wall-clock deadlines.
-- Added a harvest window after ripening; crops wither if left unharvested and can be cleared by plowing.
-- Added save schema v5 with backward compatibility for save versions 1–4.
-- Growth and withering are simulated locally in the browser; production values are short demo timings and can be balanced later.
+ntdowns in the coop and dairy barn.
+- Added produce storage limits (10 units at Level 1, +5 per building level); full storage blocks collection without discarding ready products.
+- Building upgrades now increase both animal housing and produce storage.
+- Next improvements: dedicated building art, richer animal assignment and production feedback, storage capacity, and building-specific interactions.
