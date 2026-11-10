@@ -8,7 +8,7 @@ type AnimalId = 'hen' | 'cow';
 interface Animal { id: AnimalId; readyAt: number; assigned?: boolean }
 interface BuildingProgress { coopLevel: number; barnLevel: number; warehouseLevel: number }
 interface AnimalProduce { eggs: number; milk: number }
-interface FarmSave { version: 8; claimedQuests?: string[]; animals: Animal[]; harvests: number; coins: number; xp: number; selectedCrop?: CropId; decor?: Record<string,{col:number;row:number}>; feed: { hen: number; cow: number }; buildings?: BuildingProgress; produce?: AnimalProduce; inventory: Record<CropId, number>; plots: Array<{ col:number; row:number; state:PlotState; watered:boolean; growth:number; crop?:CropId; readyAt?:number; witherAt?:number }> }
+interface FarmSave { version: 9; claimedQuests?: string[]; ordersCompleted?: Record<string,number>; animals: Animal[]; harvests: number; coins: number; xp: number; selectedCrop?: CropId; decor?: Record<string,{col:number;row:number}>; feed: { hen: number; cow: number }; buildings?: BuildingProgress; produce?: AnimalProduce; inventory: Record<CropId, number>; plots: Array<{ col:number; row:number; state:PlotState; watered:boolean; growth:number; crop?:CropId; readyAt?:number; witherAt?:number }> }
 const CROPS: Record<CropId,{name:string;emoji:string;cost:number;reward:number;xp:number;growMs:number;color:number;unlockLevel:number}> = {
  wheat:{name:'Wheat',emoji:'🌾',cost:5,reward:18,xp:5,growMs:15000,color:0xe4b83f,unlockLevel:1},
  carrot:{name:'Carrot',emoji:'🥕',cost:9,reward:31,xp:8,growMs:22000,color:0xef873e,unlockLevel:1},
@@ -51,6 +51,7 @@ export class FarmScene extends Phaser.Scene {
   private movingDecor: string | null = null;
   private harvests = 0;
   private claimedQuests: string[] = [];
+  private ordersCompleted: Record<string,number> = {};
   private cameraDragging = false;
   private dragPoint = new Phaser.Math.Vector2();
   private readonly saveKey = 'happyFarmPhaserSaveV1';
@@ -627,7 +628,7 @@ export class FarmScene extends Phaser.Scene {
     document.querySelectorAll<HTMLButtonElement>('[data-market-tab]').forEach(tab=>tab.addEventListener('click',()=>{document.querySelectorAll('[data-market-tab]').forEach(x=>x.classList.remove('active'));tab.classList.add('active');const cat=tab.dataset.marketTab||'seeds';const intro=document.getElementById('market-intro');if(intro)intro.textContent=cat==='seeds'?'Choose seeds for your next harvest.':cat==='animals'?'Welcome new animals to your farm.':'Buy the correct feed for each animal. Feed is required to produce eggs and milk.';this.renderMarket(cat);}));
     document.addEventListener('keydown',e=>{if(e.key==='Escape')this.closeMarket();});
     document.getElementById('animal-action')?.addEventListener('click',()=>this.careForAnimals());
-     document.getElementById('market-items')?.addEventListener('click',e=>{const target=e.target as HTMLElement;if(target.closest('#sell-produce'))this.sellProduce();const quest=target.closest<HTMLButtonElement>('[data-claim-quest]');if(quest)this.claimQuest(quest.dataset.claimQuest||'');const warehouse=target.closest<HTMLButtonElement>('#upgrade-warehouse');if(warehouse){const cost=this.buildings.warehouseLevel*400;if(this.buildings.warehouseLevel<10&&this.coins>=cost){this.coins-=cost;this.buildings.warehouseLevel++;this.saveFarm();this.refreshHud();this.renderInventory();this.toast('Silo upgraded. Egg and milk storage expanded!');}}const toggle=target.closest<HTMLButtonElement>('[data-animal-toggle]');if(toggle){const animal=this.animals[Number(toggle.dataset.animalToggle)];if(animal){animal.assigned=animal.assigned===false;this.saveFarm();this.refreshHud();if(this.activeBuilding)this.renderBuildingPanel(this.activeBuilding);else this.renderInventory();this.toast(animal.assigned?'Animal assigned to production.':'Animal is resting.');}}const action=target.closest<HTMLButtonElement>('[data-building-action]')?.dataset.buildingAction;if(action&&this.activeBuilding)this.runBuildingAction(this.activeBuilding,action as 'collect'|'feed');});
+     document.getElementById('market-items')?.addEventListener('click',e=>{const target=e.target as HTMLElement;if(target.closest('#sell-produce'))this.sellProduce();const quest=target.closest<HTMLButtonElement>('[data-claim-quest]');if(quest)this.claimQuest(quest.dataset.claimQuest||'');const order=target.closest<HTMLButtonElement>('[data-fulfil-order]');if(order)this.fulfilOrder(order.dataset.fulfilOrder||'');const warehouse=target.closest<HTMLButtonElement>('#upgrade-warehouse');if(warehouse){const cost=this.buildings.warehouseLevel*400;if(this.buildings.warehouseLevel<10&&this.coins>=cost){this.coins-=cost;this.buildings.warehouseLevel++;this.saveFarm();this.refreshHud();this.renderInventory();this.toast('Silo upgraded. Egg and milk storage expanded!');}}const toggle=target.closest<HTMLButtonElement>('[data-animal-toggle]');if(toggle){const animal=this.animals[Number(toggle.dataset.animalToggle)];if(animal){animal.assigned=animal.assigned===false;this.saveFarm();this.refreshHud();if(this.activeBuilding)this.renderBuildingPanel(this.activeBuilding);else this.renderInventory();this.toast(animal.assigned?'Animal assigned to production.':'Animal is resting.');}}const action=target.closest<HTMLButtonElement>('[data-building-action]')?.dataset.buildingAction;if(action&&this.activeBuilding)this.runBuildingAction(this.activeBuilding,action as 'collect'|'feed');});
   }
   private careForAnimals(): void { if(!this.animals.length){this.openMarket();document.querySelector<HTMLButtonElement>('[data-market-tab=animals]')?.click();return;}let collected=0,fed=0,waiting=0;for(const kind of ['hen','cow'] as AnimalId[]){const result=this.collectAndFeed(kind);collected+=result.collected;fed+=result.fed;waiting+=result.waiting;}this.saveFarm();this.refreshHud();this.toast('Stored '+collected+' product(s) · fed '+fed+' · waiting for feed: '+waiting+'.');}
   private productionCapacity(kind:AnimalId):number{return 10+((kind==='hen'?this.buildings.coopLevel:this.buildings.barnLevel)-1)*5+(this.buildings.warehouseLevel-1)*10;}
@@ -677,6 +678,31 @@ export class FarmScene extends Phaser.Scene {
     this.saveFarm();this.refreshHud();this.renderInventory();this.toast('Quest complete: '+quest.title+' · +'+quest.coins+' coins · +'+quest.xp+' XP');
   }
 
+  private deliveryOrders(): Array<{id:string;title:string;description:string;icon:string;eggs:number;milk:number;coins:number;xp:number}> {
+    return [
+      {id:'egg-crate',title:'Market Egg Crate',description:'Pack 2 fresh eggs for the village grocer.',icon:'🥚',eggs:2,milk:0,coins:34,xp:12},
+      {id:'milk-run',title:'Morning Milk Run',description:'Deliver 1 bottle of fresh milk.',icon:'🥛',eggs:0,milk:1,coins:42,xp:15},
+      {id:'farm-breakfast',title:'Farmhouse Breakfast',description:'Prepare 1 egg and 1 bottle of milk.',icon:'🍳',eggs:1,milk:1,coins:62,xp:22}
+    ];
+  }
+  private renderOrders(): string {
+    return this.deliveryOrders().map(order=>{
+      const canFulfil=this.produce.eggs>=order.eggs&&this.produce.milk>=order.milk;
+      const completed=this.ordersCompleted[order.id]||0;
+      const need=[order.eggs?order.eggs+' egg(s)':'',order.milk?order.milk+' milk':''].filter(Boolean).join(' + ');
+      return '<article class="market-item quest-card"><div class="market-art">'+order.icon+'</div><div class="market-copy"><strong>'+order.title+'</strong><small>'+order.description+'</small><small>Needs: '+need+' · Reward: '+order.coins+' coins, '+order.xp+' XP · Delivered: '+completed+'</small></div><button class="market-buy" data-fulfil-order="'+order.id+'" '+(!canFulfil?'disabled':'')+'>'+(canFulfil?'🚚 Deliver':'Need more goods')+'</button></article>';
+    }).join('');
+  }
+  private fulfilOrder(id:string): void {
+    const order=this.deliveryOrders().find(item=>item.id===id);
+    if(!order||this.produce.eggs<order.eggs||this.produce.milk<order.milk)return;
+    this.produce.eggs-=order.eggs;this.produce.milk-=order.milk;
+    this.coins+=order.coins;this.xp+=order.xp;
+    this.ordersCompleted[id]=(this.ordersCompleted[id]||0)+1;
+    this.saveFarm();this.refreshHud();this.renderInventory();
+    this.toast('Delivery complete: +'+order.coins+' coins · +'+order.xp+' XP');
+  }
+
   private renderInventory(): void {
     const host=document.getElementById('market-items'); if(!host) return;
     const seedCards=(Object.entries(CROPS) as Array<[CropId,typeof CROPS[CropId]]>).map(([id,crop])=>'<article class="market-item"><div class="market-art">'+crop.emoji+'</div><div class="market-copy"><strong>'+crop.name+' Seeds</strong><small>Ready to plant in a plowed field</small></div><span class="inventory-quantity">× '+this.inventory[id]+'</span></article>').join('');
@@ -685,7 +711,7 @@ export class FarmScene extends Phaser.Scene {
     const growing=Array.from(this.plots.values()).filter(p=>p.state==='growing').length; const ready=Array.from(this.plots.values()).filter(p=>p.state==='ready').length;
     const produceCards='<article class="market-item"><div class="market-art">🥚</div><div class="market-copy"><strong>Eggs</strong><small>Sell value: 12 coins each</small></div><span class="inventory-quantity">× '+this.produce.eggs+'</span></article><article class="market-item"><div class="market-art">🥛</div><div class="market-copy"><strong>Milk</strong><small>Sell value: 28 coins each</small></div><span class="inventory-quantity">× '+this.produce.milk+'</span></article>';
      const feedCards='<article class="market-item"><div class="market-art">🌾</div><div class="market-copy"><strong>Hen feed</strong><small>For egg-laying hens</small></div><span class="inventory-quantity">× '+this.feed.hen+'</span></article><article class="market-item"><div class="market-art">🌿</div><div class="market-copy"><strong>Cow feed</strong><small>For milk-producing cows</small></div><span class="inventory-quantity">× '+this.feed.cow+'</span></article>';
-    const warehouseCost=this.buildings.warehouseLevel*400; host.innerHTML='<section class="inventory-section"><h3>📜 Farm quests & ribbons</h3><div class="quest-list">'+this.renderQuests()+'</div></section><section class="inventory-section"><h3>🏚️ Silo & shared storage · Level '+this.buildings.warehouseLevel+'</h3><p>Shared warehouse expansion adds 10 extra spaces to both eggs and milk storage. Silo bonus: +'+((this.buildings.warehouseLevel-1)*10)+' spaces per product type.</p><button class="market-buy" id="upgrade-warehouse" '+(this.coins<warehouseCost||this.buildings.warehouseLevel>=10?'disabled':'')+'>'+(this.buildings.warehouseLevel>=10?'Maximum level reached':'🪙 '+warehouseCost+' · Upgrade silo storage')+'</button></section><section class="inventory-section"><h3>🌱 Seed storage</h3><div class="inventory-grid">'+seedCards+'</div></section><section class="inventory-section"><h3>🥚 Animal produce</h3><div class="inventory-grid">'+produceCards+'</div><button class="market-buy" id="sell-produce" '+(this.produce.eggs+this.produce.milk===0?'disabled':'')+'>Sell all animal products</button></section><section class="inventory-section"><h3>🥣 Animal feed storage</h3><div class="inventory-grid">'+feedCards+'</div></section><section class="inventory-section"><h3>🐾 Farm animals</h3><div class="inventory-grid">'+animalCard('🐔','Happy Hen',hens)+animalCard('🐄','Daisy Cow',cows)+'</div></section><section class="inventory-section inventory-stats"><h3>🌾 Field activity</h3><div class="inventory-stat"><strong>'+growing+'</strong><small>Growing</small></div><div class="inventory-stat"><strong>'+ready+'</strong><small>Ready to harvest</small></div><div class="inventory-stat"><strong>'+this.harvests+'</strong><small>Total harvests</small></div></section>';
+    const warehouseCost=this.buildings.warehouseLevel*400; host.innerHTML='<section class="inventory-section"><h3>📦 Order & delivery board</h3><p>Fulfil market requests with stored animal products. Each delivery pays coins and XP; contracts can be completed again.</p><div class="quest-list">'+this.renderOrders()+'</div></section><section class="inventory-section"><h3>📜 Farm quests & ribbons</h3><div class="quest-list">'+this.renderQuests()+'</div></section><section class="inventory-section"><h3>🏚️ Silo & shared storage · Level '+this.buildings.warehouseLevel+'</h3><p>Shared warehouse expansion adds 10 extra spaces to both eggs and milk storage. Silo bonus: +'+((this.buildings.warehouseLevel-1)*10)+' spaces per product type.</p><button class="market-buy" id="upgrade-warehouse" '+(this.coins<warehouseCost||this.buildings.warehouseLevel>=10?'disabled':'')+'>'+(this.buildings.warehouseLevel>=10?'Maximum level reached':'🪙 '+warehouseCost+' · Upgrade silo storage')+'</button></section><section class="inventory-section"><h3>🌱 Seed storage</h3><div class="inventory-grid">'+seedCards+'</div></section><section class="inventory-section"><h3>🥚 Animal produce</h3><div class="inventory-grid">'+produceCards+'</div><button class="market-buy" id="sell-produce" '+(this.produce.eggs+this.produce.milk===0?'disabled':'')+'>Sell all animal products</button></section><section class="inventory-section"><h3>🥣 Animal feed storage</h3><div class="inventory-grid">'+feedCards+'</div></section><section class="inventory-section"><h3>🐾 Farm animals</h3><div class="inventory-grid">'+animalCard('🐔','Happy Hen',hens)+animalCard('🐄','Daisy Cow',cows)+'</div></section><section class="inventory-section inventory-stats"><h3>🌾 Field activity</h3><div class="inventory-stat"><strong>'+growing+'</strong><small>Growing</small></div><div class="inventory-stat"><strong>'+ready+'</strong><small>Ready to harvest</small></div><div class="inventory-stat"><strong>'+this.harvests+'</strong><small>Total harvests</small></div></section>';
   }
   private closeMarket(): void {this.activeBuilding=null;document.getElementById('market-modal')?.classList.remove('open');document.getElementById('market-modal')?.setAttribute('aria-hidden','true');document.getElementById('market-modal')?.querySelector('.market-tabs')?.classList.remove('inventory-hidden');}
   private renderMarket(category='seeds'): void {
@@ -701,9 +727,10 @@ export class FarmScene extends Phaser.Scene {
       const raw = localStorage.getItem(this.saveKey);
       if (!raw) return;
       const save = JSON.parse(raw) as any;
-      if (![1,2,3,4,5,6,7,8].includes(save.version) || !Array.isArray(save.plots)) return;
+      if (![1,2,3,4,5,6,7,8,9].includes(save.version) || !Array.isArray(save.plots)) return;
       this.coins = Math.max(0, Math.floor(save.coins));
       this.claimedQuests = Array.isArray(save.claimedQuests) ? save.claimedQuests.filter((id:string)=>['first-harvest','busy-farmer','first-hen','first-cow','better-coop','bigger-silo'].includes(id)) : [];
+      this.ordersCompleted = save.version >= 9 && save.ordersCompleted && typeof save.ordersCompleted === 'object' ? Object.fromEntries(Object.entries(save.ordersCompleted).map(([id,count])=>[id,Math.max(0,Math.floor(Number(count)||0))]).filter(([id])=>['egg-crate','milk-run','farm-breakfast'].includes(String(id)))) : {};
       this.xp = Math.max(0, Math.floor(save.xp));
       if(save.decor && typeof save.decor==='object') for(const [id,pos] of Object.entries(save.decor as Record<string,{col:number;row:number}>)){if(id in this.decor && Number.isInteger(pos.col)&&Number.isInteger(pos.row)&&pos.col>=0&&pos.col<COLS&&pos.row>=0&&pos.row<ROWS)this.decor[id]={col:pos.col,row:pos.row};}
       if (save.selectedCrop && save.selectedCrop in CROPS && Math.floor(this.xp / 100) + 1 >= CROPS[save.selectedCrop as CropId].unlockLevel) this.selectedCrop = save.selectedCrop as CropId;
@@ -733,7 +760,8 @@ export class FarmScene extends Phaser.Scene {
 
   private saveFarm(): void {
     const save: FarmSave = {
-      version: 8,
+      version: 9,
+      ordersCompleted: {...this.ordersCompleted},
       claimedQuests: [...this.claimedQuests],
       animals: this.animals,
       harvests: this.harvests,
