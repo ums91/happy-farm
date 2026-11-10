@@ -388,9 +388,9 @@ export class FarmScene extends Phaser.Scene {
     const home = this.toWorld(homePos.col, homePos.row);
     const barn = this.toWorld(barnPos.col, barnPos.row);
     this.drawBuilding(g, home.x, home.y - 12, 0xe7d4a0, 0xa84f3c, 'FARMHOUSE');
-    this.drawBarn(g,barn.x,barn.y-15);
     const coopPos=this.decor.coop!; const coop=this.toWorld(coopPos.col,coopPos.row);
-    this.drawCoop(g,coop.x,coop.y-10);
+    this.drawCowPaddock(g,barn.x,barn.y-10);
+    this.drawChickenRun(g,coop.x,coop.y-8);
     const siloPos=this.decor.silo!; const silo = this.toWorld(siloPos.col, siloPos.row);
     g.fillStyle(0x426f3d, 0.22);
     g.fillEllipse(silo.x + 31, silo.y + 5, 52, 15);
@@ -422,36 +422,76 @@ export class FarmScene extends Phaser.Scene {
       if(id.startsWith('scarecrow')){g.lineStyle(4,0x80552f,1);g.beginPath();g.moveTo(p.x,p.y);g.lineTo(p.x,p.y-38);g.moveTo(p.x-16,p.y-28);g.lineTo(p.x+16,p.y-28);g.strokePath();g.fillStyle(0xd7a45b,1);g.fillCircle(p.x,p.y-43,8);g.fillStyle(0x9b4939,1);g.fillTriangle(p.x-12,p.y-45,p.x+12,p.y-45,p.x,p.y-58);g.fillStyle(0x6b9c48,1);g.fillRect(p.x-11,p.y-35,22,14);}
       if(id.startsWith('bench')){g.fillStyle(0x79502f,1);g.fillRoundedRect(p.x-19,p.y-13,38,7,2);g.fillRoundedRect(p.x-19,p.y-23,38,6,2);g.fillRect(p.x-15,p.y-7,4,12);g.fillRect(p.x+11,p.y-7,4,12);}
     });
-    this.drawAnimalPen(g);
   }
 
-  private drawAnimalPen(g: Phaser.GameObjects.Graphics): void {
-    const pos=this.decor.pen!; const p = this.toWorld(pos.col, pos.row);
-    const left = p.x - 42;
-    const top = p.y - 27;
-    g.fillStyle(0x9a7043, 1);
-    g.fillRoundedRect(left, top, 82, 43, 5);
-    g.lineStyle(4, 0xe0bd7d, 1);
-    g.strokeRect(left, top, 82, 43);
-    g.lineStyle(3, 0x8b6138, 1);
-    for (let i = 1; i < 5; i += 1) {
-      g.beginPath(); g.moveTo(left + i * 16, top); g.lineTo(left + i * 16, top + 43); g.strokePath();
-    }
-    // The paddock is populated only by animals the player has purchased.
-    g.fillStyle(0x6f9d45, 0.25);
-    g.fillEllipse(p.x, p.y + 12, 70, 12);
+  private paddockSize(kind:AnimalId):{width:number;height:number}{
+    const level=kind==='hen'?this.buildings.coopLevel:this.buildings.barnLevel;
+    return kind==='hen'
+      ? {width:82+(level-1)*13,height:72+(level-1)*12}
+      : {width:132+(level-1)*17,height:86+(level-1)*13};
+  }
+
+  private drawPaddockFence(g:Phaser.GameObjects.Graphics,x:number,y:number,width:number,height:number,kind:AnimalId):void{
+    const left=x-width/2,top=y-height/2;
+    g.fillStyle(kind==='hen'?0xb2a16b:0x8da96b,0.22);g.fillRoundedRect(left+4,top+5,width-8,height-8,8);
+    g.fillStyle(kind==='hen'?0x8fb35b:0x7fa957,0.2);g.fillEllipse(x,y+height*0.18,width*.78,height*.25);
+    // Timber rails and evenly spaced posts make the enclosure read as a real paddock.
+    g.lineStyle(5,0x76502f,1);g.strokeRoundedRect(left,top,width,height,5);
+    g.lineStyle(2,0xd6b77d,1);g.strokeRoundedRect(left+3,top+3,width-6,height-6,4);
+    const post=(px:number,py:number)=>{g.fillStyle(0x5c3d27,1);g.fillRoundedRect(px-3,py-5,6,12,2);g.fillStyle(0xc69a5d,1);g.fillRect(px-2,py-5,4,2);};
+    for(let px=left+width/4;px<left+width-5;px+=width/4){post(px,top);post(px,top+height);}
+    for(let py=top+height/3;py<top+height-4;py+=height/3){post(left,py);post(left+width,py);}
+    // A small gate and feed trough sit inside the fenced area.
+    g.fillStyle(0x69472c,1);g.fillRoundedRect(x-13,top+height-7,26,5,2);
+    g.lineStyle(2,0xe0c18a,1);g.beginPath();g.moveTo(x-10,top+height-8);g.lineTo(x-10,top+height-1);g.moveTo(x+10,top+height-8);g.lineTo(x+10,top+height-1);g.strokePath();
+    g.fillStyle(0x76502f,1);g.fillRoundedRect(left+width*.22,top+height*.28,kind==='hen'?24:34,8,3);
+    g.fillStyle(0x9b7043,1);g.fillRect(left+width*.22+3,top+height*.28-3,kind==='hen'?18:28,3);
+  }
+
+  private drawCowPaddock(g:Phaser.GameObjects.Graphics,x:number,y:number):void{
+    const size=this.paddockSize('cow');
+    this.drawPaddockFence(g,x,y,size.width,size.height,'cow');
+    // Low open-sided shade shelter: the pasture remains the main structure, not a house.
+    const sx=x-size.width*.25,sy=y-size.height*.23;
+    g.fillStyle(0x5b422e,1);g.fillRect(sx-18,sy-3,36,17);
+    g.fillStyle(0x9a6544,1);g.fillTriangle(sx-23,sy-4,sx,sy-17,sx+23,sy-4);
+    g.fillStyle(0xe5d0a2,1);g.fillRect(sx-14,sy+1,28,12);
+    this.sceneryLabels.push(this.add.text(x,y+size.height/2+7,'COW PASTURE · LVL '+this.buildings.barnLevel,{fontFamily:'Arial',fontSize:'8px',fontStyle:'bold',color:'#526c39'}).setOrigin(.5));
+  }
+
+  private drawChickenRun(g:Phaser.GameObjects.Graphics,x:number,y:number):void{
+    const size=this.paddockSize('hen');
+    this.drawPaddockFence(g,x,y,size.width,size.height,'hen');
+    // A low nesting shelter and perch fit inside a compact square chicken run.
+    const sx=x-size.width*.23,sy=y-size.height*.2;
+    g.fillStyle(0xd9c49a,1);g.fillRoundedRect(sx-13,sy-2,26,16,3);
+    g.fillStyle(0x9b543c,1);g.fillTriangle(sx-16,sy-2,sx,sy-13,sx+16,sy-2);
+    g.fillStyle(0x67442e,1);g.fillRect(sx-5,sy+5,10,9);
+    g.lineStyle(3,0x8a6139,1);g.beginPath();g.moveTo(x+size.width*.1,y+size.height*.12);g.lineTo(x+size.width*.34,y+size.height*.12);g.strokePath();
+    this.sceneryLabels.push(this.add.text(x,y+size.height/2+7,'CHICKEN RUN · LVL '+this.buildings.coopLevel,{fontFamily:'Arial',fontSize:'8px',fontStyle:'bold',color:'#79502e'}).setOrigin(.5));
   }
 
   private renderOwnedAnimals(): void {
     this.animalActors.forEach(actor=>actor.destroy());this.animalActors=[];
-    const penPos=this.decor.pen!;const pen=this.toWorld(penPos.col,penPos.row);
+    const henPos=this.toWorld(this.decor.coop!.col,this.decor.coop!.row);
+    const cowPos=this.toWorld(this.decor.barn!.col,this.decor.barn!.row);
+    const kindIndexes:Record<AnimalId,number>={hen:0,cow:0};
     this.animals.forEach((animal,index)=>{
       const cow=animal.id==='cow';
-      const startX=pen.x-28+(index%4)*(cow?23:18);
-      const startY=pen.y-8+Math.floor(index/4)*12;
+      const kindIndex=kindIndexes[animal.id]++;
+      const center=cow?cowPos:henPos;
+      const bounds=this.paddockSize(animal.id);
+      const cols=cow?3:4;
+      const spacingX=Math.min(cow?25:14,(bounds.width-32)/(cols-1));
+      const spacingY=cow?19:15;
+      const col=kindIndex%cols,row=Math.floor(kindIndex/cols);
+      const rowWidth=Math.min(cols,(cow?this.buildingCapacity('cow'):this.buildingCapacity('hen')));
+      const startX=center.x-(Math.min(cols,rowWidth)-1)*spacingX/2+col*spacingX;
+      const startY=center.y-5+row*spacingY;
       const actor=this.add.container(startX,startY);actor.setDepth(startY+index);
+      const scale=cow?1.04:0.58;
+      actor.setScale(scale);
       actor.add(this.add.ellipse(0,8,cow?43:27,9,0x263e25,0.24));
-      // Legs sit behind the body so the animal reads as a single grounded character.
       const legs:Phaser.GameObjects.Graphics[]=[];
       const legXs=cow?[-13,-5,10,18]:[-7,5];
       legXs.forEach((lx)=>{
@@ -459,7 +499,6 @@ export class FarmScene extends Phaser.Scene {
         if(cow){
           leg.fillStyle(0xf2eee0,1);leg.fillRoundedRect(lx-3,-10,6,17,2);
           leg.fillStyle(0x51483f,1);leg.fillRoundedRect(lx-3,4,7,5,2);
-          leg.fillStyle(0x302c28,0.7);leg.fillRect(lx-2,7,5,1);
         }else{
           leg.fillStyle(0xc58b42,1);leg.fillRoundedRect(lx-1.5,-7,3,13,1);
           leg.lineStyle(1.5,0xb97932,1);leg.beginPath();leg.moveTo(lx,5);leg.lineTo(lx-4,7);leg.moveTo(lx,5);leg.lineTo(lx+4,7);leg.strokePath();
@@ -476,14 +515,12 @@ export class FarmScene extends Phaser.Scene {
       actor.add(tail);
       const body=this.add.graphics();
       if(cow){
-        // Rounded dairy-cow silhouette with coat patches, neck and a softly shaded muzzle.
         body.fillStyle(0xaaa497,0.32);body.fillEllipse(-1,-9,40,24);
         body.fillStyle(0xf6f1e5,1);body.fillEllipse(-2,-14,39,27);
         body.fillStyle(0x4b4540,1);body.fillEllipse(-13,-19,13,10);body.fillEllipse(2,-8,12,9);body.fillEllipse(-2,-5,7,5);
         body.fillStyle(0xffffff,0.45);body.fillEllipse(-8,-23,14,5);
         body.fillStyle(0xf4eee0,1);body.fillEllipse(15,-19,19,21);
         body.fillStyle(0x4a433d,1);body.fillEllipse(11,-27,7,5);
-        // Head, ears, horns and muzzle.
         body.fillStyle(0xf2eee2,1);body.fillEllipse(19,-22,18,17);
         body.fillStyle(0xe6b7a8,1);body.fillEllipse(25,-15,15,10);
         body.fillStyle(0xf7c9b5,1);body.fillEllipse(24,-17,11,6);
@@ -492,12 +529,9 @@ export class FarmScene extends Phaser.Scene {
         body.fillStyle(0xf2eee2,1);body.fillTriangle(11,-27,6,-33,15,-30);body.fillTriangle(23,-28,29,-33,28,-25);
         body.fillStyle(0xd8a982,1);body.fillTriangle(14,-29,14,-35,18,-29);body.fillTriangle(23,-29,26,-35,27,-28);
         body.fillStyle(0xe9c5b4,1);body.fillEllipse(13,-14,5,3);
-        // Udder and subtle belly contour.
         body.fillStyle(0xe8b7a8,1);body.fillEllipse(-1,-1,12,7);
         body.fillStyle(0xc98f86,1);body.fillCircle(-4,1,1.2);body.fillCircle(1,2,1.2);body.fillCircle(5,1,1.2);
-        body.lineStyle(1,0xd4cabb,0.8);body.beginPath();body.moveTo(-15,-7);body.lineTo(8,-5);body.strokePath();
       }else{
-        // A compact buff hen with a layered breast, wing feathers and comb.
         body.fillStyle(0xc7a56d,0.25);body.fillEllipse(0,-8,30,22);
         body.fillStyle(0xf0dfbd,1);body.fillEllipse(-1,-11,25,20);
         body.fillStyle(0xfff4df,1);body.fillEllipse(-7,-13,12,12);
@@ -517,54 +551,39 @@ export class FarmScene extends Phaser.Scene {
         wing.lineStyle(1,0xa98552,0.85);wing.beginPath();wing.moveTo(-9,-10);wing.lineTo(-3,-7);wing.moveTo(-7,-13);wing.lineTo(0,-9);wing.strokePath();
         actor.add(wing);
         this.tweens.add({targets:wing,angle:-7,duration:650,yoyo:true,repeat:-1,ease:'Sine.inOut',delay:index*130});
-        this.tweens.add({targets:body,angle:1.2,duration:950,yoyo:true,repeat:-1,ease:'Sine.inOut',delay:index*100});
-      }else{
-        this.tweens.add({targets:tail,angle:7,duration:1100,yoyo:true,repeat:-1,ease:'Sine.inOut',delay:index*90});
-        this.tweens.add({targets:body,angle:0.8,duration:1250,yoyo:true,repeat:-1,ease:'Sine.inOut',delay:index*120});
       }
+      this.tweens.add({targets:body,angle:cow?0.8:1.2,duration:cow?1250:950,yoyo:true,repeat:-1,ease:'Sine.inOut',delay:index*100});
+      this.tweens.add({targets:tail,angle:cow?7:-5,duration:cow?1100:850,yoyo:true,repeat:-1,ease:'Sine.inOut',delay:index*90});
+      legs.forEach((leg,legIndex)=>this.tweens.add({targets:leg,angle:(legIndex%2===0?1:-1)*(cow?10:14),duration:cow?360:280,yoyo:true,repeat:-1,ease:'Sine.inOut',delay:index*100+legIndex*65}));
       this.animalActors.push(actor);
-      const roam=7+(index%3)*4,duration=2600+(index%4)*420;
-      this.tweens.add({targets:actor,x:startX+roam,duration,yoyo:true,repeat:-1,ease:'Sine.inOut',delay:index*180,
-        onYoyo:()=>actor.setScale(-1,1),onRepeat:()=>actor.setScale(1,1)});
-      this.tweens.add({targets:actor,y:startY-(cow?1.2:1.8),duration:cow?520:420,yoyo:true,repeat:-1,ease:'Sine.inOut',delay:index*90});
-      legs.forEach((leg,legIndex)=>this.tweens.add({targets:leg,angle:(legIndex%2===0?1:-1)*(cow?10:14),
-        duration:cow?260:220,yoyo:true,repeat:-1,ease:'Sine.inOut',delay:index*100+legIndex*65}));
+      const marginX=bounds.width/2-(cow?28:19),marginY=bounds.height/2-(cow?25:18);
+      const roamX=Math.max(4,Math.min(14,marginX-Math.abs(startX-center.x)));
+      const roamY=Math.max(3,Math.min(9,marginY-Math.abs(startY-center.y)));
+      this.wanderAnimal(actor,center.x,center.y,marginX,marginY,cow,index);
     });
   }
 
-  private drawBarn(g:Phaser.GameObjects.Graphics,x:number,y:number):void {
-    g.fillStyle(0x29482b,.25);g.fillEllipse(x+8,y+15,135,28);
-    g.fillStyle(0x9b7549,1);g.fillRoundedRect(x-49,y-2,100,12,3);
-    g.fillStyle(0xc97855,1);g.fillRect(x-39,y-47,78,48);
-    g.fillStyle(0xe49a6b,1);g.fillRect(x-35,y-43,70,4);
-    g.fillStyle(0x773c32,1);g.fillTriangle(x-54,y-43,x,y-91,x+54,y-43);
-    g.fillStyle(0x9b4439,1);g.fillPoints([{x:x-50,y:y-43},{x,y:y-86},{x:x+50,y:y-43},{x:x+35,y:y-35},{x,y:y-72},{x:x-35,y:y-35}],true);
-    g.fillStyle(0x713c32,1);g.fillRoundedRect(x-22,y-36,44,36,3);
-    g.lineStyle(3,0xe4c18b,1);g.strokeRect(x-22,y-36,44,36);g.beginPath();g.moveTo(x,y-35);g.lineTo(x,y);g.strokePath();
-    g.fillStyle(0x4d332b,1);g.fillRect(x-8,y-13,16,13);
-    g.fillStyle(0xf0d79b,1);g.fillRect(x-31,y-59,62,10);
-    g.fillStyle(0x6f3c31,1);g.fillTriangle(x-7,y-60,x,y-72,x+7,y-60);
-    g.fillStyle(0xb9dfe6,1);g.fillRect(x-8,y-55,16,5);
-    g.lineStyle(2,0x6f3b31,1);g.beginPath();g.moveTo(x-39,y-18);g.lineTo(x-28,y-18);g.moveTo(x+28,y-18);g.lineTo(x+39,y-18);g.strokePath();
-    this.sceneryLabels.push(this.add.text(x,y+20,'DAIRY BARN',{fontFamily:'Arial',fontSize:'8px',fontStyle:'bold',color:'#526c39'}).setOrigin(.5));
+  private wanderAnimal(actor:Phaser.GameObjects.Container,cx:number,cy:number,limitX:number,limitY:number,cow:boolean,index:number):void{
+    if(!actor.active)return;
+    const targetX=Phaser.Math.Clamp(cx+Phaser.Math.Between(-Math.max(5,limitX-8),Math.max(5,limitX-8)),cx-limitX,cx+limitX);
+    const targetY=Phaser.Math.Clamp(cy+Phaser.Math.Between(-Math.max(4,limitY-5),Math.max(4,limitY-5)),cy-limitY,cy+limitY);
+    const duration=Phaser.Math.Between(cow?2600:1500,cow?4300:2800);
+    this.tweens.add({targets:actor,x:targetX,y:targetY,duration,ease:'Sine.inOut',
+      onStart:()=>actor.setScale((cow?1.04:0.58)*(targetX<actor.x?-1:1),cow?1.04:0.58),
+      onComplete:()=>{if(actor.active){actor.setScale(cow?1.04:0.58, cow?1.04:0.58);this.time.delayedCall(Phaser.Math.Between(450,1500),()=>this.wanderAnimal(actor,cx,cy,limitX,limitY,cow,index));}}
+    });
   }
-  private drawCoop(g:Phaser.GameObjects.Graphics,x:number,y:number):void {
-    g.fillStyle(0x29482b,.25);g.fillEllipse(x+4,y+14,118,24);
-    g.fillStyle(0x80603b,1);g.fillRoundedRect(x-45,y-3,90,12,3);
-    g.fillStyle(0xe7d7a8,1);g.fillRect(x-36,y-35,72,34);
-    g.fillStyle(0xc6ad79,1);g.fillRect(x-36,y-35,72,5);
-    g.fillStyle(0x8c4b35,1);g.fillTriangle(x-49,y-32,x,y-75,x+49,y-32);
-    g.fillStyle(0xb65c3d,1);g.fillPoints([{x:x-44,y:y-33},{x,y:y-70},{x:x+44,y:y-33},{x:x+31,y:y-28},{x,y:y-56},{x:x-31,y:y-28}],true);
-    g.fillStyle(0x6c392d,1);g.fillRect(x-13,y-24,26,25);
-    g.fillStyle(0x3f2d25,1);g.fillRect(x-9,y-19,18,16);
-    g.fillStyle(0xf2d58e,1);g.fillRect(x-6,y-17,12,2);
-    g.fillStyle(0x8a5d37,1);g.fillRect(x-31,y-26,11,12);g.fillStyle(0xb7e2e8,1);g.fillRect(x-29,y-24,7,8);
-    // Attached fenced chicken run, mesh and nesting-box sign.
-    g.fillStyle(0x8a6139,1);g.fillRect(x+35,y-8,32,5);g.fillRect(x+35,y-8,4,18);g.fillRect(x+63,y-8,4,18);
-    g.lineStyle(1,0xd7c08c,.9);for(let xx=x+40;xx<x+64;xx+=6){g.beginPath();g.moveTo(xx,y-7);g.lineTo(xx,y+9);g.strokePath();}
-    g.fillStyle(0xfff4d5,1);g.fillRoundedRect(x-20,y-49,40,11,4);
-    this.sceneryLabels.push(this.add.text(x,y-43,'HEN HOUSE',{fontFamily:'Arial',fontSize:'7px',fontStyle:'bold',color:'#79502e'}).setOrigin(.5));
+
+  private playFeedingAnimation(actor:Phaser.GameObjects.Container):void{
+    if(!actor.active)return;
+    this.tweens.killTweensOf(actor);
+    const baseScale=Math.abs(actor.scaleX);
+    const y=actor.y;
+    this.tweens.add({targets:actor,y:y+3,duration:180,yoyo:true,repeat:2,ease:'Sine.inOut',
+      onComplete:()=>{if(!actor.active)return;const feed=this.add.text(actor.x,actor.y-25,'🌿',{fontSize:'13px'}).setOrigin(.5).setDepth(actor.depth+10);this.tweens.add({targets:feed,y:feed.y-15,alpha:0,duration:850,onComplete:()=>feed.destroy()});this.wanderAnimal(actor,actor.x,actor.y,18,12,baseScale>0.8,0);}
+    });
   }
+
   private drawAdditionalBuildings(g:Phaser.GameObjects.Graphics):void {
     (['bakery','greenhouse','windmill'] as BuildingId[]).forEach((id)=>{
       if(this.buildingLevels[id]<=0||!this.decor[id])return;
@@ -1107,7 +1126,7 @@ export class FarmScene extends Phaser.Scene {
   private careForAnimals(): void { if(!this.animals.length){this.openMarket();document.querySelector<HTMLButtonElement>('[data-market-tab=animals]')?.click();return;}let collected=0,fed=0,waiting=0;for(const kind of ['hen','cow'] as AnimalId[]){const result=this.collectAndFeed(kind);collected+=result.collected;fed+=result.fed;waiting+=result.waiting;}this.saveFarm();this.refreshHud();this.toast('Stored '+collected+' product(s) · fed '+fed+' · waiting for feed: '+waiting+'.');}
   private productionCapacity(kind:AnimalId):number{return 10+((kind==='hen'?this.buildings.coopLevel:this.buildings.barnLevel)-1)*5+(this.buildings.warehouseLevel-1)*10;}
   private collectAndFeed(kind:AnimalId):{collected:number;fed:number;waiting:number}{let collected=0,fed=0,waiting=0;const now=Date.now();const field=kind==='hen'?'eggs':'milk';for(const animal of this.animals.filter(a=>a.id===kind&&a.assigned!==false)){if(animal.readyAt>0&&animal.readyAt<=now){if(this.produce[field]<this.productionCapacity(kind)){this.produce[field]++;animal.readyAt=0;collected++;}else{waiting++;continue;}}if(animal.readyAt===0){if(this.feed[kind]>0){this.feed[kind]--;animal.readyAt=now+(kind==='hen'?45000:60000);fed++;}else waiting++;}}return{collected,fed,waiting};}
-  private runBuildingAction(id:'coop'|'barn',action:'collect'|'feed'):void{const kind:AnimalId=id==='coop'?'hen':'cow';let collected=0,fed=0,waiting=0;if(action==='collect'){const field=kind==='hen'?'eggs':'milk';for(const animal of this.animals.filter(a=>a.id===kind&&a.assigned!==false&&a.readyAt>0&&a.readyAt<=Date.now())){if(this.produce[field]>=this.productionCapacity(kind))break;this.produce[field]++;animal.readyAt=0;collected++;}}else{for(const animal of this.animals.filter(a=>a.id===kind&&a.assigned!==false&&a.readyAt===0)){if(this.feed[kind]>0){this.feed[kind]--;animal.readyAt=Date.now()+(kind==='hen'?45000:60000);fed++;}else waiting++;}}this.saveFarm();this.refreshHud();this.renderBuildingPanel(id);this.toast(action==='collect'?'Collected '+collected+' '+(kind==='hen'?'eggs':'milk')+'.':'Fed '+fed+' animal(s) · '+waiting+' waiting for feed.');}
+  private runBuildingAction(id:'coop'|'barn',action:'collect'|'feed'):void{const kind:AnimalId=id==='coop'?'hen':'cow';let collected=0,fed=0,waiting=0;if(action==='collect'){const field=kind==='hen'?'eggs':'milk';for(const animal of this.animals.filter(a=>a.id===kind&&a.assigned!==false&&a.readyAt>0&&a.readyAt<=Date.now())){if(this.produce[field]>=this.productionCapacity(kind))break;this.produce[field]++;animal.readyAt=0;collected++;}}else{for(const animal of this.animals.filter(a=>a.id===kind&&a.assigned!==false&&a.readyAt===0)){if(this.feed[kind]>0){this.feed[kind]--;animal.readyAt=Date.now()+(kind==='hen'?45000:60000);fed++;const actor=this.animalActors[this.animals.indexOf(animal)];if(actor)this.playFeedingAnimation(actor);}else waiting++;}}this.saveFarm();this.refreshHud();this.renderBuildingPanel(id);this.toast(action==='collect'?'Collected '+collected+' '+(kind==='hen'?'eggs':'milk')+'.':'Fed '+fed+' animal(s) · '+waiting+' waiting for feed.');}
   private buildingCapacity(id: AnimalId): number { return 2 + ((id==='hen'?this.buildings.coopLevel:this.buildings.barnLevel)-1)*2; }
   private openGenericBuilding(id:BuildingId):void {
     this.activeBuilding=id;const modal=document.getElementById('market-modal');const title=modal?.querySelector('.market-header h2');if(title)title.textContent=id==='silo'?'Grain Silo':id==='bakery'?'Village Bakery':id==='greenhouse'?'Greenhouse':'Windmill';
