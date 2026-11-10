@@ -1,17 +1,21 @@
 import Phaser from 'phaser';
 
 type Tool = 'select' | 'plow' | 'plant' | 'water' | 'harvest';
-type PlotState = 'grass' | 'tilled' | 'growing' | 'ready';
-type CropId = 'wheat' | 'carrot' | 'corn' | 'strawberry';
-interface Plot { col: number; row: number; state: PlotState; watered: boolean; growth: number; crop: CropId; readyAt: number }
+type PlotState = 'grass' | 'tilled' | 'growing' | 'ready' | 'withered';
+type CropId = 'wheat' | 'carrot' | 'corn' | 'strawberry' | 'tomato' | 'pumpkin' | 'blueberry' | 'watermelon';
+interface Plot { col: number; row: number; state: PlotState; watered: boolean; growth: number; crop: CropId; readyAt: number; witherAt: number }
 type AnimalId = 'hen' | 'cow';
 interface Animal { id: AnimalId; readyAt: number }
-interface FarmSave { version: 4; animals: Animal[]; harvests: number; coins: number; xp: number; feed: { hen: number; cow: number }; inventory: Record<CropId, number>; plots: Array<{ col:number; row:number; state:PlotState; watered:boolean; growth:number; crop?:CropId; readyAt?:number }> }
-const CROPS: Record<CropId,{name:string;emoji:string;cost:number;reward:number;xp:number;growMs:number;color:number}> = {
- wheat:{name:'Wheat',emoji:'🌾',cost:5,reward:18,xp:5,growMs:15000,color:0xe4b83f},
- carrot:{name:'Carrot',emoji:'🥕',cost:9,reward:31,xp:8,growMs:22000,color:0xef873e},
- corn:{name:'Corn',emoji:'🌽',cost:14,reward:48,xp:12,growMs:30000,color:0xf2c94c},
- strawberry:{name:'Strawberry',emoji:'🍓',cost:20,reward:70,xp:18,growMs:42000,color:0xd94f55}
+interface FarmSave { version: 5; animals: Animal[]; harvests: number; coins: number; xp: number; feed: { hen: number; cow: number }; inventory: Record<CropId, number>; plots: Array<{ col:number; row:number; state:PlotState; watered:boolean; growth:number; crop?:CropId; readyAt?:number }> }
+const CROPS: Record<CropId,{name:string;emoji:string;cost:number;reward:number;xp:number;growMs:number;color:number;unlockLevel:number}> = {
+ wheat:{name:'Wheat',emoji:'🌾',cost:5,reward:18,xp:5,growMs:15000,color:0xe4b83f,unlockLevel:1},
+ carrot:{name:'Carrot',emoji:'🥕',cost:9,reward:31,xp:8,growMs:22000,color:0xef873e,unlockLevel:1},
+ corn:{name:'Corn',emoji:'🌽',cost:14,reward:48,xp:12,growMs:30000,color:0xf2c94c,unlockLevel:2},
+ strawberry:{name:'Strawberry',emoji:'🍓',cost:20,reward:70,xp:18,growMs:42000,color:0xd94f55,unlockLevel:3},
+ tomato:{name:'Tomato',emoji:'🍅',cost:27,reward:91,xp:22,growMs:55000,color:0xe65c45,unlockLevel:4},
+ pumpkin:{name:'Pumpkin',emoji:'🎃',cost:36,reward:125,xp:29,growMs:70000,color:0xe98d35,unlockLevel:5},
+ blueberry:{name:'Blueberry',emoji:'🫐',cost:48,reward:165,xp:38,growMs:90000,color:0x6556a8,unlockLevel:7},
+ watermelon:{name:'Watermelon',emoji:'🍉',cost:65,reward:220,xp:50,growMs:120000,color:0x65a94f,unlockLevel:9}
 };
 
 const COLS = 13;
@@ -57,6 +61,7 @@ export class FarmScene extends Phaser.Scene {
     this.bindMarket();
     this.refreshHud();
     this.refreshSelection();
+    this.time.addEvent({ delay: 1000, loop: true, callback: () => this.updateCropLifecycle() });
     this.input.on('wheel', (_pointer: Phaser.Input.Pointer, _objects: unknown[], _dx: number, dy: number) => {
       this.cameras.main.setZoom(Phaser.Math.Clamp(this.cameras.main.zoom - dy * 0.001, 0.55, 1.35));
     });
@@ -124,7 +129,7 @@ export class FarmScene extends Phaser.Scene {
     for (let row = 0; row < ROWS; row += 1) {
       for (let col = 0; col < COLS; col += 1) {
         const point = this.toWorld(col, row);
-        this.plots.set(this.key(col, row), { col, row, state: 'grass', watered: false, growth: 0, crop: 'wheat', readyAt: 0 });
+        this.plots.set(this.key(col, row), { col, row, state: 'grass', watered: false, growth: 0, crop: 'wheat', readyAt: 0, witherAt: 0 });
         const shades = [0x9bcf69, 0xa5d875, 0x94c762, 0xaedb7d, 0x9fce70];
         const shade = shades[(col * 7 + row * 11) % shades.length] ?? 0x9bcf69;
         this.diamond(this.plotGraphics, point.x, point.y, shade, 0x78ae54);
@@ -419,16 +424,17 @@ export class FarmScene extends Phaser.Scene {
   private applyTool(plot: Plot): void {
     switch (this.activeTool) {
       case 'plow':
-        if (plot.state === 'grass') plot.state = 'tilled';
+        if (plot.state === 'grass' || plot.state === 'withered') { plot.state = 'tilled'; plot.witherAt = 0; plot.readyAt = 0; plot.growth = 0; }
         break;
       case 'plant':
-        if (plot.state === 'tilled' && this.inventory[this.selectedCrop] > 0) { plot.state = 'growing'; plot.crop = this.selectedCrop; plot.growth = 0; this.inventory[this.selectedCrop]--; this.scheduleGrowth(plot, CROPS[this.selectedCrop].growMs); }
+        if (plot.state === 'tilled' && this.inventory[this.selectedCrop] > 0) { plot.state = 'growing'; plot.crop = this.selectedCrop; plot.growth = 0; plot.witherAt = 0; this.inventory[this.selectedCrop]--; this.scheduleGrowth(plot, CROPS[this.selectedCrop].growMs); }
         break;
       case 'water':
         if (plot.state === 'growing' && !plot.watered) { plot.watered = true; this.scheduleGrowth(plot, Math.max(1500, Math.ceil((plot.readyAt - Date.now()) / 2))); }
         break;
       case 'harvest':
-        if (plot.state === 'ready') { const crop=CROPS[plot.crop]; plot.state='tilled'; plot.growth=0; plot.readyAt=0; plot.watered=false; this.growthTimers.get(this.key(plot.col,plot.row))?.remove(false); this.growthTimers.delete(this.key(plot.col,plot.row)); this.coins+=crop.reward; this.xp+=crop.xp; this.harvests += 1; this.toast(`${crop.emoji} ${crop.name} harvested · +${crop.reward} coins`); }
+        if (plot.state === 'withered') { g.lineStyle(2, 0x8b7950, 0.9); g.beginPath(); g.moveTo(x - 10, y - 5); g.lineTo(x + 9, y - 15); g.moveTo(x - 5, y - 12); g.lineTo(x + 9, y - 7); g.strokePath(); }
+    else if (plot.state === 'ready') { const crop=CROPS[plot.crop]; plot.state='tilled'; plot.growth=0; plot.readyAt=0; plot.witherAt=0; plot.watered=false; this.growthTimers.get(this.key(plot.col,plot.row))?.remove(false); this.growthTimers.delete(this.key(plot.col,plot.row)); this.coins+=crop.reward; this.xp+=crop.xp; this.harvests += 1; this.toast(`${crop.emoji} ${crop.name} harvested · +${crop.reward} coins`); }
         break;
       case 'select':
         break;
@@ -441,15 +447,60 @@ export class FarmScene extends Phaser.Scene {
   private scheduleGrowth(plot: Plot, delay: number): void {
     const id = this.key(plot.col, plot.row);
     plot.readyAt = Date.now() + delay;
+    plot.witherAt = 0;
+    plot.growth = 0;
     this.growthTimers.get(id)?.remove(false);
     this.growthTimers.set(id, this.time.delayedCall(delay, () => {
       plot.state = 'ready';
       plot.growth = 100;
       plot.readyAt = 0;
+      plot.witherAt = Date.now() + Math.round(CROPS[plot.crop].growMs * 1.2);
       this.redrawPlot(plot);
+      this.scheduleWithering(plot);
       if (this.selected === plot) this.refreshSelection();
       this.saveFarm();
     }));
+  }
+
+  private scheduleWithering(plot: Plot): void {
+    const delay = Math.max(0, plot.witherAt - Date.now());
+    this.time.delayedCall(delay, () => {
+      if (plot.state !== 'ready' || !plot.witherAt || plot.witherAt > Date.now()) return;
+      plot.state = 'withered';
+      plot.witherAt = 0;
+      this.redrawPlot(plot);
+      if (this.selected === plot) this.refreshSelection();
+      this.saveFarm();
+      this.toast('A crop has withered. Plow the plot to prepare it again.');
+    });
+  }
+
+  private updateCropLifecycle(): void {
+    const now = Date.now();
+    let changed = false;
+    for (const plot of this.plots.values()) {
+      if (plot.state === 'growing' && plot.readyAt > 0) {
+        const total = CROPS[plot.crop].growMs / (plot.watered ? 2 : 1);
+        const remaining = Math.max(0, plot.readyAt - now);
+        const progress = Math.min(99, Math.floor((1 - remaining / total) * 100));
+        const previousStage = Math.floor(plot.growth / 25);
+        plot.growth = progress;
+        if (Math.floor(progress / 25) !== previousStage) {
+          this.redrawPlot(plot);
+          changed = true;
+        }
+      }
+      if (plot.state === 'ready' && plot.witherAt > 0 && plot.witherAt <= now) {
+        plot.state = 'withered';
+        plot.witherAt = 0;
+        this.redrawPlot(plot);
+        changed = true;
+      }
+    }
+    if (changed) {
+      if (this.selected) this.refreshSelection();
+      this.saveFarm();
+    }
   }
 
   private redrawPlot(plot: Plot): void {
@@ -460,7 +511,7 @@ export class FarmScene extends Phaser.Scene {
     const p = this.toWorld(plot.col, plot.row);
     const g = this.add.graphics();
     this.plotOverlays.set(id, g);
-    this.diamond(g, p.x, p.y, 0x805332, 0x68452f);
+    this.diamond(g, p.x, p.y, plot.state === 'withered' ? 0x725b45 : 0x805332, plot.state === 'withered' ? 0x574332 : 0x68452f);
     g.lineStyle(2, 0xb78655, 0.9);
     for (let i = -2; i <= 2; i += 1) {
       g.beginPath();
@@ -468,16 +519,16 @@ export class FarmScene extends Phaser.Scene {
       g.lineTo(p.x + 25, p.y + i * 5);
       g.strokePath();
     }
-    if (plot.state === 'growing' || plot.state === 'ready') this.drawCrop(g, p.x, p.y, plot);
+    if (plot.state === 'growing' || plot.state === 'ready' || plot.state === 'withered') this.drawCrop(g, p.x, p.y, plot);
   }
 
   private drawCrop(g: Phaser.GameObjects.Graphics, x: number, y: number, plot: Plot): void {
-    const height = plot.state === 'ready' ? 25 : 10;
-    g.lineStyle(3, 0x397d39, 1);
+    const height = plot.state === 'ready' ? 25 : plot.state === 'withered' ? 9 : 8 + Math.round(plot.growth / 100 * 17);
+    g.lineStyle(3, plot.state === 'withered' ? 0x8b7950 : 0x397d39, 1);
     g.beginPath(); g.moveTo(x, y + 2); g.lineTo(x - 2, y - height); g.strokePath();
     g.beginPath(); g.moveTo(x - 1, y - height * 0.45); g.lineTo(x - 12, y - height * 0.7); g.strokePath();
     g.beginPath(); g.moveTo(x - 1, y - height * 0.65); g.lineTo(x + 11, y - height * 0.9); g.strokePath();
-    g.fillStyle(plot.state === 'ready' ? CROPS[plot.crop].color : 0x70a94f, 1);
+    g.fillStyle(plot.state === 'ready' ? CROPS[plot.crop].color : plot.state === 'withered' ? 0x9b875b : 0x70a94f, 1);
     g.fillCircle(x - 2, y - height, plot.state === 'ready' ? 5 : 3);
     if (plot.state === 'ready') {
       g.fillStyle(0xf6d86b, 1);
@@ -557,8 +608,8 @@ export class FarmScene extends Phaser.Scene {
   private renderMarket(category='seeds'): void {
     const host=document.getElementById('market-items');if(!host)return;
     if(category==='feed'){host.innerHTML='<article class="market-item"><div class="market-art">🌾</div><div class="market-copy"><strong>Hen feed</strong><small>Feed one hen · starts a 45-second egg cycle · in storage: '+this.feed.hen+'</small></div><button class="market-buy" data-buy-feed="hen" '+(this.coins<12?'disabled':'')+'>🪙 12 · Buy</button></article><article class="market-item"><div class="market-art">🌿</div><div class="market-copy"><strong>Cow feed</strong><small>Feed one cow · starts a 60-second milk cycle · in storage: '+this.feed.cow+'</small></div><button class="market-buy" data-buy-feed="cow" '+(this.coins<18?'disabled':'')+'>🪙 18 · Buy</button></article>';host.querySelectorAll<HTMLButtonElement>('[data-buy-feed]').forEach(btn=>btn.addEventListener('click',()=>{const id=btn.dataset.buyFeed as AnimalId;const price=id==='hen'?12:18;if(this.coins<price)return;this.coins-=price;this.feed[id]++;this.saveFarm();this.refreshHud();this.renderMarket('feed');this.toast((id==='hen'?'Hen':'Cow')+' feed added to storage.');}));return;} if(category==='animals'){host.innerHTML='<article class="market-item"><div class="market-art">🐔</div><div class="market-copy"><strong>Happy Hen</strong><small>Lays an egg after feeding · owned: '+this.animals.filter(a=>a.id==='hen').length+'</small></div><button class="market-buy" data-buy-animal="hen" '+(this.coins<75?'disabled':'')+'>🪙 75 · Buy</button></article><article class="market-item"><div class="market-art">🐄</div><div class="market-copy"><strong>Daisy Cow</strong><small>Produces milk after feeding · owned: '+this.animals.filter(a=>a.id==='cow').length+'</small></div><button class="market-buy" data-buy-animal="cow" '+(this.coins<160?'disabled':'')+'>🪙 160 · Buy</button></article>';host.querySelectorAll<HTMLButtonElement>('[data-buy-animal]').forEach(btn=>btn.addEventListener('click',()=>{const id=btn.dataset.buyAnimal as AnimalId;const cost=id==='hen'?75:160;if(this.coins<cost)return;this.coins-=cost;this.animals.push({id,readyAt:0});this.renderOwnedAnimals();this.saveFarm();this.refreshHud();this.toast('A new animal joined your farm!');this.renderMarket('animals');}));return;} if(category==='decor'){host.innerHTML='<article class="market-item"><div class="market-art">🌷</div><div class="market-copy"><strong>Decorations</strong><small>Placeable decorations are coming in a future update.</small></div></article>';return;}
-    host.innerHTML=(Object.entries(CROPS) as Array<[CropId,typeof CROPS[CropId]]>).map(([id,crop])=>`<article class="market-item"><div class="market-art">${crop.emoji}</div><div class="market-copy"><strong>${crop.name}</strong><small>${crop.growMs/1000}s · reward ${crop.reward} coins · bag: ${this.inventory[id]}</small></div><button class="market-buy" data-buy-seed="${id}" ${this.coins<crop.cost?'disabled':''}>🪙 ${crop.cost} · Buy</button></article>`).join('');
-    host.querySelectorAll<HTMLButtonElement>('[data-buy-seed]').forEach(btn=>btn.addEventListener('click',()=>{const id=btn.dataset.buySeed as CropId;const crop=CROPS[id];if(!crop||this.coins<crop.cost)return;this.coins-=crop.cost;this.inventory[id]++;this.selectedCrop=id;this.saveFarm();this.refreshHud();this.refreshSelection();this.toast(`${crop.emoji} ${crop.name} seeds added to your bag`);}));
+    const level=Math.floor(this.xp/100)+1;host.innerHTML=(Object.entries(CROPS) as Array<[CropId,typeof CROPS[CropId]]>).map(([id,crop])=>{const locked=level<crop.unlockLevel;return `<article class="market-item ${locked?'crop-locked':''}"><div class="market-art">${crop.emoji}</div><div class="market-copy"><strong>${crop.name}</strong><small>${locked?'Unlocks at level '+crop.unlockLevel:Math.round(crop.growMs/1000)+'s grow · '+Math.round(crop.growMs*1.2/1000)+'s harvest window'} · reward ${crop.reward} coins · +${crop.xp} XP · bag: ${this.inventory[id]}</small></div><button class="market-buy" data-buy-seed="${id}" ${locked||this.coins<crop.cost?'disabled':''}>${locked?'🔒 Level '+crop.unlockLevel:'🪙 '+crop.cost+' · Buy'}</button></article>`;}).join('');
+    host.querySelectorAll<HTMLButtonElement>('[data-buy-seed]').forEach(btn=>btn.addEventListener('click',()=>{const id=btn.dataset.buySeed as CropId;const crop=CROPS[id];if(!crop||Math.floor(this.xp/100)+1<crop.unlockLevel||this.coins<crop.cost)return;this.coins-=crop.cost;this.inventory[id]++;this.selectedCrop=id;this.saveFarm();this.refreshHud();this.refreshSelection();this.toast(`${crop.emoji} ${crop.name} seeds added to your bag`);}));
   }
   private toast(message:string): void {const el=document.getElementById('game-toast');if(!el)return;el.textContent=message;el.classList.add('show');window.setTimeout(()=>el.classList.remove('show'),2200);}
 
@@ -567,7 +618,7 @@ export class FarmScene extends Phaser.Scene {
       const raw = localStorage.getItem(this.saveKey);
       if (!raw) return;
       const save = JSON.parse(raw) as any;
-      if (![1,2,3,4].includes(save.version) || !Array.isArray(save.plots)) return;
+      if (![1,2,3,4,5].includes(save.version) || !Array.isArray(save.plots)) return;
       this.coins = Math.max(0, Math.floor(save.coins));
       this.xp = Math.max(0, Math.floor(save.xp));
       if (save.version >= 2 && save.inventory) this.inventory = {...this.inventory,...save.inventory};
@@ -581,7 +632,9 @@ export class FarmScene extends Phaser.Scene {
         plot.growth = saved.growth === 100 ? 100 : 0;
         if (saved.crop && saved.crop in CROPS) plot.crop = saved.crop;
         plot.readyAt = saved.readyAt || 0;
-        if (plot.state === 'growing') { const remaining=plot.readyAt ? plot.readyAt-Date.now() : (plot.watered ? 5000 : CROPS[plot.crop].growMs); if (remaining<=0) {plot.state='ready';plot.growth=100;plot.readyAt=0;} else this.scheduleGrowth(plot,remaining); }
+        plot.witherAt = save.version >= 5 ? (saved.witherAt || 0) : 0;
+        if (plot.state === 'ready' && plot.witherAt > 0) this.scheduleWithering(plot);
+        if (plot.state === 'growing') { const remaining=plot.readyAt ? plot.readyAt-Date.now() : (plot.watered ? 5000 : CROPS[plot.crop].growMs); if (remaining<=0) {plot.state='ready';plot.growth=100;plot.readyAt=0;plot.witherAt=Date.now()+Math.round(CROPS[plot.crop].growMs*1.2);this.scheduleWithering(plot);} else this.scheduleGrowth(plot,remaining); }
         this.redrawPlot(plot);
       }
     } catch {
@@ -591,7 +644,7 @@ export class FarmScene extends Phaser.Scene {
 
   private saveFarm(): void {
     const save: FarmSave = {
-      version: 4,
+      version: 5,
       animals: this.animals,
       harvests: this.harvests,
       coins: this.coins,
@@ -599,7 +652,7 @@ export class FarmScene extends Phaser.Scene {
       inventory: {...this.inventory},
       feed: {...this.feed},
       plots: Array.from(this.plots.values()).map(plot => ({
-        col: plot.col, row: plot.row, state: plot.state, watered: plot.watered, growth: plot.growth, crop:plot.crop, readyAt:plot.readyAt,
+        col: plot.col, row: plot.row, state: plot.state, watered: plot.watered, growth: plot.growth, crop:plot.crop, readyAt:plot.readyAt, witherAt:plot.witherAt,
       })),
     };
     try {
@@ -636,7 +689,7 @@ export class FarmScene extends Phaser.Scene {
       host.innerHTML = '<span class="selection-kicker">SELECTED LAND</span><strong>Choose a plot</strong><p>Select a field tile to see what you can do there.</p>';
       return;
     }
-    const names: Record<PlotState, string> = { grass: 'Open grassland', tilled: 'Freshly plowed soil', growing: 'Growing crop', ready: 'Ready to harvest' };
+    const names: Record<PlotState, string> = { grass: 'Open grassland', tilled: 'Freshly plowed soil', growing: 'Growing crop', ready: 'Ready to harvest', withered: 'Withered crop · plow to clear' };
     const actions: Record<Tool, string> = { select: 'Choose a tool to work this plot.', plow: 'Plow open grass to prepare the soil.', plant: `Plant ${CROPS[this.selectedCrop].name} · ${this.inventory[this.selectedCrop]} seeds in your bag.`, water: 'Water once to cut remaining growth time in half.', harvest: 'Harvest your crop for coins and experience.' };
     host.innerHTML = `<span class="selection-kicker">LAND · ${this.selected.col + 1}, ${this.selected.row + 1}</span><strong>${names[this.selected.state]}</strong><p>${actions[this.activeTool]}</p>`;
   }

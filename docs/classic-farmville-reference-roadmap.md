@@ -22,8 +22,8 @@ The following community wiki pages inform the gameplay specification. Wiki page 
 | System | Classic reference behaviour | Happy Farm status |
 |---|---|---|
 | Isometric farm | Tile-based farm, initially 12×12 | Existing 13×11 playable field; resize/expansion planned |
-| Crop loop | Plow, buy seeds, plant, grow, harvest | Basic loop implemented; richer crop catalogue and mastery planned |
-| Crop withering | Harvest window followed by withering | Planned |
+| Crop loop | Plow, buy seeds, plant, grow, harvest | Expanded data-driven catalogue, level-gated seed market, growth stages and withering window implemented |
+| Crop withering | Harvest window followed by withering | Implemented with persisted deadlines and plow-to-clear recovery |
 | Market | Seeds, trees, animals, buildings, decorations, aides, clothes, expansions | Seeds, animals, feed, placeholder decorations; other tabs planned |
 | Animals | Animals produce collectable goods; no slaughter mechanic | Hens and cows with feed and timed products implemented |
 | Animal storage | Coops, barns and storage capacity | Planned |
@@ -73,3 +73,12 @@ Happy Farm is a separate Phaser/TypeScript web game. The preservation project's 
 ### Licensing and asset boundary
 
 The preservation repository is GPL-3.0. This roadmap records it as a design/behaviour reference only. No Python source, SWF files, Flash client code, recovered binary game data, or FarmVille artwork has been copied into Happy Farm. If future implementation directly adapts GPL-covered code, Happy Farm's distribution and source-availability obligations must be reviewed and the derivative component must retain GPL-compatible licensing and notices. The preservation repository's README itself describes automatic downloads of large archived WARC/asset collections; ownership and provenance of each recovered game asset must be checked independently before any reuse. The repository's GPL notice does not, by itself, establish that Zynga-originated game assets are GPL-licensed.
+
+## Phase 1 — Advanced crop system (v0.9)
+
+- Expanded the data-driven seed catalogue to wheat, carrot, corn, strawberry, tomato, pumpkin, blueberry and watermelon.
+- Added level gates for higher-tier seeds and XP awards per harvest.
+- Added visible growth stages driven by persisted wall-clock deadlines.
+- Added a harvest window after ripening; crops wither if left unharvested and can be cleared by plowing.
+- Added save schema v5 with backward compatibility for save versions 1–4.
+- Growth and withering are simulated locally in the browser; production values are short demo timings and can be balanced later.
