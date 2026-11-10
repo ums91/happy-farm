@@ -87,6 +87,14 @@ The preservation repository is GPL-3.0. This roadmap records it as a design/beha
 - Added produce storage limits (10 units at level 1, +5 per building level); full storage blocks collection without discarding ready products.
 - Building upgrades increase both animal housing and produce storage.
 
+## Phase 4 — Farm quests and milestone rewards (v1.2)
+
+- Added six persistent farm quests covering first harvest, crop harvesting milestones, welcoming hens and cows, and upgrading the coop and silo.
+- Quest progress is calculated from the player's saved farm state, so progress survives refreshes and earlier save versions.
+- Added one-time claimable coin and XP rewards, with duplicate claims prevented by persisted quest IDs.
+- Added a progress board in Inventory with completion state, reward details and progress bars.
+- Added save schema v8 with backward-compatible migration; previous saves begin with the new quest board intact.
+
 ## Phase 3 — Animal management and silo storage (v1.1)
 
 - Added individual animal assignment controls in the coop and dairy barn. Resting animals retain their housing space but do not consume feed or produce goods.
