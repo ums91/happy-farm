@@ -29,3 +29,14 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
 .game-canvas canvas{display:block;width:100%!important;height:100%!important;max-width:100%;max-height:100%;object-fit:contain}
 @media(max-width:900px){.world-panel{min-height:540px}}
 @media(max-width:560px){.world-panel{min-height:430px}}
+
+/* Inventory view: dedicated storage summary, separate from shopping. */
+.market-tabs.inventory-hidden{display:none!important}
+.inventory-section{grid-column:1/-1;padding:10px 0;border-bottom:1px dashed #e3cda1}
+.inventory-section h3{margin:0 0 9px;font:800 14px 'Baloo 2';color:#789a4b}
+.inventory-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.inventory-quantity{flex:0 0 auto;padding:6px 10px;border-radius:12px;background:#e7f2d8;color:#648d42;font-weight:900;font-size:13px}
+.inventory-stats{display:flex;gap:10px;flex-wrap:wrap}.inventory-stats h3{width:100%}
+.inventory-stat{flex:1;min-width:90px;padding:10px;border-radius:12px;background:#fff9e9;border:1px solid #ead7ad;text-align:center}
+.inventory-stat strong,.inventory-stat small{display:block}.inventory-stat strong{font:800 22px 'Baloo 2';color:#6f9847}.inventory-stat small{font-size:10px;color:#a58b63;font-weight:800}
+@media(max-width:560px){.inventory-grid{grid-template-columns:1fr}}
