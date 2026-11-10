@@ -485,9 +485,11 @@ export class FarmScene extends Phaser.Scene {
       const spacingX=Math.min(cow?25:14,(bounds.width-32)/(cols-1));
       const spacingY=cow?19:15;
       const col=kindIndex%cols,row=Math.floor(kindIndex/cols);
-      const rowWidth=Math.min(cols,(cow?this.buildingCapacity('cow'):this.buildingCapacity('hen')));
-      const startX=center.x-(Math.min(cols,rowWidth)-1)*spacingX/2+col*spacingX;
-      const startY=center.y-5+row*spacingY;
+      const capacity=this.buildingCapacity(animal.id);
+      const rowWidth=Math.min(cols,capacity);
+      const totalRows=Math.ceil(capacity/cols);
+      const startX=center.x-(rowWidth-1)*spacingX/2+col*spacingX;
+      const startY=center.y-(totalRows-1)*spacingY/2+row*spacingY;
       const actor=this.add.container(startX,startY);actor.setDepth(startY+index);
       const scale=cow?1.04:0.72;
       actor.setScale(scale);
