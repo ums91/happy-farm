@@ -751,6 +751,21 @@ export class FarmScene extends Phaser.Scene {
 
 
   private warnMoveBlocked(message:string):void {if(this.lastMoveWarning===message)return;this.lastMoveWarning=message;this.toast(message);}
+  private findFreeDecorTile(preferLowerFarm=true):{col:number;row:number}|null {
+    const occupied=new Set(Object.values(this.decor).map(pos=>this.key(pos.col,pos.row)));
+    const rows=preferLowerFarm
+      ? [...Array(ROWS-2)].map((_,i)=>i+2)
+      : [...Array(ROWS)].map((_,i)=>i);
+    for(const row of rows){
+      for(let col=0;col<COLS;col++){
+        const key=this.key(col,row);
+        const plot=this.plots.get(key);
+        if(plot?.state==='grass'&&!occupied.has(key))return {col,row};
+      }
+    }
+    return null;
+  }
+
   private canPlaceDecor(tile:{col:number;row:number},movingId:string):boolean {
     const target=this.plots.get(this.key(tile.col,tile.row));if(!target||target.state!=='grass')return false;
     return !Object.entries(this.decor).some(([id,pos])=>id!==movingId&&pos.col===tile.col&&pos.row===tile.row);
@@ -1282,15 +1297,16 @@ export class FarmScene extends Phaser.Scene {
       const level=Math.floor(this.xp/100)+1;
       const options=[{id:'bakery',name:'Village Bakery',emoji:'🥖',cost:550,unlock:4,desc:'A village bakery for the next stage of farm life.'},{id:'greenhouse',name:'Greenhouse',emoji:'🌿',cost:700,unlock:6,desc:'A glasshouse for year-round growing.'},{id:'windmill',name:'Windmill',emoji:'🌬️',cost:950,unlock:8,desc:'A landmark mill that completes your homestead.'}];
       host.innerHTML=options.map(item=>{const owned=this.buildingLevels[item.id as BuildingId]>0;return '<article class="market-item"><div class="market-art">'+item.emoji+'</div><div class="market-copy"><strong>'+item.name+(owned?' · Level '+this.buildingLevels[item.id as BuildingId]:'')+'</strong><small>'+item.desc+' Unlocks at Level '+item.unlock+'. Upgrade cost: '+(this.buildingLevels[item.id as BuildingId]*350||item.cost)+' coins.</small></div><button class="market-buy" data-building-buy="'+item.id+'" '+(level<item.unlock||(!owned&&this.coins<item.cost)||(owned&&this.coins<this.buildingLevels[item.id as BuildingId]*350)||this.buildingLevels[item.id as BuildingId]>=5?'disabled':'')+'>'+(level<item.unlock?'🔒 Level '+item.unlock: this.buildingLevels[item.id as BuildingId]>=5?'Max level':owned?'🪙 '+(this.buildingLevels[item.id as BuildingId]*350)+' · Upgrade':'🪙 '+item.cost+' · Build')+'</button></article>';}).join('');
-      host.querySelectorAll<HTMLButtonElement>('[data-building-buy]').forEach(btn=>btn.addEventListener('click',()=>{const id=btn.dataset.buildingBuy as BuildingId;const item=options.find(x=>x.id===id);if(!item||level<item.unlock||this.buildingLevels[id]>=5)return;const cost=this.buildingLevels[id]>0?this.buildingLevels[id]*350:item.cost;if(this.coins<cost)return;this.coins-=cost;this.buildingLevels[id]=Math.max(1,this.buildingLevels[id]+1);if(!this.decor[id]){const spots:Record<string,{col:number;row:number}>={bakery:{col:2,row:2},greenhouse:{col:7,row:9},windmill:{col:10,row:6}};this.decor[id]=spots[id]!;}this.drawScenery();this.saveFarm();this.refreshHud();this.renderMarket('buildings');this.toast(item.name+' upgraded to Level '+this.buildingLevels[id]+'.');}));return;
+      host.querySelectorAll<HTMLButtonElement>('[data-building-buy]').forEach(btn=>btn.addEventListener('click',()=>{const id=btn.dataset.buildingBuy as BuildingId;const item=options.find(x=>x.id===id);if(!item||level<item.unlock||this.buildingLevels[id]>=5)return;const cost=this.buildingLevels[id]>0?this.buildingLevels[id]*350:item.cost;if(this.coins<cost)return;const placement=!this.decor[id]?this.findFreeDecorTile(false):null;if(!this.decor[id]&&!placement){this.toast('Your farm is full. Move or clear an object before building.');return;}this.coins-=cost;this.buildingLevels[id]=Math.max(1,this.buildingLevels[id]+1);if(placement)this.decor[id]=placement;this.drawScenery();this.saveFarm();this.refreshHud();this.renderMarket('buildings');this.toast(item.name+' upgraded to Level '+this.buildingLevels[id]+'.');}));return;
     }if(category==='decor'){
       const items=[{id:'appleTree',name:'Apple Tree',emoji:'🍎',cost:95,desc:'An orchard tree with ripe red apples.'},{id:'pearTree',name:'Pear Tree',emoji:'🍐',cost:95,desc:'A leafy tree with golden pears.'},{id:'cherryTree',name:'Cherry Tree',emoji:'🍒',cost:110,desc:'A fruit tree with ruby-red cherries.'},{id:'flowerbed',name:'Flower Bed',emoji:'🌷',cost:35,desc:'A colourful patch of seasonal flowers.'},{id:'fountain',name:'Stone Fountain',emoji:'⛲',cost:140,desc:'A water feature for your homestead.'},{id:'scarecrow',name:'Scarecrow',emoji:'🧑‍🌾',cost:65,desc:'A cheerful guardian for your crops.'},{id:'bench',name:'Garden Bench',emoji:'🪑',cost:55,desc:'A cosy resting spot beside the path.'}];
       host.innerHTML=items.map(item=>'<article class="market-item"><div class="market-art">'+item.emoji+'</div><div class="market-copy"><strong>'+item.name+'</strong><small>'+item.desc+'</small></div><button class="market-buy" data-buy-decor="'+item.id+'" '+(this.coins<item.cost?'disabled':'')+'>🪙 '+item.cost+' · Buy</button></article>').join('');
       host.querySelectorAll<HTMLButtonElement>('[data-buy-decor]').forEach(btn=>btn.addEventListener('click',()=>{
         const item=items.find(x=>x.id===btn.dataset.buyDecor);if(!item||this.coins<item.cost)return;
+        const spot=this.findFreeDecorTile(true);
+        if(!spot){this.toast('Your farm is full. Move or clear an object before buying more decorations.');return;}
         this.coins-=item.cost;const count=Object.keys(this.decor).filter(k=>k.startsWith(item.id)).length;
-        const spots=[[1,10],[3,11],[5,10],[7,11],[9,10],[11,11]];const spot=spots[count%spots.length]!;
-        this.decor[item.id+(count+1)]={col:spot[0],row:spot[1]};this.drawScenery();if(item.id==='appleTree'||item.id==='pearTree'||item.id==='cherryTree'){this.initializeFruitTrees();this.renderFruitTreeBadges();}this.saveFarm();this.refreshHud();this.renderMarket('decor');this.toast(item.name+' added to your farm!');
+        this.decor[item.id+(count+1)]=spot;this.drawScenery();if(item.id==='appleTree'||item.id==='pearTree'||item.id==='cherryTree'){this.initializeFruitTrees();this.renderFruitTreeBadges();}this.saveFarm();this.refreshHud();this.renderMarket('decor');this.toast(item.name+' added to your farm!');
       }));return;
     }
     const level=Math.floor(this.xp/100)+1;host.innerHTML=(Object.entries(CROPS) as Array<[CropId,typeof CROPS[CropId]]>).map(([id,crop])=>{const locked=level<crop.unlockLevel;return `<article class="market-item ${locked?'crop-locked':''}"><div class="market-art">${crop.emoji}</div><div class="market-copy"><strong>${crop.name}</strong><small>${locked?'Unlocks at level '+crop.unlockLevel:Math.round(crop.growMs/1000)+'s grow · '+Math.round(Math.max(300000,crop.growMs*2)/1000)+'s harvest window'} · reward ${crop.reward} coins · +${crop.xp} XP · bag: ${this.inventory[id]}</small></div><button class="market-buy" data-buy-seed="${id}" ${locked||this.coins<crop.cost?'disabled':''}>${locked?'🔒 Level '+crop.unlockLevel:'🪙 '+crop.cost+' · Buy'}</button></article>`;}).join('');
