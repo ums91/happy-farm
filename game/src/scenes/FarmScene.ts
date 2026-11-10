@@ -231,7 +231,7 @@ export class FarmScene extends Phaser.Scene {
     g.fillStyle(0xffffff, 0.85);
     g.fillRoundedRect(x - 25, y + 12, 50, 14, 5);
     g.fillStyle(0x435b32, 1);
-    g.fillText(label, x, y + 19, { fontFamily: 'Arial', fontSize: '8px', fontStyle: 'bold' }).setOrigin(0.5);
+    this.add.text(x, y + 19, label, { fontFamily: 'Arial', fontSize: '8px', fontStyle: 'bold', color: '#435b32' }).setOrigin(0.5);
   }
 
   private bindWorldInput(): void {
