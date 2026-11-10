@@ -1,0 +1,15 @@
+{
+  "name": "happy-farm-game",
+  "private": true,
+  "version": "0.2.0",
+  "type": "module",
+  "description": "The modular Phaser-based Happy Farm game client.",
+  "scripts": {
+    "dev": "vite",
+    "typecheck": "tsc --noEmit",
+    "build": "npm run typecheck && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": { "phaser": "^3.90.0" },
+  "devDependencies": { "typescript": "^5.7.3", "vite": "^6.1.0" }
+}
