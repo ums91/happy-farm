@@ -11,7 +11,9 @@ Notable changes are documented here using the principles of Keep a Changelog.
 - Camera zoom/pan, plot selection and plow/plant/water/harvest interaction scaffold.
 - Timed crop maturation and accelerated growth when watered.
 - FarmVille 1-inspired visual refresh: bright sky-and-meadow palette, cream-and-wood framed HUD, rounded resource counters, farmer profile, progress meter and tactile farm-tool buttons.
-- Richer isometric farm dressing with a fence line, flower patches, layered fruit-tree canopies and more detailed mature crops.
+- Richer isometric farm dressing with a fence line, flower patches, layered fruit-tree canopies, a starter animal paddock and more detailed mature crops.
+- Versioned browser save/load for coins, experience and field states, with growing plots restored when the farm is reopened.
+- Farm progress meter now reflects earned experience.
 - Manual-only GitHub Pages deployment workflow for publishing the game client.
 
 ### Changed
