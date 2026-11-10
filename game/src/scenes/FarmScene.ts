@@ -915,6 +915,24 @@ export class FarmScene extends Phaser.Scene {
     this.farmerName=cleanFarmer;this.farmName=cleanFarm;this.saveFarm();this.refreshHud();this.toast('Your farm profile has been updated.');
   }
   private bindMarket(): void {
+    const showDrawer=(section:'quests'|'orders'|'events'|'rewards')=>{
+      const drawer=document.getElementById('activity-drawer');if(!drawer)return;
+      const title=document.getElementById('drawer-title');if(title)title.textContent=({quests:'Farm Quests',orders:'Orders & Delivery',events:'Farm Events',rewards:'Farm Rewards'} as Record<string,string>)[section];
+      ['quests','orders','events','rewards'].forEach(key=>document.getElementById('rail-'+key)?.classList.toggle('drawer-hidden',key!==section));
+      drawer.classList.add('open');drawer.setAttribute('aria-hidden','false');
+    };
+    const closeDrawer=()=>{const drawer=document.getElementById('activity-drawer');drawer?.classList.remove('open');drawer?.setAttribute('aria-hidden','true');};
+    document.getElementById('left-quests')?.addEventListener('click',()=>showDrawer('quests'));
+    document.getElementById('top-quests')?.addEventListener('click',()=>showDrawer('quests'));
+    document.getElementById('left-orders')?.addEventListener('click',()=>showDrawer('orders'));
+    document.getElementById('top-orders')?.addEventListener('click',()=>showDrawer('orders'));
+    document.getElementById('left-events')?.addEventListener('click',()=>showDrawer('events'));
+    document.getElementById('left-rewards')?.addEventListener('click',()=>showDrawer('rewards'));
+    document.getElementById('drawer-close')?.addEventListener('click',closeDrawer);
+    document.getElementById('top-inventory')?.addEventListener('click',()=>this.openInventory());
+    document.getElementById('top-settings')?.addEventListener('click',()=>this.editFarmProfile());
+    document.getElementById('settings-open')?.addEventListener('click',()=>this.editFarmProfile());
+    document.getElementById('coins-plus')?.addEventListener('click',()=>this.openMarket());
     document.getElementById('market-open')?.addEventListener('click',()=>this.openMarket());
     document.getElementById('edit-farm-profile')?.addEventListener('click',()=>this.editFarmProfile());
     document.getElementById('edit-farm-shortcut')?.addEventListener('click',()=>this.editFarmProfile());
@@ -1190,15 +1208,15 @@ export class FarmScene extends Phaser.Scene {
     if (coins) coins.textContent = String(this.coins);
     const level = Math.floor(this.xp / 100) + 1;
     if (xp) xp.textContent = `Level ${level} · ${this.xp} XP`;
-    const levelBadge = document.querySelector<HTMLElement>('.profile-card .level');
-    if (levelBadge) levelBadge.textContent = `LV ${level}`;
+    const levelBadge = document.getElementById('farmer-level');
+    if (levelBadge) levelBadge.textContent = `LEVEL ${level}`;
     const farmerName=document.getElementById('farmer-name');if(farmerName)farmerName.textContent=this.farmerName;
     const farmLabel=document.getElementById('farm-name-label');if(farmLabel)farmLabel.textContent=this.farmName.toUpperCase();
     const farmerSub = document.querySelector<HTMLElement>('.profile-card small');
     if (farmerSub) farmerSub.textContent = level === 1 ? 'Your farm adventure begins!' : level < 5 ? 'Growing into a skilled farmer!' : 'A flourishing farm awaits!';
     const progress = document.getElementById('progress-text');
     const fill = document.getElementById('progress-fill');
-    if (progress) progress.textContent = `${this.xp % 100} / 100 XP`;
+    if (progress) progress.textContent = `${this.xp % 100} / 100 XP`; 
     if (fill) (fill as HTMLElement).style.width = `${this.xp % 100}%`;
     const animalStatus=document.getElementById('animal-status'); if(animalStatus){const now=Date.now();const ready=this.animals.filter(a=>a.readyAt>0&&a.readyAt<=now).length;const producing=this.animals.filter(a=>a.readyAt>now).length;const waiting=this.animals.filter(a=>a.readyAt===0).length;animalStatus.textContent=this.animals.length?this.animals.length+' animal(s) · '+ready+' ready · '+producing+' producing · '+waiting+' waiting · eggs '+this.produce.eggs+' / milk '+this.produce.milk+'.':'No animals yet. Visit the Coop or Dairy Barn to manage housing.';}
     const w=document.getElementById('wheat-count'); if(w) w.textContent=String(this.inventory.wheat);
