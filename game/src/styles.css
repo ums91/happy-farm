@@ -186,3 +186,61 @@ body{background:linear-gradient(180deg,#a7ddf6 0,#d9f1f8 190px,#a9d579 191px,#77
 
 /* Phase 5 — order and delivery board */
 .quest-card .market-buy:disabled{opacity:.62;cursor:not-allowed;filter:saturate(.55)}
+
+/* Mobile-first touch and small-screen play */
+.game-canvas{touch-action:none;-webkit-tap-highlight-color:transparent}
+button,.tool,select{touch-action:manipulation}
+@media(max-width:700px){
+  #app{padding:0 7px}
+  .topbar{height:auto;min-height:0;padding:10px 12px;display:grid;grid-template-columns:1fr auto;gap:9px 8px;border-radius:0 0 18px 18px}
+  .brand{min-width:0}.brand-mark{width:42px;height:42px;font-size:17px}
+  .brand strong{font-size:20px}.brand small{font-size:8px;letter-spacing:.8px}
+  .game-nav{grid-column:1/-1;grid-row:2;display:grid;grid-template-columns:1fr 1fr;width:100%;gap:8px}
+  .nav-button{min-height:44px;padding:9px 10px;font-size:12px;border-radius:12px}
+  .resources{grid-column:1/-1;grid-row:3;display:grid;grid-template-columns:1fr 1fr;gap:7px}
+  .resource{min-width:0;padding:7px 9px;border-radius:12px;display:flex;align-items:center;gap:7px}
+  .resource-icon{width:27px;height:27px;flex:0 0 27px;font-size:14px}
+  .resource small{font-size:8px}.resource strong{font-size:13px;white-space:nowrap}
+  .game-shell{display:flex;flex-direction:column;gap:12px;padding-top:12px}
+  .world-panel{width:100%;min-height:0;height:clamp(330px,58svh,570px);border:6px solid #fffdf5;border-radius:18px;overflow:hidden}
+  .game-canvas{position:absolute;inset:0;width:100%;height:100%;min-height:0}
+  .world-label{top:9px;left:9px;padding:7px 10px;font-size:10px}
+  .world-hint{bottom:8px;left:8px;right:8px;text-align:center;padding:7px 9px;font-size:9px}
+  .side-panel{width:100%;display:flex;flex-direction:column;gap:10px;padding:12px;border:5px solid #fffdf5;border-radius:18px}
+  .profile-card{margin:4px 0;padding:10px}
+  .tools-heading{margin-top:3px}
+  .tool-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+  .tool{min-height:64px;padding:7px 4px;border-radius:12px}
+  .tool span{font-size:22px}.tool small{font-size:11px}
+  .crop-choice{margin:0;padding:10px}
+  .crop-choice select{min-height:44px;font-size:14px}
+  .selected-card,.animal-care,.season-card{width:100%;min-height:0}
+  .care-button{min-height:44px;font-size:13px}
+  .market-window{width:calc(100vw - 14px);max-height:calc(100svh - 16px);overflow:auto;padding:12px;border-width:5px;border-radius:18px}
+  .market-header h2{font-size:24px}
+  .market-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:12px 0}
+  .market-tab{min-height:42px;padding:8px 6px;font-size:11px}
+  .market-items{gap:9px}
+  .market-item{display:flex;flex-wrap:wrap;gap:9px;padding:10px;border-radius:13px}
+  .market-art{width:46px;height:46px;flex:0 0 46px;font-size:25px}
+  .market-copy{flex:1;min-width:calc(100% - 65px)}
+  .market-buy{min-height:42px;padding:9px 12px;font-size:12px}
+  .market-item .market-buy{width:100%}
+  .inventory-section{padding:10px 0}
+  .inventory-section h3{font-size:14px}
+  .footer{display:flex;flex-direction:column;gap:5px;text-align:center;font-size:9px}
+}
+@media(max-width:380px){
+  .brand strong{font-size:18px}
+  .resource strong{font-size:11px}
+  .world-panel{height:52svh;min-height:300px}
+  .tool{min-height:58px}
+}
+@media(orientation:landscape) and (max-height:500px) and (pointer:coarse){
+  .topbar{grid-template-columns:auto 1fr auto;padding:6px 10px;gap:6px}
+  .game-nav{grid-column:auto;grid-row:auto}
+  .resources{grid-column:auto;grid-row:auto;display:flex}
+  .game-shell{display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:8px;padding-top:8px}
+  .world-panel{height:calc(100svh - 95px);min-height:260px}
+  .side-panel{max-height:calc(100svh - 95px);overflow:auto}
+}
