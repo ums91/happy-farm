@@ -489,7 +489,7 @@ export class FarmScene extends Phaser.Scene {
       const startX=center.x-(Math.min(cols,rowWidth)-1)*spacingX/2+col*spacingX;
       const startY=center.y-5+row*spacingY;
       const actor=this.add.container(startX,startY);actor.setDepth(startY+index);
-      const scale=cow?1.04:0.58;
+      const scale=cow?1.04:0.72;
       actor.setScale(scale);
       actor.add(this.add.ellipse(0,8,cow?43:27,9,0x263e25,0.24));
       const legs:Phaser.GameObjects.Graphics[]=[];
@@ -557,20 +557,18 @@ export class FarmScene extends Phaser.Scene {
       legs.forEach((leg,legIndex)=>this.tweens.add({targets:leg,angle:(legIndex%2===0?1:-1)*(cow?10:14),duration:cow?360:280,yoyo:true,repeat:-1,ease:'Sine.inOut',delay:index*100+legIndex*65}));
       this.animalActors.push(actor);
       const marginX=bounds.width/2-(cow?28:19),marginY=bounds.height/2-(cow?25:18);
-      const roamX=Math.max(4,Math.min(14,marginX-Math.abs(startX-center.x)));
-      const roamY=Math.max(3,Math.min(9,marginY-Math.abs(startY-center.y)));
-      this.wanderAnimal(actor,center.x,center.y,marginX,marginY,cow,index);
+      this.wanderAnimal(actor,center.x,center.y,marginX,marginY,cow);
     });
   }
 
-  private wanderAnimal(actor:Phaser.GameObjects.Container,cx:number,cy:number,limitX:number,limitY:number,cow:boolean,index:number):void{
+  private wanderAnimal(actor:Phaser.GameObjects.Container,cx:number,cy:number,limitX:number,limitY:number,cow:boolean):void{
     if(!actor.active)return;
     const targetX=Phaser.Math.Clamp(cx+Phaser.Math.Between(-Math.max(5,limitX-8),Math.max(5,limitX-8)),cx-limitX,cx+limitX);
     const targetY=Phaser.Math.Clamp(cy+Phaser.Math.Between(-Math.max(4,limitY-5),Math.max(4,limitY-5)),cy-limitY,cy+limitY);
     const duration=Phaser.Math.Between(cow?2600:1500,cow?4300:2800);
     this.tweens.add({targets:actor,x:targetX,y:targetY,duration,ease:'Sine.inOut',
       onStart:()=>actor.setScale((cow?1.04:0.58)*(targetX<actor.x?-1:1),cow?1.04:0.58),
-      onComplete:()=>{if(actor.active){actor.setScale(cow?1.04:0.58, cow?1.04:0.58);this.time.delayedCall(Phaser.Math.Between(450,1500),()=>this.wanderAnimal(actor,cx,cy,limitX,limitY,cow,index));}}
+      onComplete:()=>{if(actor.active){actor.setScale(cow?1.04:0.58, cow?1.04:0.58);this.time.delayedCall(Phaser.Math.Between(450,1500),()=>this.wanderAnimal(actor,cx,cy,limitX,limitY,cow));}}
     });
   }
 
