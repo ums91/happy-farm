@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { initializeCloudSaves, queueCloudSave } from '../services/cloudSave';
+import { initializeCloudSaves, queueCloudSave } from '../services/cloudSave';
 
 type Tool = 'select' | 'plow' | 'plant' | 'water' | 'harvest' | 'move';
 type PlotState = 'grass' | 'tilled' | 'growing' | 'ready' | 'withered';
@@ -104,6 +105,7 @@ export class FarmScene extends Phaser.Scene {
     this.bindSideRail();
     this.refreshHud();
     this.bindDailyReward();
+    initializeCloudSaves();
     initializeCloudSaves();
     this.refreshSelection();
     this.time.addEvent({ delay: 1000, loop: true, callback: () => { if((this.questRefreshAt>0&&Date.now()>=this.questRefreshAt)||(this.eventStartedAt>0&&Date.now()-this.eventStartedAt>=604800000)){this.ensureQuestAndEventCycles();this.renderSideRail();} this.updateCropLifecycle(); this.updateProduction(); this.updateFruitTrees(); this.refreshCropHoverTooltip(); if(this.activeBuilding==='coop'||this.activeBuilding==='barn')this.renderBuildingPanel(this.activeBuilding);else if(this.activeBuilding)this.renderGenericBuildingPanel(this.activeBuilding); } });
@@ -1362,6 +1364,8 @@ export class FarmScene extends Phaser.Scene {
     };
     try {
       localStorage.setItem(this.saveKey, JSON.stringify(save));
+      localStorage.setItem('happyFarmLocalUpdatedAtV1', String(Date.now()));
+      queueCloudSave();
       localStorage.setItem('happyFarmLocalUpdatedAtV1', String(Date.now()));
       queueCloudSave();
     } catch {
