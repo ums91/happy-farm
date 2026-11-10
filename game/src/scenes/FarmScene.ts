@@ -53,8 +53,8 @@ export class FarmScene extends Phaser.Scene {
     const py = y - ORIGIN_Y;
     const a = px / (TILE_W / 2);
     const b = py / (TILE_H / 2);
-    const col = Math.floor((a + b) / 2);
-    const row = Math.floor((b - a) / 2);
+    const col = Math.round((a + b) / 2);
+    const row = Math.round((b - a) / 2);
     if (col < 0 || row < 0 || col >= COLS || row >= ROWS) return null;
     return { col, row };
   }
