@@ -328,7 +328,7 @@ export class FarmScene extends Phaser.Scene {
     Object.keys(this.decor).forEach(id=>{
       const kind=this.fruitKind(id);if(!kind)return;
       if(!this.fruitTreeReadyAt[id]){this.fruitTreeReadyAt[id]=now+this.fruitConfig(kind).interval;changed=true;}
-      const remaining=this.fruitTreeReadyAt[id]!-now;const badge=this.fruitTreeBadges[id];if(!badge)return;
+      const remaining=this.fruitTreeReadyAt[id]!-now;const badge=this.fruitTreeBadges[id];if(!badge)return;const treePos=this.decor[id]!;const treeWorld=this.toWorld(treePos.col,treePos.row);badge.setPosition(treeWorld.x+26,treeWorld.y-91);
       if(remaining<=0){badge.setText(this.fruitConfig(kind).emoji+' Ready!').setVisible(true).setBackgroundColor('#397b27');}
       else {const mins=Math.ceil(remaining/60000);badge.setText(this.fruitConfig(kind).emoji+' '+mins+'m').setVisible(true).setBackgroundColor('#315b2b');}
     });
@@ -646,7 +646,7 @@ export class FarmScene extends Phaser.Scene {
     const plot=this.plots.get(this.key(tile.col,tile.row));
     if(!plot)return;
     this.selected=plot;
-    if(plot.state==='tilled'&&this.activeTool==='select'){this.openFieldSeedPicker();this.refreshSelection();this.drawSelection();return;}
+    if(this.activeTool==='select'&&(plot.state==='tilled'||plot.state==='grass'||plot.state==='withered')){this.openFieldSeedPicker();this.refreshSelection();this.drawSelection();return;}
     if(this.activeTool==='plant'){
       if(plot.state==='tilled'){this.sowSelectedPlot();return;}
       if(plot.state==='grass'||plot.state==='withered'){this.toast('Plow this field first, then tap it to sow.');return;}
