@@ -1,6 +1,7 @@
 name: Game client validation
 
 # Manual execution only. No push, pull_request or schedule triggers.
+# npm install is used until the first package lock is generated and committed.
 on:
   workflow_dispatch:
 
@@ -18,11 +19,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
-          cache-dependency-path: game/package-lock.json
       - name: Install dependencies
         working-directory: game
-        run: npm ci
+        run: npm install
       - name: Type-check and build
         working-directory: game
         run: npm run build
