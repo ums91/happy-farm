@@ -289,3 +289,30 @@ button,.tool,select{touch-action:manipulation}
   .game-shell{padding-top:5px}
   .tool-grid{left:50%;right:auto;bottom:5px;width:min(520px,65vw);transform:translateX(-50%)}
 }
+
+
+/* Natural-material art direction: richer seed packets, produce and supply cards. */
+.market-window{background:radial-gradient(ellipse at 12% 0%,#fffef5 0,#f8efd9 48%,#eee0bd 100%);color:#59442e}
+.market-header{border-bottom:1px solid #e4d2ac}
+.market-header h2{letter-spacing:-.4px;text-shadow:0 1px #fff}
+.market-tabs{padding:4px 0 8px}
+.market-tab{background:linear-gradient(#fffef8,#f2e7cf);border-color:#e1cfaa;box-shadow:0 2px 0 #cbb58a,inset 0 1px #fff}
+.market-tab.active{background:linear-gradient(#eff8df,#d3e8b6);border-color:#91b968;box-shadow:0 2px 0 #9ab875,inset 0 1px #fff}
+.market-items{gap:12px}
+.market-item{position:relative;overflow:hidden;min-height:94px;border:1px solid #e4d4b4;border-radius:15px;background:linear-gradient(145deg,#fffef9 0%,#f8f0df 100%);box-shadow:0 3px 8px #614a2510,inset 0 1px #fff}
+.market-item:before{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:linear-gradient(#a7ca76,#6f9e4c);opacity:.8}
+.market-art{position:relative;flex:0 0 58px;width:58px;height:58px;border-radius:15px;background:radial-gradient(circle at 32% 24%,#fffef1 0,#e5efcf 56%,#c7dba9 100%);box-shadow:inset 0 2px 4px #fff,0 3px 7px #556e351c;font-size:34px;text-shadow:0 2px 2px #5a46232a}
+.market-copy strong{font-family:'Baloo 2',Nunito,sans-serif;font-size:15px;letter-spacing:.1px;color:#5d713d}
+.market-copy small{font-size:10px;line-height:1.55;color:#8e8062}
+.market-buy{border-radius:10px;background:linear-gradient(180deg,#9fca68,#6f9f45);box-shadow:0 3px 0 #5b8339, inset 0 1px #ffffff70;text-shadow:0 1px #527b35}
+.market-buy:active{transform:translateY(2px);box-shadow:0 1px 0 #5b8339}
+.market-item.crop-locked{filter:saturate(.7)}
+.market-item.crop-locked:before{background:#b6a98d}
+.market-footer{border-color:#dfcda6}
+.modal-close{box-shadow:0 2px 0 #d3bd94}
+.quest-card,.inventory-section .market-item{background:linear-gradient(145deg,#fffef9,#f7efdf)}
+@media(max-width:700px){
+  .market-item{min-height:82px;padding:9px}
+  .market-art{width:48px;height:48px;flex-basis:48px;font-size:29px}
+  .market-copy strong{font-size:14px}
+}
