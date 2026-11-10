@@ -34,6 +34,7 @@ export class FarmScene extends Phaser.Scene {
   private inventory: Record<CropId,number> = {wheat:3,carrot:0,corn:0,strawberry:0};
   private selectedCrop: CropId = 'wheat';
   private animals: Animal[] = [];
+  private animalActors: Phaser.GameObjects.Container[] = [];
   private harvests = 0;
   private cameraDragging = false;
   private dragPoint = new Phaser.Math.Vector2();
@@ -49,6 +50,7 @@ export class FarmScene extends Phaser.Scene {
     this.drawWorld();
     this.loadFarm();
     this.drawScenery();
+    this.renderOwnedAnimals();
     this.bindWorldInput();
     this.bindToolbar();
     this.bindMarket();
@@ -214,21 +216,55 @@ export class FarmScene extends Phaser.Scene {
     for (let i = 1; i < 5; i += 1) {
       g.beginPath(); g.moveTo(left + i * 16, top); g.lineTo(left + i * 16, top + 43); g.strokePath();
     }
-    // Friendly stylized cow and hen placeholders inside the paddock.
-    g.fillStyle(0xf8f4e8, 1);
-    g.fillEllipse(p.x - 13, p.y - 10, 27, 18);
-    g.fillStyle(0x55483d, 1);
-    g.fillEllipse(p.x - 19, p.y - 14, 9, 7);
-    g.fillEllipse(p.x - 5, p.y - 6, 8, 6);
-    g.fillEllipse(p.x - 2, p.y - 17, 13, 12);
-    g.fillStyle(0xe8b7a0, 1);
-    g.fillEllipse(p.x - 2, p.y - 13, 7, 5);
-    g.fillStyle(0xf4e5c8, 1);
-    g.fillEllipse(p.x + 20, p.y - 9, 12, 10);
-    g.fillStyle(0xd95f42, 1);
-    g.fillTriangle(p.x + 24, p.y - 14, p.x + 29, p.y - 14, p.x + 27, p.y - 19);
-    g.fillStyle(0x4c4034, 1);
-    g.fillCircle(p.x + 23, p.y - 11, 1.5);
+    // The paddock is populated only by animals the player has purchased.
+    g.fillStyle(0x6f9d45, 0.25);
+    g.fillEllipse(p.x, p.y + 12, 70, 12);
+  }
+
+  private renderOwnedAnimals(): void {
+    this.animalActors.forEach(actor => actor.destroy());
+    this.animalActors = [];
+    const pen = this.toWorld(2, 5);
+    this.animals.forEach((animal, index) => {
+      const actor = this.add.container(pen.x - 24 + (index % 4) * 16, pen.y - 7 + Math.floor(index / 4) * 8);
+      actor.setDepth(pen.y + index);
+      const art = this.add.graphics();
+      // Soft ground shadow keeps the characters anchored to the paddock.
+      art.fillStyle(0x33452a, 0.22);
+      art.fillEllipse(0, 8, animal.id === 'cow' ? 31 : 18, 7);
+      if (animal.id === 'cow') {
+        // Rounded dairy cow, spots, muzzle, ears, horns and little legs.
+        art.fillStyle(0xf8f4e8, 1);
+        art.fillRoundedRect(-15, -17, 30, 20, 8);
+        art.fillStyle(0x51483f, 1);
+        art.fillEllipse(-8, -13, 9, 8); art.fillEllipse(5, -5, 8, 7);
+        art.fillRoundedRect(8, -22, 15, 17, 6);
+        art.fillStyle(0xf0c2ad, 1); art.fillEllipse(17, -9, 12, 8);
+        art.fillStyle(0xf8f4e8, 1);
+        art.fillTriangle(9, -19, 5, -25, 13, -22); art.fillTriangle(19, -20, 25, -25, 24, -17);
+        art.fillStyle(0xe9c77d, 1);
+        art.fillTriangle(12, -23, 14, -29, 17, -22); art.fillTriangle(21, -23, 24, -28, 25, -21);
+        art.fillStyle(0x3b332d, 1); art.fillCircle(18, -15, 1.4);
+        art.fillStyle(0xf8f4e8, 1);
+        [-10, 8].forEach(x => art.fillRoundedRect(x, -2, 5, 11, 2));
+        art.lineStyle(2, 0x51483f, 1); art.beginPath(); art.moveTo(-14, -12); art.lineTo(-20, -7); art.strokePath();
+      } else {
+        // Plump little hen with comb, beak, wing and feet.
+        art.fillStyle(0xf4e7c9, 1); art.fillEllipse(0, -8, 22, 18);
+        art.fillStyle(0xfffbef, 1); art.fillEllipse(-7, -11, 11, 10);
+        art.fillStyle(0xd95f42, 1); art.fillCircle(3, -20, 3); art.fillCircle(8, -19, 2.5);
+        art.fillTriangle(10, -12, 19, -9, 10, -7);
+        art.fillStyle(0x3f342b, 1); art.fillCircle(7, -14, 1.5);
+        art.fillStyle(0xd89a39, 1);
+        art.fillRect(-5, 0, 2, 7); art.fillRect(4, 0, 2, 7);
+        art.fillStyle(0xe6cba0, 1); art.fillEllipse(-8, -8, 9, 7);
+      }
+      actor.add(art);
+      this.animalActors.push(actor);
+      const roam = 9 + (index % 3) * 5;
+      this.tweens.add({ targets: actor, x: actor.x + roam, duration: 1800 + (index % 4) * 420, yoyo: true, repeat: -1, ease: 'Sine.inOut', delay: index * 170 });
+      this.tweens.add({ targets: actor, y: actor.y - 2, duration: 520 + (index % 3) * 90, yoyo: true, repeat: -1, ease: 'Sine.inOut', delay: index * 90 });
+    });
   }
 
   private drawBuilding(g: Phaser.GameObjects.Graphics, x: number, y: number, wall: number, roof: number, label: string): void {
@@ -422,7 +458,7 @@ export class FarmScene extends Phaser.Scene {
   private closeMarket(): void {document.getElementById('market-modal')?.classList.remove('open');document.getElementById('market-modal')?.setAttribute('aria-hidden','true');document.getElementById('market-modal')?.querySelector('.market-tabs')?.classList.remove('inventory-hidden');}
   private renderMarket(category='seeds'): void {
     const host=document.getElementById('market-items');if(!host)return;
-    if(category==='animals'){host.innerHTML='<article class="market-item"><div class="market-art">🐔</div><div class="market-copy"><strong>Happy Hen</strong><small>Lays an egg after feeding · owned: '+this.animals.filter(a=>a.id==='hen').length+'</small></div><button class="market-buy" data-buy-animal="hen" '+(this.coins<75?'disabled':'')+'>🪙 75 · Buy</button></article><article class="market-item"><div class="market-art">🐄</div><div class="market-copy"><strong>Daisy Cow</strong><small>Produces milk after feeding · owned: '+this.animals.filter(a=>a.id==='cow').length+'</small></div><button class="market-buy" data-buy-animal="cow" '+(this.coins<160?'disabled':'')+'>🪙 160 · Buy</button></article>';host.querySelectorAll<HTMLButtonElement>('[data-buy-animal]').forEach(btn=>btn.addEventListener('click',()=>{const id=btn.dataset.buyAnimal as AnimalId;const cost=id==='hen'?75:160;if(this.coins<cost)return;this.coins-=cost;this.animals.push({id,readyAt:0});this.saveFarm();this.refreshHud();this.toast('A new animal joined your farm!');this.renderMarket('animals');}));return;} if(category==='decor'){host.innerHTML='<article class="market-item"><div class="market-art">🌷</div><div class="market-copy"><strong>Decorations</strong><small>Placeable decorations are coming in a future update.</small></div></article>';return;}
+    if(category==='animals'){host.innerHTML='<article class="market-item"><div class="market-art">🐔</div><div class="market-copy"><strong>Happy Hen</strong><small>Lays an egg after feeding · owned: '+this.animals.filter(a=>a.id==='hen').length+'</small></div><button class="market-buy" data-buy-animal="hen" '+(this.coins<75?'disabled':'')+'>🪙 75 · Buy</button></article><article class="market-item"><div class="market-art">🐄</div><div class="market-copy"><strong>Daisy Cow</strong><small>Produces milk after feeding · owned: '+this.animals.filter(a=>a.id==='cow').length+'</small></div><button class="market-buy" data-buy-animal="cow" '+(this.coins<160?'disabled':'')+'>🪙 160 · Buy</button></article>';host.querySelectorAll<HTMLButtonElement>('[data-buy-animal]').forEach(btn=>btn.addEventListener('click',()=>{const id=btn.dataset.buyAnimal as AnimalId;const cost=id==='hen'?75:160;if(this.coins<cost)return;this.coins-=cost;this.animals.push({id,readyAt:0});this.renderOwnedAnimals();this.saveFarm();this.refreshHud();this.toast('A new animal joined your farm!');this.renderMarket('animals');}));return;} if(category==='decor'){host.innerHTML='<article class="market-item"><div class="market-art">🌷</div><div class="market-copy"><strong>Decorations</strong><small>Placeable decorations are coming in a future update.</small></div></article>';return;}
     host.innerHTML=(Object.entries(CROPS) as Array<[CropId,typeof CROPS[CropId]]>).map(([id,crop])=>`<article class="market-item"><div class="market-art">${crop.emoji}</div><div class="market-copy"><strong>${crop.name}</strong><small>${crop.growMs/1000}s · reward ${crop.reward} coins · bag: ${this.inventory[id]}</small></div><button class="market-buy" data-buy-seed="${id}" ${this.coins<crop.cost?'disabled':''}>🪙 ${crop.cost} · Buy</button></article>`).join('');
     host.querySelectorAll<HTMLButtonElement>('[data-buy-seed]').forEach(btn=>btn.addEventListener('click',()=>{const id=btn.dataset.buySeed as CropId;const crop=CROPS[id];if(!crop||this.coins<crop.cost)return;this.coins-=crop.cost;this.inventory[id]++;this.selectedCrop=id;this.saveFarm();this.refreshHud();this.refreshSelection();this.toast(`${crop.emoji} ${crop.name} seeds added to your bag`);}));
   }
