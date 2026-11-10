@@ -1,0 +1,168 @@
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+
+const SAVE_KEY = 'happyFarmPhaserSaveV1';
+const LOCAL_UPDATED_KEY = 'happyFarmLocalUpdatedAtV1';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+const supabaseKey = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY) as string | undefined;
+
+type CloudStatus = 'offline' | 'signed-out' | 'syncing' | 'synced' | 'error' | 'unconfigured';
+let client: SupabaseClient | null = null;
+let currentUserId: string | null = null;
+let syncInProgress = false;
+let cloudReady = false;
+let saveTimer: ReturnType<typeof setTimeout> | undefined;
+
+function setStatus(next: CloudStatus, message?: string): void {
+  const label = document.getElementById('cloud-save-status');
+  if (label) {
+    const defaults: Record<CloudStatus, string> = {
+      offline: 'Offline · saved on this device',
+      'signed-out': 'Not signed in · saved on this device',
+      syncing: 'Syncing farm…',
+      synced: 'Cloud save synced',
+      error: 'Cloud sync failed · local save is safe',
+      unconfigured: 'Cloud saves need setup',
+    };
+    label.textContent = message || defaults[next];
+    label.dataset.status = next;
+  }
+  const button = document.getElementById('cloud-account');
+  if (button) button.textContent = currentUserId ? '☁ Account' : '☁ Sign in';
+}
+
+function localSnapshot(): Record<string, unknown> | null {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    return raw ? JSON.parse(raw) as Record<string, unknown> : null;
+  } catch {
+    return null;
+  }
+}
+
+async function syncWithCloud(): Promise<void> {
+  if (!client || !currentUserId || syncInProgress || !navigator.onLine) return;
+  syncInProgress = true;
+  setStatus('syncing');
+  try {
+    const { data: remote, error } = await client.from('farm_saves')
+      .select('save_data, updated_at').eq('user_id', currentUserId).maybeSingle();
+    if (error) throw error;
+
+    const local = localSnapshot();
+    const localUpdatedAt = Number(localStorage.getItem(LOCAL_UPDATED_KEY) || 0);
+    const remoteUpdatedAt = remote?.updated_at ? Date.parse(remote.updated_at) : 0;
+    if (remote?.save_data && remoteUpdatedAt > localUpdatedAt) {
+      localStorage.setItem(SAVE_KEY, JSON.stringify(remote.save_data));
+      localStorage.setItem(LOCAL_UPDATED_KEY, String(remoteUpdatedAt));
+      setStatus('synced', 'Cloud farm restored · refreshing game…');
+      window.location.reload();
+      return;
+    }
+
+    if (local) {
+      const { error: saveError } = await client.from('farm_saves').upsert({
+        user_id: currentUserId, save_data: local, updated_at: new Date().toISOString(),
+      }, { onConflict: 'user_id' });
+      if (saveError) throw saveError;
+      localStorage.setItem(LOCAL_UPDATED_KEY, String(Date.now()));
+    }
+    cloudReady = true;
+    setStatus('synced');
+  } catch (error) {
+    console.error('Happy Farm cloud sync failed:', error);
+    cloudReady = true;
+    setStatus('error');
+  } finally {
+    syncInProgress = false;
+  }
+}
+
+export function queueCloudSave(): void {
+  if (!client || !currentUserId || !cloudReady) return;
+  if (saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => { void syncWithCloud(); }, 1800);
+}
+
+function showAccountModal(): void {
+  document.getElementById('cloud-account-modal')?.classList.add('open');
+  document.getElementById('cloud-account-modal')?.setAttribute('aria-hidden', 'false');
+}
+function hideAccountModal(): void {
+  document.getElementById('cloud-account-modal')?.classList.remove('open');
+  document.getElementById('cloud-account-modal')?.setAttribute('aria-hidden', 'true');
+}
+
+export function initializeCloudSaves(): void {
+  document.getElementById('cloud-account')?.addEventListener('click', showAccountModal);
+  document.getElementById('cloud-account-close')?.addEventListener('click', hideAccountModal);
+  document.getElementById('cloud-account-modal')?.addEventListener('click', (event) => {
+    if (event.target === event.currentTarget) hideAccountModal();
+  });
+
+  const form = document.getElementById('cloud-auth-form') as HTMLFormElement | null;
+  const modeButton = document.getElementById('cloud-auth-mode');
+  const submitButton = document.getElementById('cloud-auth-submit') as HTMLButtonElement | null;
+  let mode: 'signin' | 'signup' = 'signin';
+
+  modeButton?.addEventListener('click', () => {
+    mode = mode === 'signin' ? 'signup' : 'signin';
+    if (submitButton) submitButton.textContent = mode === 'signin' ? 'Sign in' : 'Create account';
+    if (modeButton) modeButton.textContent = mode === 'signin' ? 'Need an account? Create one' : 'Already registered? Sign in';
+  });
+
+  form?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (!client) return;
+    const email = (document.getElementById('cloud-email') as HTMLInputElement | null)?.value.trim() || '';
+    const password = (document.getElementById('cloud-password') as HTMLInputElement | null)?.value || '';
+    if (!email || password.length < 6) {
+      setStatus('error', 'Enter a valid email and password (at least 6 characters).');
+      return;
+    }
+    if (submitButton) submitButton.disabled = true;
+    const result = mode === 'signin'
+      ? await client.auth.signInWithPassword({ email, password })
+      : await client.auth.signUp({ email, password });
+    if (submitButton) submitButton.disabled = false;
+    if (result.error) { setStatus('error', result.error.message); return; }
+    if (mode === 'signup' && !result.data.session) {
+      setStatus('signed-out', 'Check your email to confirm your account, then sign in.');
+      return;
+    }
+    hideAccountModal();
+    await syncWithCloud();
+  });
+
+  document.getElementById('cloud-sign-out')?.addEventListener('click', async () => {
+    if (!client) return;
+    const { error } = await client.auth.signOut();
+    if (error) setStatus('error', error.message);
+    else { currentUserId = null; cloudReady = false; setStatus('signed-out'); hideAccountModal(); }
+  });
+  document.getElementById('cloud-sync-now')?.addEventListener('click', () => { void syncWithCloud(); });
+
+  if (!supabaseUrl || !supabaseKey) {
+    setStatus('unconfigured', 'Add Supabase URL and publishable key to enable cloud saves.');
+    return;
+  }
+
+  client = createClient(supabaseUrl, supabaseKey);
+  window.addEventListener('online', () => { if (currentUserId) void syncWithCloud(); });
+  window.addEventListener('offline', () => setStatus('offline'));
+  client.auth.onAuthStateChange((_event, session) => {
+    currentUserId = session?.user.id || null;
+    if (currentUserId) {
+      cloudReady = false;
+      window.setTimeout(() => { void syncWithCloud(); }, 0);
+    } else {
+      cloudReady = false;
+      setStatus('signed-out');
+    }
+  });
+  void client.auth.getSession().then(({ data, error }) => {
+    if (error) { setStatus('error', error.message); return; }
+    currentUserId = data.session?.user.id || null;
+    if (currentUserId) void syncWithCloud();
+    else setStatus('signed-out');
+  });
+}
