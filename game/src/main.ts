@@ -7,7 +7,7 @@ const game = new Phaser.Game({
   parent: 'game',
   width: 1100,
   height: 720,
-  backgroundColor: '#a8d77a',
+  transparent: true,
   antialias: true,
   scale: {
     mode: Phaser.Scale.RESIZE,
