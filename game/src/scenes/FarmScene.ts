@@ -104,13 +104,42 @@ export class FarmScene extends Phaser.Scene {
 
   private drawWorld(): void {
     this.plotGraphics.clear();
+    // A soft meadow base extends beyond the cultivated diamond field.
+    const meadow = this.add.graphics();
+    meadow.fillStyle(0x5d9d48, 1);
+    meadow.fillEllipse(0, 246, 1080, 470);
+    meadow.fillStyle(0x8bc85d, 1);
+    meadow.fillEllipse(0, 235, 1040, 440);
+    meadow.fillStyle(0xb2dc79, 0.24);
+    meadow.fillEllipse(-90, 125, 430, 150);
+    meadow.fillEllipse(245, 320, 370, 120);
+    // Dappled meadow texture, kept outside the crop interaction layer.
+    for (let i = 0; i < 90; i += 1) {
+      const x = ((i * 137) % 990) - 495;
+      const y = ((i * 83) % 420) + 22;
+      meadow.fillStyle(i % 3 === 0 ? 0xd7ec9a : 0x477e3d, i % 3 === 0 ? 0.16 : 0.09);
+      meadow.fillEllipse(x, y, 18 + (i % 4) * 5, 5 + (i % 3) * 2);
+    }
     for (let row = 0; row < ROWS; row += 1) {
       for (let col = 0; col < COLS; col += 1) {
         const point = this.toWorld(col, row);
         this.plots.set(this.key(col, row), { col, row, state: 'grass', watered: false, growth: 0, crop: 'wheat', readyAt: 0 });
         const shades = [0x9bcf69, 0xa5d875, 0x94c762, 0xaedb7d, 0x9fce70];
-        this.diamond(this.plotGraphics, point.x, point.y, shades[(col * 7 + row * 11) % shades.length] ?? 0x9bcf69, 0x78ae54);
+        const shade = shades[(col * 7 + row * 11) % shades.length] ?? 0x9bcf69;
+        this.diamond(this.plotGraphics, point.x, point.y, shade, 0x78ae54);
+        // Soft tile glint and occasional clover give the field a hand-painted feel.
+        this.plotGraphics.lineStyle(1, 0xd8ef9e, 0.28);
+        this.plotGraphics.beginPath();
+        this.plotGraphics.moveTo(point.x - 27, point.y - 1);
+        this.plotGraphics.lineTo(point.x, point.y - 17);
+        this.plotGraphics.lineTo(point.x + 24, point.y - 1);
+        this.plotGraphics.strokePath();
         if ((col * 3 + row * 5) % 13 === 0) this.drawGrassTuft(point.x, point.y);
+        if ((col * 11 + row * 7) % 31 === 0) {
+          this.plotGraphics.fillStyle(0x5c9846, 0.9);
+          this.plotGraphics.fillEllipse(point.x + 13, point.y + 3, 5, 3);
+          this.plotGraphics.fillEllipse(point.x + 17, point.y, 4, 3);
+        }
       }
     }
     this.drawPath();
@@ -178,29 +207,59 @@ export class FarmScene extends Phaser.Scene {
 
   private drawScenery(): void {
     const g = this.add.graphics();
-    [[1, 1], [3, 0], [5, 1], [7, 0], [10, 1], [12, 2]].forEach(([col, row], i) => {
+    // Layered orchard trees: trunk, canopy shadow, clustered leaves and sunlit highlights.
+    [[1, 1], [3, 0], [5, 1], [7, 0], [10, 1], [12, 2], [0, 7], [12, 7]].forEach(([col, row], i) => {
       const p = this.toWorld(col!, row!);
+      const palette = [0x397b3c, 0x4b8d43, 0x5b9948, 0x47833d];
+      g.fillStyle(0x3f6e38, 0.24);
+      g.fillEllipse(p.x + 5, p.y + 4, 62, 17);
       g.fillStyle(0x765338, 1);
-      g.fillRoundedRect(p.x - 5, p.y - 26, 10, 31, 3);
-      g.fillStyle([0x4c8b43, 0x5b9a48, 0x6da74f][i % 3] ?? 0x4c8b43, 1);
-      g.fillCircle(p.x, p.y - 37, 21);
-      g.fillCircle(p.x - 13, p.y - 29, 14);
-      g.fillCircle(p.x + 13, p.y - 29, 14);
-      g.fillCircle(p.x - 8, p.y - 48, 12);
-      g.fillStyle(0x8cbd5d, 0.8);
-      g.fillCircle(p.x - 7, p.y - 46, 5);
-      g.fillStyle(0xe7a5a0, 0.9);
-      if (i % 2 === 0) g.fillCircle(p.x + 10, p.y - 35, 3);
+      g.fillRoundedRect(p.x - 6, p.y - 28, 12, 37, 3);
+      g.fillStyle(0x65452f, 0.55);
+      g.fillRect(p.x - 2, p.y - 24, 3, 28);
+      g.fillStyle(palette[i % palette.length]!, 1);
+      g.fillCircle(p.x, p.y - 42, 24);
+      g.fillCircle(p.x - 17, p.y - 34, 17);
+      g.fillCircle(p.x + 17, p.y - 34, 17);
+      g.fillCircle(p.x - 9, p.y - 56, 15);
+      g.fillCircle(p.x + 10, p.y - 54, 14);
+      g.fillStyle(0x8fc96a, 0.85);
+      g.fillCircle(p.x - 10, p.y - 55, 9);
+      g.fillCircle(p.x + 12, p.y - 43, 6);
+      if (i % 3 === 0) {
+        g.fillStyle(0xe8a34b, 1);
+        g.fillCircle(p.x + 18, p.y - 30, 3);
+        g.fillCircle(p.x - 18, p.y - 42, 3);
+      }
     });
+    // Small garden beds and stepping stones around the homestead.
     const home = this.toWorld(5, 2);
     const barn = this.toWorld(9, 3);
-    this.drawBuilding(g, home.x, home.y - 12, 0xd9c28c, 0x9c5544, 'HOME');
-    this.drawBuilding(g, barn.x, barn.y - 15, 0xc66f54, 0x864338, 'BARN');
+    this.drawBuilding(g, home.x, home.y - 12, 0xe7d4a0, 0xa84f3c, 'FARMHOUSE');
+    this.drawBuilding(g, barn.x, barn.y - 15, 0xc97855, 0x8e3e35, 'BARN');
     const silo = this.toWorld(11, 3);
-    g.fillStyle(0xe4e4d5, 1);
-    g.fillRoundedRect(silo.x + 18, silo.y - 49, 25, 55, 8);
-    g.fillStyle(0xb8c4b3, 1);
-    g.fillEllipse(silo.x + 30, silo.y - 49, 25, 11);
+    g.fillStyle(0x426f3d, 0.22);
+    g.fillEllipse(silo.x + 31, silo.y + 5, 52, 15);
+    g.fillStyle(0xc9d4c5, 1);
+    g.fillRoundedRect(silo.x + 17, silo.y - 52, 29, 59, 9);
+    g.fillStyle(0xe8eee1, 1);
+    g.fillRoundedRect(silo.x + 21, silo.y - 48, 20, 51, 7);
+    g.fillStyle(0xa8b7a2, 1);
+    g.fillEllipse(silo.x + 31, silo.y - 52, 29, 12);
+    g.fillStyle(0x8b4939, 1);
+    g.fillTriangle(silo.x + 15, silo.y - 48, silo.x + 31, silo.y - 64, silo.x + 47, silo.y - 48);
+    // Flowering borders near the path.
+    [[-330, 145], [-300, 165], [315, 135], [345, 158], [-360, 320], [365, 330]].forEach(([x, y], i) => {
+      g.fillStyle(0x4d873f, 0.85);
+      g.fillEllipse(x!, y! + 4, 17, 7);
+      const color = [0xf5a8c5, 0xffe18a, 0xffffff][i % 3]!;
+      g.fillStyle(color, 1);
+      g.fillCircle(x!, y!, 4);
+      g.fillCircle(x! - 4, y! + 2, 3);
+      g.fillCircle(x! + 4, y! + 2, 3);
+      g.fillStyle(0xf4c94e, 1);
+      g.fillCircle(x!, y! + 2, 2);
+    });
     this.drawAnimalPen(g);
   }
 
@@ -268,26 +327,50 @@ export class FarmScene extends Phaser.Scene {
   }
 
   private drawBuilding(g: Phaser.GameObjects.Graphics, x: number, y: number, wall: number, roof: number, label: string): void {
-    g.fillStyle(0x000000, 0.15);
-    g.fillEllipse(x + 4, y + 11, 86, 27);
+    // Ground shadow and foundation.
+    g.fillStyle(0x385a31, 0.24);
+    g.fillEllipse(x + 4, y + 13, 108, 31);
+    g.fillStyle(0x8b704a, 1);
+    g.fillRoundedRect(x - 38, y + 1, 76, 9, 3);
+    // Side wall adds an isometric side plane.
+    g.fillStyle(Phaser.Display.Color.IntegerToColor(wall).darken(18).color, 1);
+    g.fillPoints([{x:x + 31,y:y - 34},{x:x + 43,y:y - 26},{x:x + 43,y:y + 8},{x:x + 31,y:y + 5}], true);
     g.fillStyle(wall, 1);
     g.fillRect(x - 31, y - 36, 62, 42);
+    g.fillStyle(0xf4e5bd, 1);
+    g.fillRect(x - 31, y - 36, 62, 5);
+    // Roof with a darker fascia and a warm sunlit front.
+    g.fillStyle(0x603b31, 1);
+    g.fillTriangle(x - 47, y - 32, x, y - 72, x + 47, y - 32);
     g.fillStyle(roof, 1);
     g.beginPath();
-    g.moveTo(x - 42, y - 34);
-    g.lineTo(x, y - 66);
-    g.lineTo(x + 42, y - 34);
+    g.moveTo(x - 43, y - 35);
+    g.lineTo(x, y - 69);
+    g.lineTo(x + 43, y - 35);
+    g.lineTo(x + 31, y - 29);
+    g.lineTo(x, y - 58);
+    g.lineTo(x - 31, y - 29);
     g.closePath();
     g.fillPath();
-    g.fillStyle(0x704c37, 1);
-    g.fillRect(x - 8, y - 5, 16, 11);
-    g.fillStyle(0xf1e5bd, 1);
-    g.fillRect(x - 24, y - 23, 11, 11);
-    g.fillRect(x + 13, y - 23, 11, 11);
-    g.fillStyle(0xffffff, 0.85);
-    g.fillRoundedRect(x - 25, y + 12, 50, 14, 5);
-    g.fillStyle(0x435b32, 1);
-    this.add.text(x, y + 19, label, { fontFamily: 'Arial', fontSize: '8px', fontStyle: 'bold', color: '#435b32' }).setOrigin(0.5);
+    g.lineStyle(2, 0xf0b879, 0.8);
+    g.beginPath(); g.moveTo(x, y - 65); g.lineTo(x, y - 57); g.strokePath();
+    // Door, windows, flower boxes and chimney.
+    g.fillStyle(0x69442f, 1);
+    g.fillRoundedRect(x - 8, y - 8, 16, 14, 2);
+    g.fillStyle(0xd9b77d, 1);
+    g.fillCircle(x + 4, y - 1, 1.3);
+    g.fillStyle(0x9dd9e8, 1);
+    g.fillRect(x - 25, y - 24, 12, 12);
+    g.fillRect(x + 13, y - 24, 12, 12);
+    g.lineStyle(2, 0xf8edcf, 1);
+    g.strokeRect(x - 25, y - 24, 12, 12);
+    g.strokeRect(x + 13, y - 24, 12, 12);
+    g.lineStyle(2, 0xf8edcf, 0.9);
+    g.beginPath(); g.moveTo(x - 19, y - 24); g.lineTo(x - 19, y - 12); g.moveTo(x - 25, y - 18); g.lineTo(x - 13, y - 18); g.strokePath();
+    g.beginPath(); g.moveTo(x + 19, y - 24); g.lineTo(x + 19, y - 12); g.moveTo(x + 13, y - 18); g.lineTo(x + 25, y - 18); g.strokePath();
+    g.fillStyle(0xffffff, 0.92);
+    g.fillRoundedRect(x - 35, y + 12, 70, 15, 6);
+    this.add.text(x, y + 19, label, { fontFamily: 'Arial', fontSize: '8px', fontStyle: 'bold', color: '#526c39' }).setOrigin(0.5);
   }
 
   private bindWorldInput(): void {

@@ -73,3 +73,35 @@ body{background:radial-gradient(ellipse at 50% 22%,#e8f8ff 0,#b9e3f5 34%,transpa
 .live-dot{animation:meadow-glow 2.2s ease-in-out infinite}
 @media(max-width:900px){#app{padding:0 14px}.world-panel{min-height:570px}.topbar{border-radius:0 0 20px 20px}}
 @media(max-width:560px){#app{padding:0 8px}.world-panel{min-height:450px;border-width:6px}.topbar{min-height:76px}.brand-mark{width:42px;height:42px}.brand strong{font-size:21px}}
+
+
+/* v0.5 visual refresh — a warm, storybook farm interface. */
+:root{font-family:'Nunito','Trebuchet MS',sans-serif;color:#4d6339;background:#b9df91}
+body{background:radial-gradient(ellipse at 50% 0%,#e8f6d8 0%,#c6e5a3 46%,#a4d17d 100%);background-attachment:fixed}
+#app{max-width:1500px}
+.topbar{background:linear-gradient(180deg,#fffdf4 0%,#fbf0d4 68%,#eedcaf 100%);border-bottom:5px solid #a6c96d;box-shadow:0 5px 18px #476c3020}
+.brand-mark{background:radial-gradient(circle at 32% 25%,#fff3a2,#f2c94d 46%,#d78b38 78%);box-shadow:0 3px 0 #bd8a35,inset 0 2px 5px #fff9}
+.brand strong{color:#4d873e;text-shadow:0 2px #fff}
+.resources .resource{background:linear-gradient(#fffef8,#fff5df);border-color:#e7cc8c;box-shadow:inset 0 1px #fff,0 3px 0 #c5a36b,0 6px 14px #74552a12}
+.game-shell{gap:18px}
+.world-panel{border:9px solid #fffdf4;border-radius:24px;background:linear-gradient(#a9dcf0,#d2eff5 22%,#a3d46f 23%,#7eb957);box-shadow:0 5px 0 #b48b52,0 14px 30px #355c302b,inset 0 0 0 2px #e9f3d8}
+.world-panel:before{height:88px;background:linear-gradient(180deg,#93d2f0,#d1edf5);opacity:.95}
+.game-canvas{filter:saturate(1.12) contrast(1.035)}
+.side-panel{background:linear-gradient(155deg,#fffef8,#f4e8c8);border:6px solid #fffdf4;border-radius:22px;box-shadow:0 5px 0 #b48b52,0 12px 25px #355c3024,inset 0 0 0 1px #ead9b2}
+.panel-heading{color:#76974b}
+.profile-card,.selected-card{background:linear-gradient(145deg,#fffef7,#f8edcf);border-color:#e8d7ad}
+.avatar{background:radial-gradient(circle at 35% 25%,#f7f9d7,#cfe6a8);box-shadow:inset 0 1px #fff}
+.tool{border:2px solid #e4d2a6;background:linear-gradient(#fffef9,#f1e3c4);box-shadow:0 3px 0 #cdb88a,inset 0 1px #fff;transition:transform .15s,filter .15s}
+.tool:hover{transform:translateY(-2px);filter:brightness(1.04)}
+.tool.active{background:linear-gradient(#f1ffd9,#b9df83);border-color:#9bc46b;box-shadow:0 3px 0 #8aa95d,inset 0 1px #fff}
+.nav-button,.market-tab{transition:transform .15s,filter .15s;box-shadow:0 3px 0 #c3a16b,inset 0 1px #fff}
+.nav-button:hover,.market-tab:hover{transform:translateY(-2px);filter:brightness(1.04)}
+.market-window{background:linear-gradient(#fffef8,#f4e6c4);border:8px solid #fffdf4;box-shadow:0 8px 0 #986d3e,0 24px 70px #17261670}
+.market-item{background:linear-gradient(145deg,#fffef9,#fff4df);border-color:#e9d8b1}
+.market-art{background:linear-gradient(145deg,#f1f8df,#cfe6ac)}
+.market-buy,.care-button{box-shadow:0 2px 0 #6e9b48;transition:transform .15s,filter .15s}
+.market-buy:hover,.care-button:hover{transform:translateY(-2px);filter:brightness(1.05)}
+.toast{border:2px solid #f0d79d;box-shadow:0 4px 0 #b58a50,0 10px 24px #314e2d30}
+.world-hint{background:#fffdf0ed;border:2px solid #fff;box-shadow:0 3px 0 #c8a36b,0 6px 16px #315a3624;color:#806944}
+@media(max-width:900px){.world-panel{min-height:560px}.game-shell{padding-top:18px}}
+@media(max-width:560px){.world-panel{min-height:440px}.topbar{padding-inline:10px}}
