@@ -11,6 +11,7 @@ let currentUserId: string | null = null;
 let syncInProgress = false;
 let cloudReady = false;
 let saveTimer: ReturnType<typeof setTimeout> | undefined;
+let cloudInitialized = false;
 
 function setStatus(next: CloudStatus, message?: string): void {
   const label = document.getElementById('cloud-save-status');
@@ -49,9 +50,14 @@ async function syncWithCloud(): Promise<void> {
     if (error) throw error;
 
     const local = localSnapshot();
-    const localUpdatedAt = Number(localStorage.getItem(LOCAL_UPDATED_KEY) || 0);
+    const storedLocalUpdatedAt = Number(localStorage.getItem(LOCAL_UPDATED_KEY) || 0);
+    // Legacy farms predate the cloud timestamp key. Preserve and upload that local farm
+    // on its first cloud sign-in instead of allowing an existing remote row to overwrite it.
+    const preserveLegacyLocal = Boolean(local) && (!Number.isFinite(storedLocalUpdatedAt) || storedLocalUpdatedAt <= 0);
+    const localUpdatedAt = preserveLegacyLocal ? Date.now() : storedLocalUpdatedAt;
+    if (preserveLegacyLocal) localStorage.setItem(LOCAL_UPDATED_KEY, String(localUpdatedAt));
     const remoteUpdatedAt = remote?.updated_at ? Date.parse(remote.updated_at) : 0;
-    if (remote?.save_data && remoteUpdatedAt > localUpdatedAt) {
+    if (remote?.save_data && !preserveLegacyLocal && remoteUpdatedAt > localUpdatedAt) {
       localStorage.setItem(SAVE_KEY, JSON.stringify(remote.save_data));
       localStorage.setItem(LOCAL_UPDATED_KEY, String(remoteUpdatedAt));
       setStatus('synced', 'Cloud farm restored · refreshing game…');
@@ -93,6 +99,8 @@ function hideAccountModal(): void {
 }
 
 export function initializeCloudSaves(): void {
+  if (cloudInitialized) return;
+  cloudInitialized = true;
   document.getElementById('cloud-account')?.addEventListener('click', showAccountModal);
   document.getElementById('cloud-account-close')?.addEventListener('click', hideAccountModal);
   document.getElementById('cloud-account-modal')?.addEventListener('click', (event) => {
@@ -120,17 +128,22 @@ export function initializeCloudSaves(): void {
       return;
     }
     if (submitButton) submitButton.disabled = true;
-    const result = mode === 'signin'
-      ? await client.auth.signInWithPassword({ email, password })
-      : await client.auth.signUp({ email, password });
-    if (submitButton) submitButton.disabled = false;
-    if (result.error) { setStatus('error', result.error.message); return; }
-    if (mode === 'signup' && !result.data.session) {
-      setStatus('signed-out', 'Check your email to confirm your account, then sign in.');
-      return;
+    try {
+      const result = mode === 'signin'
+        ? await client.auth.signInWithPassword({ email, password })
+        : await client.auth.signUp({ email, password });
+      if (result.error) { setStatus('error', result.error.message); return; }
+      if (mode === 'signup' && !result.data.session) {
+        setStatus('signed-out', 'Check your email to confirm your account, then sign in.');
+        return;
+      }
+      hideAccountModal();
+      await syncWithCloud();
+    } catch (error) {
+      setStatus('error', error instanceof Error ? error.message : String(error));
+    } finally {
+      if (submitButton) submitButton.disabled = false;
     }
-    hideAccountModal();
-    await syncWithCloud();
   });
 
   document.getElementById('cloud-sign-out')?.addEventListener('click', async () => {
