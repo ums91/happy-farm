@@ -244,3 +244,48 @@ button,.tool,select{touch-action:manipulation}
   .world-panel{height:calc(100svh - 95px);min-height:260px}
   .side-panel{max-height:calc(100svh - 95px);overflow:auto}
 }
+
+
+/* Compact in-game HUD: keep Market, Inventory and every farm tool reachable
+   without page scrolling on phones. */
+@media(max-width:700px){
+  html,body{height:100%;min-height:100%;overflow:hidden}
+  #app{height:100svh;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+  .topbar{flex:0 0 auto;grid-template-columns:1fr auto;gap:6px 8px;padding:7px 9px}
+  .brand-mark{width:36px;height:36px}
+  .brand strong{font-size:18px}
+  .brand small{font-size:7px}
+  .game-nav{grid-column:1/-1;grid-row:2;display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .nav-button{min-height:38px;padding:6px 9px;font-size:11px}
+  .resources{grid-column:1/-1;grid-row:3;gap:5px}
+  .resource{padding:5px 7px}
+  .resource-icon{width:23px;height:23px;flex-basis:23px}
+  .resource strong{font-size:11px}
+  .game-shell{flex:1 1 auto;min-height:0;display:block;padding:7px 0 0}
+  .world-panel{height:100%;min-height:0;max-height:none;border-width:5px;border-radius:15px}
+  .world-label{top:7px;left:8px;padding:5px 8px;font-size:9px}
+  .world-hint{bottom:8px;left:8px;right:8px;font-size:8px;padding:5px 7px}
+  .side-panel{display:contents}
+  .side-panel>*:not(.tool-grid):not(.tools-heading){display:none!important}
+  .tools-heading{display:none!important}
+  .tool-grid{position:fixed;z-index:18;left:8px;right:8px;bottom:max(8px,env(safe-area-inset-bottom));display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:5px;margin:0;padding:6px;background:#fff9e9f2;border:2px solid #fff;border-radius:15px;box-shadow:0 3px 0 #b48b52,0 8px 22px #314e2d35;backdrop-filter:blur(8px)}
+  .tool{min-width:0;min-height:53px;padding:4px 1px;border-radius:9px}
+  .tool span{font-size:19px;line-height:1.1}
+  .tool small{font-size:9px;white-space:nowrap}
+  .footer{display:none}
+  .market-window{max-height:calc(100svh - 12px);padding:10px}
+}
+@media(max-width:380px){
+  .tool-grid{left:5px;right:5px;gap:3px;padding:5px}
+  .tool{min-height:49px}
+  .tool span{font-size:17px}
+  .tool small{font-size:8px}
+}
+@media(orientation:landscape) and (max-height:500px) and (pointer:coarse){
+  #app{height:100svh}
+  .topbar{grid-template-columns:auto 1fr auto;grid-template-rows:auto;align-items:center;padding:5px 8px}
+  .game-nav{grid-column:2;grid-row:1;display:flex;justify-content:center}
+  .resources{grid-column:3;grid-row:1;display:flex}
+  .game-shell{padding-top:5px}
+  .tool-grid{left:50%;right:auto;bottom:5px;width:min(520px,65vw);transform:translateX(-50%)}
+}
