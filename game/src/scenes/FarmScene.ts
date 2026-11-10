@@ -300,61 +300,92 @@ export class FarmScene extends Phaser.Scene {
   }
 
   private renderOwnedAnimals(): void {
-    this.animalActors.forEach(actor => actor.destroy());
-    this.animalActors = [];
-    const penPos=this.decor.pen!; const pen = this.toWorld(penPos.col, penPos.row);
-    this.animals.forEach((animal, index) => {
-      const startX = pen.x - 25 + (index % 4) * 17;
-      const startY = pen.y - 7 + Math.floor(index / 4) * 9;
-      const actor = this.add.container(startX, startY);
-      actor.setDepth(startY + index);
-      actor.add(this.add.ellipse(0, 8, animal.id === 'cow' ? 34 : 22, 8, 0x304b2a, 0.24));
-      const legs: Phaser.GameObjects.Graphics[] = [];
-      const legCount = animal.id === 'cow' ? 4 : 2;
-      for (let leg = 0; leg < legCount; leg += 1) {
-        const limb = this.add.graphics();
-        const lx = animal.id === 'cow' ? (leg % 2 === 0 ? -10 : 8) : (leg === 0 ? -5 : 4);
-        limb.lineStyle(animal.id === 'cow' ? 4 : 2.5, animal.id === 'cow' ? 0xf5f0df : 0xd69a3d, 1);
-        limb.beginPath(); limb.moveTo(lx, -3); limb.lineTo(lx + (leg % 2 ? 1 : -1), animal.id === 'cow' ? 8 : 6); limb.strokePath();
-        if (animal.id === 'cow') { limb.fillStyle(0x4d443c, 1); limb.fillRoundedRect(lx - 2, 5, 5, 3, 1); }
-        actor.add(limb); legs.push(limb);
+    this.animalActors.forEach(actor=>actor.destroy());this.animalActors=[];
+    const penPos=this.decor.pen!;const pen=this.toWorld(penPos.col,penPos.row);
+    this.animals.forEach((animal,index)=>{
+      const cow=animal.id==='cow';
+      const startX=pen.x-28+(index%4)*(cow?23:18);
+      const startY=pen.y-8+Math.floor(index/4)*12;
+      const actor=this.add.container(startX,startY);actor.setDepth(startY+index);
+      actor.add(this.add.ellipse(0,8,cow?43:27,9,0x263e25,0.24));
+      // Legs sit behind the body so the animal reads as a single grounded character.
+      const legs:Phaser.GameObjects.Graphics[]=[];
+      const legXs=cow?[-13,-5,10,18]:[-7,5];
+      legXs.forEach((lx,legIndex)=>{
+        const leg=this.add.graphics();
+        if(cow){
+          leg.fillStyle(0xf2eee0,1);leg.fillRoundedRect(lx-3,-10,6,17,2);
+          leg.fillStyle(0x51483f,1);leg.fillRoundedRect(lx-3,4,7,5,2);
+          leg.fillStyle(0x302c28,0.7);leg.fillRect(lx-2,7,5,1);
+        }else{
+          leg.fillStyle(0xc58b42,1);leg.fillRoundedRect(lx-1.5,-7,3,13,1);
+          leg.lineStyle(1.5,0xb97932,1);leg.beginPath();leg.moveTo(lx,5);leg.lineTo(lx-4,7);leg.moveTo(lx,5);leg.lineTo(lx+4,7);leg.strokePath();
+        }
+        actor.add(leg);legs.push(leg);
+      });
+      const tail=this.add.graphics();
+      if(cow){
+        tail.lineStyle(3,0xf2eee0,1);tail.beginPath();tail.moveTo(-17,-16);tail.lineTo(-25,-8);tail.lineTo(-27,-2);tail.strokePath();
+        tail.lineStyle(4,0x3f3934,1);tail.beginPath();tail.moveTo(-27,-2);tail.lineTo(-30,2);tail.strokePath();
+      }else{
+        tail.fillStyle(0xf6f0df,1);tail.fillTriangle(-12,-15,-24,-23,-18,-10);tail.fillTriangle(-11,-13,-25,-12,-17,-7);
       }
-      const body = this.add.graphics();
-      if (animal.id === 'cow') {
-        body.fillStyle(0xfaf6e9, 1); body.fillEllipse(-1, -12, 34, 23);
-        body.fillStyle(0x4b443e, 1); body.fillEllipse(-10, -17, 11, 9); body.fillEllipse(5, -7, 10, 8); body.fillEllipse(-2, -5, 6, 5);
-        body.fillStyle(0xf7f1e3, 1); body.fillEllipse(14, -19, 18, 18); body.fillEllipse(19, -15, 13, 11);
-        body.fillStyle(0xe9bca8, 1); body.fillEllipse(23, -11, 13, 9);
-        body.fillStyle(0xfaf6e9, 1); body.fillTriangle(10, -24, 7, -31, 15, -27); body.fillTriangle(20, -25, 27, -31, 26, -23);
-        body.fillStyle(0xd9b878, 1); body.fillTriangle(13, -25, 15, -31, 17, -24); body.fillTriangle(22, -25, 24, -30, 26, -23);
-        body.fillStyle(0x3d342e, 1); body.fillCircle(20, -18, 1.5); body.fillCircle(27, -12, 1);
-        body.fillStyle(0xe7b9a4, 1); body.fillEllipse(1, -1, 11, 8);
-        body.lineStyle(2, 0xf7f1e3, 1); body.beginPath(); body.moveTo(-16, -15); body.lineTo(-22, -8); body.strokePath();
-        body.lineStyle(3, 0x4b443e, 1); body.beginPath(); body.moveTo(-22, -8); body.lineTo(-25, -5); body.strokePath();
-      } else {
-        body.fillStyle(0xf5e9cb, 1); body.fillEllipse(0, -9, 25, 20);
-        body.fillStyle(0xfff9e9, 1); body.fillEllipse(-8, -12, 11, 11);
-        body.fillStyle(0xe3c99d, 1); body.fillEllipse(-2, -8, 13, 9);
-        body.fillStyle(0xd95f42, 1); body.fillEllipse(4, -21, 5, 5); body.fillCircle(9, -20, 3);
-        body.fillTriangle(10, -13, 19, -10, 10, -8);
-        body.fillStyle(0x40372f, 1); body.fillCircle(7, -15, 1.5);
-        body.fillStyle(0xfff5e0, 1); body.fillTriangle(-10, -12, -18, -18, -13, -7);
+      actor.add(tail);
+      const body=this.add.graphics();
+      if(cow){
+        // Rounded dairy-cow silhouette with coat patches, neck and a softly shaded muzzle.
+        body.fillStyle(0xaaa497,0.32);body.fillEllipse(-1,-9,40,24);
+        body.fillStyle(0xf6f1e5,1);body.fillEllipse(-2,-14,39,27);
+        body.fillStyle(0x4b4540,1);body.fillEllipse(-13,-19,13,10);body.fillEllipse(2,-8,12,9);body.fillEllipse(-2,-5,7,5);
+        body.fillStyle(0xffffff,0.45);body.fillEllipse(-8,-23,14,5);
+        body.fillStyle(0xf4eee0,1);body.fillEllipse(15,-19,19,21);
+        body.fillStyle(0x4a433d,1);body.fillEllipse(11,-27,7,5);
+        // Head, ears, horns and muzzle.
+        body.fillStyle(0xf2eee2,1);body.fillEllipse(19,-22,18,17);
+        body.fillStyle(0xe6b7a8,1);body.fillEllipse(25,-15,15,10);
+        body.fillStyle(0xf7c9b5,1);body.fillEllipse(24,-17,11,6);
+        body.fillStyle(0x4a4038,1);body.fillEllipse(19,-23,2,2);body.fillEllipse(29,-17,1.2,1);
+        body.fillStyle(0x3b3530,1);body.fillCircle(19,-24,1.5);
+        body.fillStyle(0xf2eee2,1);body.fillTriangle(11,-27,6,-33,15,-30);body.fillTriangle(23,-28,29,-33,28,-25);
+        body.fillStyle(0xd8a982,1);body.fillTriangle(14,-29,14,-35,18,-29);body.fillTriangle(23,-29,26,-35,27,-28);
+        body.fillStyle(0xe9c5b4,1);body.fillEllipse(13,-14,5,3);
+        // Udder and subtle belly contour.
+        body.fillStyle(0xe8b7a8,1);body.fillEllipse(-1,-1,12,7);
+        body.fillStyle(0xc98f86,1);body.fillCircle(-4,1,1.2);body.fillCircle(1,2,1.2);body.fillCircle(5,1,1.2);
+        body.lineStyle(1,0xd4cabb,0.8);body.beginPath();body.moveTo(-15,-7);body.lineTo(8,-5);body.strokePath();
+      }else{
+        // A compact buff hen with a layered breast, wing feathers and comb.
+        body.fillStyle(0xc7a56d,0.25);body.fillEllipse(0,-8,30,22);
+        body.fillStyle(0xf0dfbd,1);body.fillEllipse(-1,-11,25,20);
+        body.fillStyle(0xfff4df,1);body.fillEllipse(-7,-13,12,12);
+        body.fillStyle(0xd2b17c,1);body.fillEllipse(-1,-8,15,10);
+        body.fillStyle(0xc69b5e,1);body.fillEllipse(-5,-8,12,7);
+        body.lineStyle(1,0xa9844e,0.8);body.beginPath();body.moveTo(-10,-9);body.lineTo(-3,-5);body.moveTo(-7,-12);body.lineTo(0,-8);body.strokePath();
+        body.fillStyle(0xf5ead1,1);body.fillEllipse(7,-17,11,11);
+        body.fillStyle(0xd94f42,1);body.fillEllipse(4,-25,4,5);body.fillCircle(9,-25,3);body.fillCircle(13,-22,2.5);
+        body.fillStyle(0xd99c3c,1);body.fillTriangle(12,-17,22,-14,12,-12);
+        body.fillStyle(0x352e28,1);body.fillCircle(9,-19,1.5);
+        body.fillStyle(0xffffff,0.9);body.fillCircle(9.5,-19.5,0.55);
+        body.fillStyle(0xe4cda5,1);body.fillTriangle(-9,-14,-17,-20,-13,-9);
       }
       actor.add(body);
-      if (animal.id === 'hen') {
-        const wing = this.add.graphics(); wing.fillStyle(0xe5c99a, 1); wing.fillEllipse(-5, -8, 11, 7);
-        wing.lineStyle(1, 0xc7a97c, 0.9); wing.beginPath(); wing.moveTo(-9, -8); wing.lineTo(-3, -5); wing.strokePath();
+      if(!cow){
+        const wing=this.add.graphics();wing.fillStyle(0xd4b17b,1);wing.fillEllipse(-4,-10,13,8);
+        wing.lineStyle(1,0xa98552,0.85);wing.beginPath();wing.moveTo(-9,-10);wing.lineTo(-3,-7);wing.moveTo(-7,-13);wing.lineTo(0,-9);wing.strokePath();
         actor.add(wing);
-        this.tweens.add({ targets: wing, angle: -9, duration: 420, yoyo: true, repeat: -1, ease: 'Sine.inOut', delay: index * 130 });
+        this.tweens.add({targets:wing,angle:-7,duration:650,yoyo:true,repeat:-1,ease:'Sine.inOut',delay:index*130});
+        this.tweens.add({targets:body,angle:1.2,duration:950,yoyo:true,repeat:-1,ease:'Sine.inOut',delay:index*100});
+      }else{
+        this.tweens.add({targets:tail,angle:7,duration:1100,yoyo:true,repeat:-1,ease:'Sine.inOut',delay:index*90});
+        this.tweens.add({targets:body,angle:0.8,duration:1250,yoyo:true,repeat:-1,ease:'Sine.inOut',delay:index*120});
       }
       this.animalActors.push(actor);
-      const roam = 8 + (index % 3) * 4, walkDuration = 2200 + (index % 4) * 350;
-      this.tweens.add({ targets: actor, x: startX + roam, duration: walkDuration, yoyo: true, repeat: -1, ease: 'Sine.inOut', delay: index * 190,
-        onYoyo: () => actor.setScale(-1, 1), onRepeat: () => actor.setScale(1, 1) });
-      this.tweens.add({ targets: actor, y: startY - (animal.id === 'cow' ? 1.5 : 2.5), duration: 360, yoyo: true, repeat: -1, ease: 'Sine.inOut', delay: index * 80 });
-      legs.forEach((leg, legIndex) => this.tweens.add({ targets: leg, angle: (legIndex % 2 === 0 ? 1 : -1) * 17,
-        duration: 190 + (legIndex % 2) * 30, yoyo: true, repeat: -1, ease: 'Sine.inOut', delay: index * 110 + legIndex * 75 }));
-      if (animal.id === 'cow') this.tweens.add({ targets: body, angle: 1.5, duration: 850, yoyo: true, repeat: -1, ease: 'Sine.inOut', delay: index * 100 });
+      const roam=7+(index%3)*4,duration=2600+(index%4)*420;
+      this.tweens.add({targets:actor,x:startX+roam,duration,yoyo:true,repeat:-1,ease:'Sine.inOut',delay:index*180,
+        onYoyo:()=>actor.setScale(-1,1),onRepeat:()=>actor.setScale(1,1)});
+      this.tweens.add({targets:actor,y:startY-(cow?1.2:1.8),duration:cow?520:420,yoyo:true,repeat:-1,ease:'Sine.inOut',delay:index*90});
+      legs.forEach((leg,legIndex)=>this.tweens.add({targets:leg,angle:(legIndex%2===0?1:-1)*(cow?10:14),
+        duration:cow?260:220,yoyo:true,repeat:-1,ease:'Sine.inOut',delay:index*100+legIndex*65}));
     });
   }
 
