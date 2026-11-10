@@ -1,15 +1,23 @@
 # Happy Farm
 
-An original browser-based farming game inspired by classic social farming games. The project is in early development; the current playable build is a prototype, not the intended final experience.
+An original browser-based farming game inspired by classic social farming games. Happy Farm is in active early development, with a modular Phaser + TypeScript client now established alongside the original prototype.
 
-**Play:** https://ums91.github.io/happy-farm/  
+**Play current prototype:** https://ums91.github.io/happy-farm/  
 **Source:** https://github.com/ums91/happy-farm
 
 ## Product vision
-A rich, persistent farming world with crop cycles, animals, production buildings, progression, land expansion, decoration and future social play. The project will move from its current single-file prototype to a modular 2D game architecture.
+A rich, persistent farming world with crop cycles, animals, production buildings, progression, land expansion, decoration and future social play. The project is being developed as a maintainable game codebase, not constrained to a single-file demo.
 
-## Project status
-The current default branch contains the early browser prototype. The next milestone is the modular game foundation, reproducible build, automated checks and original asset pipeline.
+## Repository layout
+- Root `index.html`: currently published prototype; retained during migration.
+- `game/`: next-generation Phaser + TypeScript client, built with Vite.
+- `docs/`: architecture, development and release documentation.
+- `.github/workflows/`: manually triggered quality checks.
+
+## Current engineering status
+The modular client foundation includes a Phaser bootstrap, responsive game canvas, isometric tile-world rendering, original vector placeholder scenery, camera zoom/pan and an initial farm-tool interaction scaffold. It is not yet the production game and is not yet deployed to the public Pages URL.
+
+To run the new client, see [game/README.md](game/README.md). The existing root-level prototype remains live until the new client is validated and the Pages deployment is deliberately switched.
 
 ## Documentation
 - [Roadmap](ROADMAP.md)
@@ -20,15 +28,11 @@ The current default branch contains the early browser prototype. The next milest
 - [Contributing](CONTRIBUTING.md)
 - [Security policy](SECURITY.md)
 
-## Engineering principles
-- Original or appropriately licensed assets only.
-- Modular, testable systems and data-driven game content.
-- Small, reviewable changes and clear commit history.
-- Documented releases and versioned save-data migrations.
-- Never commit credentials, secrets or private user data.
+## GitHub Actions usage
+Workflows are manual-only through `workflow_dispatch`. There are no push, pull-request or scheduled triggers. Run validation only when a meaningful checkpoint is ready to be checked.
 
 ## Versioning
-Formal releases will follow [Semantic Versioning](https://semver.org/). The initial prototype is recorded as the 0.1.0 development baseline in the changelog; this is not yet a formal stable release. GitHub Releases will be published when builds are reproducible and have passed the release checks.
+Formal releases will follow [Semantic Versioning](https://semver.org/). The initial prototype is recorded as the 0.1.0 development baseline. The modular client currently identifies itself as 0.2.0 development work; neither is a stable public release. GitHub Releases will be published after reproducible builds and release checks are in place.
 
 ## Licensing
 No open-source license is granted to this repository at this stage. Do not assume code or assets may be reused outside the project. Third-party content must have a compatible license and documented attribution before inclusion.
