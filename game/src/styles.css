@@ -172,3 +172,14 @@ body{background:linear-gradient(180deg,#a7ddf6 0,#d9f1f8 190px,#a9d579 191px,#77
 .animal-progress{display:grid;grid-template-columns:1fr auto;gap:6px 12px;align-items:center;padding:9px 12px;margin:7px 0;background:#f8f3e8;border:1px solid #eadfc8;border-radius:12px;color:#624c30;font-size:13px}
 .animal-progress strong{font-size:12px;color:#7c6b4c}.production-track{grid-column:1/-1;height:8px;overflow:hidden;background:#e6dfce;border-radius:99px}.production-track i{display:block;height:100%;background:linear-gradient(90deg,#85bd59,#d4b64e);border-radius:99px;transition:width .35s ease}.building-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}.building-actions .market-buy{flex:1;min-width:145px}
 @media(max-width:520px){.building-actions{flex-direction:column}.building-actions .market-buy{width:100%}}
+
+
+/* Phase 4 — quest board and milestone rewards */
+.quest-list{display:grid;grid-template-columns:1fr;gap:9px}
+.quest-card{align-items:center}
+.quest-card .market-copy{min-width:0;flex:1}
+.quest-card .market-copy strong{display:block}
+.quest-track{height:7px;overflow:hidden;margin:7px 0 5px;border-radius:99px;background:#e9e1ce}
+.quest-track i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#8fc45d,#e4bd56);transition:width .25s ease}
+.quest-card .market-buy{flex:0 0 auto}
+@media(max-width:560px){.quest-card{flex-wrap:wrap}.quest-card .market-buy{width:100%}}
