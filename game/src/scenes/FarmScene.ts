@@ -84,6 +84,41 @@ export class FarmScene extends Phaser.Scene {
       }
     }
     this.drawPath();
+    this.drawFence();
+    this.drawFlowerPatches();
+  }
+
+  private drawFence(): void {
+    const g = this.plotGraphics;
+    const fencePoints = [this.toWorld(0, 0), this.toWorld(4, 0), this.toWorld(8, 0), this.toWorld(12, 0)];
+    g.lineStyle(5, 0x8a6038, 1);
+    fencePoints.forEach((p, i) => {
+      if (i < fencePoints.length - 1) {
+        const next = fencePoints[i + 1]!;
+        g.beginPath(); g.moveTo(p.x, p.y - 9); g.lineTo(next.x, next.y - 9); g.strokePath();
+      }
+      g.fillStyle(0xb9854b, 1);
+      g.fillRoundedRect(p.x - 3, p.y - 19, 6, 22, 2);
+      g.fillStyle(0xe2bd7b, 1);
+      g.fillRoundedRect(p.x - 4, p.y - 20, 8, 4, 2);
+    });
+  }
+
+  private drawFlowerPatches(): void {
+    const g = this.add.graphics();
+    const flowers = [[2,4],[4,6],[7,4],[10,6],[1,9],[6,10],[11,9],[8,2]];
+    flowers.forEach(([col,row], index) => {
+      const p = this.toWorld(col!, row!);
+      const colors = [0xffe58a,0xffa8a8,0xffffff,0xd8a8ee];
+      g.fillStyle(0x4d923e, 1);
+      g.fillEllipse(p.x, p.y + 3, 8, 4);
+      g.fillStyle(colors[index % colors.length]!, 1);
+      g.fillCircle(p.x, p.y - 2, 3);
+      g.fillCircle(p.x - 3, p.y, 2);
+      g.fillCircle(p.x + 3, p.y, 2);
+      g.fillStyle(0xf4c84f, 1);
+      g.fillCircle(p.x, p.y, 1.5);
+    });
   }
 
   private drawGrassTuft(x: number, y: number): void {
@@ -118,11 +153,14 @@ export class FarmScene extends Phaser.Scene {
       g.fillStyle(0x765338, 1);
       g.fillRoundedRect(p.x - 5, p.y - 26, 10, 31, 3);
       g.fillStyle([0x4c8b43, 0x5b9a48, 0x6da74f][i % 3] ?? 0x4c8b43, 1);
-      g.fillCircle(p.x, p.y - 37, 20);
-      g.fillCircle(p.x - 12, p.y - 29, 13);
-      g.fillCircle(p.x + 12, p.y - 29, 13);
-      g.fillStyle(0x8cbd5d, 0.75);
-      g.fillCircle(p.x - 5, p.y - 43, 5);
+      g.fillCircle(p.x, p.y - 37, 21);
+      g.fillCircle(p.x - 13, p.y - 29, 14);
+      g.fillCircle(p.x + 13, p.y - 29, 14);
+      g.fillCircle(p.x - 8, p.y - 48, 12);
+      g.fillStyle(0x8cbd5d, 0.8);
+      g.fillCircle(p.x - 7, p.y - 46, 5);
+      g.fillStyle(0xe7a5a0, 0.9);
+      if (i % 2 === 0) g.fillCircle(p.x + 10, p.y - 35, 3);
     });
     const home = this.toWorld(5, 2);
     const barn = this.toWorld(9, 3);
@@ -244,8 +282,19 @@ export class FarmScene extends Phaser.Scene {
     g.beginPath(); g.moveTo(x, y + 2); g.lineTo(x - 2, y - height); g.strokePath();
     g.beginPath(); g.moveTo(x - 1, y - height * 0.45); g.lineTo(x - 12, y - height * 0.7); g.strokePath();
     g.beginPath(); g.moveTo(x - 1, y - height * 0.65); g.lineTo(x + 11, y - height * 0.9); g.strokePath();
-    g.fillStyle(plot.state === 'ready' ? 0xf2c94c : 0x70a94f, 1);
+    g.fillStyle(plot.state === 'ready' ? 0xe4b83f : 0x70a94f, 1);
     g.fillCircle(x - 2, y - height, plot.state === 'ready' ? 5 : 3);
+    if (plot.state === 'ready') {
+      g.fillStyle(0xf6d86b, 1);
+      g.fillEllipse(x - 9, y - 12, 8, 5);
+      g.fillEllipse(x + 7, y - 17, 8, 5);
+      g.fillStyle(0x4f8d3c, 1);
+      g.fillEllipse(x + 10, y - 7, 9, 5);
+    } else {
+      g.fillStyle(0x75b85a, 1);
+      g.fillEllipse(x - 8, y - 7, 8, 4);
+      g.fillEllipse(x + 7, y - 9, 8, 4);
+    }
   }
 
   private drawSelection(): void {
