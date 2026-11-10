@@ -581,3 +581,22 @@ button,.tool,select{touch-action:manipulation}
 .profile-modal-actions button{border:1px solid #d9c294;border-radius:11px;padding:9px 15px;background:#fff8e9;color:#8a6b43;font-size:12px;font-weight:900;cursor:pointer}
 .profile-modal-actions button[type=submit]{border-color:#80ae4c;background:linear-gradient(#a8d66f,#75ad43);color:#fff}
 @media(max-width:480px){.profile-modal-card{padding:14px}.profile-modal-card h2{font-size:22px}}
+
+
+/* Phase 2 visual polish: clearer tool feedback and consistent touch targets. */
+:root{--farm-ink:#60452b;--farm-leaf:#79ad49;--farm-leaf-dark:#4f8134;--farm-cream:#fff8e8}
+button{ -webkit-tap-highlight-color:transparent }
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #f5c85c;outline-offset:2px}
+.tool,.dock-button{transition:transform .16s ease,filter .16s ease,box-shadow .16s ease}
+.tool:hover,.dock-button:hover{transform:translateY(-2px);filter:brightness(1.04);box-shadow:0 4px 0 #77512d55}
+.tool:active,.dock-button:active{transform:translateY(1px);box-shadow:none}
+.tool.active{border-color:#f5cf72!important;background:linear-gradient(180deg,#fff5c9,#e9b95b)!important;color:#68431f!important;box-shadow:0 0 0 2px #fff8df,0 4px 0 #93632e!important}
+.world-label{box-shadow:0 3px 0 #513b2455,0 5px 14px #213d2530}
+.world-hint{border:1px solid #ffffff70;border-radius:14px;background:#254b2bd9;color:#fff8dc;padding:7px 12px;box-shadow:0 3px 10px #17321e45;backdrop-filter:blur(5px)}
+.market-item{transition:transform .15s ease,box-shadow .15s ease}
+.market-item:hover{transform:translateY(-2px);box-shadow:0 5px 14px #60452b18}
+.market-buy:not(:disabled){transition:filter .15s ease,transform .15s ease}
+.market-buy:not(:disabled):hover{filter:brightness(1.06);transform:translateY(-1px)}
+.market-buy:disabled{cursor:not-allowed;filter:grayscale(.35);opacity:.62}
+.crop-hover-tooltip{border:1px solid #f3d68d;box-shadow:0 4px 16px #1e3c1e50}
+@media(prefers-reduced-motion:reduce){.tool,.dock-button,.market-item,.market-buy{transition:none!important}}
