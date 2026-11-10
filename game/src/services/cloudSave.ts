@@ -61,31 +61,41 @@ async function syncWithCloud(): Promise<void> {
     cloudSaveQueued = true;
     return;
   }
+
   syncInProgress = true;
   cloudSaveQueued = false;
   setStatus('syncing');
+
+  // Take the local revision before the network read. A save made while the
+  // request is in flight must always take precedence over the remote snapshot.
+  const revisionAtRead = Number(localStorage.getItem(LOCAL_UPDATED_KEY) || 0);
+  const localAtRead = localSnapshot();
+  const dirtyAtRead = localStorage.getItem(LOCAL_DIRTY_KEY) === 'true';
+
   try {
     const { data: remote, error } = await client.from('farm_saves')
       .select('save_data, updated_at').eq('user_id', currentUserId).maybeSingle();
     if (error) throw error;
 
-    // Capture the local revision before deciding whether a remote snapshot may win.
-    const revisionAtRead = Number(localStorage.getItem(LOCAL_UPDATED_KEY) || 0);
-    const local = localSnapshot();
     const storedLocalUpdatedAt = Number(localStorage.getItem(LOCAL_UPDATED_KEY) || 0);
-    const hasPendingLocalChanges = localStorage.getItem(LOCAL_DIRTY_KEY) === 'true';
-    // Legacy farms predate the cloud timestamp key. Preserve and upload that local farm
-    // on its first cloud sign-in instead of allowing an existing remote row to overwrite it.
-    const preserveLegacyLocal = Boolean(local) && (!Number.isFinite(storedLocalUpdatedAt) || storedLocalUpdatedAt <= 0);
+    const preserveLegacyLocal = Boolean(localAtRead) &&
+      (!Number.isFinite(storedLocalUpdatedAt) || storedLocalUpdatedAt <= 0);
     const localUpdatedAt = preserveLegacyLocal ? Date.now() : storedLocalUpdatedAt;
     if (preserveLegacyLocal) localStorage.setItem(LOCAL_UPDATED_KEY, String(localUpdatedAt));
-    const remoteUpdatedAt = remote?.updated_at ? Date.parse(remote.updated_at) : 0;
-    // Re-check immediately before applying remote data. A purchase can happen while
-    // the network request is in flight; never let that newer local revision be replaced.
+
     const latestLocalUpdatedAt = Number(localStorage.getItem(LOCAL_UPDATED_KEY) || 0);
     const latestLocalIsDirty = localStorage.getItem(LOCAL_DIRTY_KEY) === 'true';
     const localChangedDuringFetch = latestLocalUpdatedAt !== revisionAtRead;
-    if (remote?.save_data && !preserveLegacyLocal && !hasPendingLocalChanges && !latestLocalIsDirty && !localChangedDuringFetch && remoteUpdatedAt > localUpdatedAt) {
+    const remoteUpdatedAt = remote?.updated_at ? Date.parse(remote.updated_at) : 0;
+
+    if (
+      remote?.save_data &&
+      !preserveLegacyLocal &&
+      !dirtyAtRead &&
+      !latestLocalIsDirty &&
+      !localChangedDuringFetch &&
+      remoteUpdatedAt > localUpdatedAt
+    ) {
       localStorage.setItem(SAVE_KEY, JSON.stringify(remote.save_data));
       localStorage.setItem(LOCAL_UPDATED_KEY, String(remoteUpdatedAt));
       setStatus('synced', 'Cloud farm restored · refreshing game…');
@@ -93,21 +103,34 @@ async function syncWithCloud(): Promise<void> {
       return;
     }
 
-    // Upload the newest local snapshot, not a stale object captured before a user action.
+    // Upload the latest snapshot. Keep it marked dirty until the server confirms
+    // the exact updated_at value, so clock skew cannot make an older cloud copy win
+    // on the next page load.
     const latestLocal = localSnapshot();
     if (latestLocal) {
       const uploadedLocalUpdatedAt = Number(localStorage.getItem(LOCAL_UPDATED_KEY) || 0);
-      const { error: saveError } = await client.from('farm_saves').upsert({
-        user_id: currentUserId, save_data: latestLocal, updated_at: new Date().toISOString(),
-      }, { onConflict: 'user_id' });
+      const { data: saved, error: saveError } = await client.from('farm_saves')
+        .upsert({
+          user_id: currentUserId,
+          save_data: latestLocal,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'user_id' })
+        .select('updated_at')
+        .single();
       if (saveError) throw saveError;
-      if (Number(localStorage.getItem(LOCAL_UPDATED_KEY) || 0) === uploadedLocalUpdatedAt) {
+
+      const currentLocalUpdatedAt = Number(localStorage.getItem(LOCAL_UPDATED_KEY) || 0);
+      if (currentLocalUpdatedAt === uploadedLocalUpdatedAt) {
         localStorage.removeItem(LOCAL_DIRTY_KEY);
+        const confirmedRemoteUpdatedAt = saved?.updated_at ? Date.parse(saved.updated_at) : 0;
+        if (confirmedRemoteUpdatedAt > 0) {
+          localStorage.setItem(LOCAL_UPDATED_KEY, String(confirmedRemoteUpdatedAt));
+        }
       } else {
         cloudSaveQueued = true;
       }
-      localStorage.setItem(LOCAL_UPDATED_KEY, String(Math.max(uploadedLocalUpdatedAt + 1, Date.now())));
     }
+
     cloudReady = true;
     setStatus('synced');
   } catch (error) {
