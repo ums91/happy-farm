@@ -1,12 +1,18 @@
 # Architecture
 
-## Current state
-The default branch currently contains an early single-file browser prototype with a small crop loop and local browser persistence. It is a temporary baseline, not the target architecture.
+## Current repository structure
+- Root `index.html`: original browser prototype, retained as the currently published build during migration.
+- `game/`: next-generation Phaser + TypeScript client using Vite.
+- `game/src/scenes/`: Phaser scenes.
+- `game/src/styles.css`: responsive shell and game interface.
 
-## Target direction
-A modular 2D game framework is planned. Phaser is the leading candidate, subject to technical validation; TypeScript will be used where it adds clear value.
+## Engine decision
+Phaser 3 is selected as the 2D game framework for the browser client. TypeScript provides static checking, and Vite provides the local development server and production bundler.
 
-Logical boundaries:
+## Current implementation
+The first scene establishes a responsive Phaser canvas, an isometric diamond-tile farm grid, simple orchard/building vector placeholders, camera zoom and pan, tile selection and initial plow/plant/water/harvest tool interactions. This is an engineering foundation, not finished gameplay. Art is placeholder vector artwork; persistence, timed crop growth, content systems and production sprites remain future work.
+
+## Target logical boundaries
 - Core: bootstrap, configuration, lifecycle and shared services.
 - Scenes: boot, loading, farm, market and other game screens.
 - World: tile map, layers, camera, terrain and object placement.
@@ -30,4 +36,4 @@ Logical boundaries:
 Boot → preload assets → initialize services and save data → enter farm scene → process input and simulation → persist state.
 
 ## Open technical decisions
-Final engine/version, tile dimensions and projection, state/event approach, save format and future backend requirements. Record material decisions as Architecture Decision Records.
+Tile dimensions and projection refinements, state/event approach, save format and future backend requirements. Record material decisions as Architecture Decision Records.
