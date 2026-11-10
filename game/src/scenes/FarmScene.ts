@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 
 type Tool = 'select' | 'plow' | 'plant' | 'water' | 'harvest';
-type PlotState = 'grass' | 'tilled' | 'planted' | 'ready';
+type PlotState = 'grass' | 'tilled' | 'growing' | 'ready';
 interface Plot { col: number; row: number; state: PlotState; watered: boolean; growth: number }
 
 const COLS = 13;
@@ -13,6 +13,8 @@ const ORIGIN_Y = 40;
 
 export class FarmScene extends Phaser.Scene {
   private plots = new Map<string, Plot>();
+  private plotOverlays = new Map<string, Phaser.GameObjects.Graphics>();
+  private growthTimers = new Map<string, Phaser.Time.TimerEvent>();
   private plotGraphics!: Phaser.GameObjects.Graphics;
   private overlay!: Phaser.GameObjects.Graphics;
   private selected: Plot | null = null;
@@ -191,13 +193,13 @@ export class FarmScene extends Phaser.Scene {
         if (plot.state === 'grass') plot.state = 'tilled';
         break;
       case 'plant':
-        if (plot.state === 'tilled' && this.coins >= 5) { plot.state = 'planted'; plot.growth = 0; this.coins -= 5; }
+        if (plot.state === 'tilled' && this.coins >= 5) { plot.state = 'growing'; plot.growth = 0; this.coins -= 5; this.scheduleGrowth(plot, 15000); }
         break;
       case 'water':
-        if (plot.state === 'planted') { plot.watered = true; plot.growth = 100; plot.state = 'ready'; }
+        if (plot.state === 'growing') { plot.watered = true; this.scheduleGrowth(plot, 5000); }
         break;
       case 'harvest':
-        if (plot.state === 'ready') { plot.state = 'tilled'; plot.growth = 0; this.coins += 18; this.xp += 5; }
+        if (plot.state === 'ready') { plot.state = 'tilled'; plot.growth = 0; this.growthTimers.get(this.key(plot.col, plot.row))?.remove(false); this.growthTimers.delete(this.key(plot.col, plot.row)); this.coins += 18; this.xp += 5; }
         break;
       case 'select':
         break;
@@ -215,7 +217,7 @@ export class FarmScene extends Phaser.Scene {
       for (let i = -2; i <= 2; i += 1) {
         g.beginPath(); g.moveTo(p.x - 25, p.y + i * 5); g.lineTo(p.x + 25, p.y + i * 5); g.strokePath();
       }
-      if (plot.state !== 'tilled') this.drawCrop(g, p.x, p.y, plot);
+      if (plot.state === 'growing' || plot.state === 'ready') this.drawCrop(g, p.x, p.y, plot);
     }
   }
 
@@ -268,8 +270,8 @@ export class FarmScene extends Phaser.Scene {
       host.innerHTML = '<span class="selection-kicker">SELECTED LAND</span><strong>Choose a plot</strong><p>Select a field tile to see what you can do there.</p>';
       return;
     }
-    const names: Record<PlotState, string> = { grass: 'Open grassland', tilled: 'Freshly plowed soil', planted: 'Newly planted crop', ready: 'Ready to harvest' };
-    const actions: Record<Tool, string> = { select: 'Choose a tool to work this plot.', plow: 'Plow open grass to prepare the soil.', plant: 'Plant seeds in prepared soil.', water: 'Water a planted crop to help it grow.', harvest: 'Harvest a mature crop.' };
+    const names: Record<PlotState, string> = { grass: 'Open grassland', tilled: 'Freshly plowed soil', growing: 'Growing crop', ready: 'Ready to harvest' };
+    const actions: Record<Tool, string> = { select: 'Choose a tool to work this plot.', plow: 'Plow open grass to prepare the soil.', plant: 'Plant seeds in prepared soil; crops mature over time.', water: 'Water a growing crop to speed up its growth.', harvest: 'Harvest a mature crop.' };
     host.innerHTML = `<span class="selection-kicker">LAND · ${this.selected.col + 1}, ${this.selected.row + 1}</span><strong>${names[this.selected.state]}</strong><p>${actions[this.activeTool]}</p>`;
   }
 }
