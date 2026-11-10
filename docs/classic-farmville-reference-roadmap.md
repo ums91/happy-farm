@@ -103,3 +103,11 @@ The preservation repository is GPL-3.0. This roadmap records it as a design/beha
 - Added save schema v7 with backward-compatible migration from earlier saves; existing animals remain assigned by default.
 - Added silo upgrade controls to the inventory screen, with escalating coin costs.
 - Next improvements: dedicated silo/building artwork, richer animal animations and production feedback, farm expansions, quests and ribbons.
+
+
+## Phase 5 — Order and delivery board (v1.3)
+
+- Added three repeatable village delivery contracts: egg crates, fresh milk runs and mixed farm breakfasts.
+- Orders validate available stored produce before delivery, consume only the required quantities, and award coins plus XP.
+- Delivery totals persist across sessions in save schema v9; earlier saves migrate automatically with an empty delivery history.
+- The order board is available at the top of Inventory and updates immediately after each delivery.
