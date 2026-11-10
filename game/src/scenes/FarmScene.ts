@@ -1031,11 +1031,16 @@ export class FarmScene extends Phaser.Scene {
   }
 
   private editFarmProfile():void {
-    const farmer=window.prompt('Farmer name:',this.farmerName);if(farmer===null)return;
-    const farm=window.prompt('Farm name:',this.farmName);if(farm===null)return;
-    const cleanFarmer=farmer.trim().slice(0,24),cleanFarm=farm.trim().slice(0,28);
-    if(!cleanFarmer||!cleanFarm){this.toast('Please enter a name for both your farmer and farm.');return;}
-    this.farmerName=cleanFarmer;this.farmName=cleanFarm;this.saveFarm();this.refreshHud();this.toast('Your farm profile has been updated.');
+    const farmerInput=document.getElementById('profile-farmer-name') as HTMLInputElement|null;
+    const farmInput=document.getElementById('profile-farm-name') as HTMLInputElement|null;
+    const error=document.getElementById('profile-form-error');
+    if(farmerInput)farmerInput.value=this.farmerName;
+    if(farmInput)farmInput.value=this.farmName;
+    if(error)error.textContent='';
+    const modal=document.getElementById('farm-profile-modal');
+    modal?.classList.add('open');modal?.setAttribute('aria-hidden','false');
+    farmerInput?.focus();
+    farmerInput?.select();
   }
   private bindMarket(): void {
     const showDrawer=(section:'quests'|'orders'|'events'|'rewards')=>{
@@ -1062,10 +1067,25 @@ export class FarmScene extends Phaser.Scene {
     document.getElementById('buildings-open')?.addEventListener('click',()=>{this.openMarket();document.querySelector<HTMLButtonElement>('[data-market-tab=buildings]')?.click();});
     document.getElementById('decor-open')?.addEventListener('click',()=>{this.openMarket();document.querySelector<HTMLButtonElement>('[data-market-tab=decor]')?.click();});
     document.getElementById('inventory-open')?.addEventListener('click',()=>this.openInventory());
+    const profileModal=document.getElementById('farm-profile-modal');
+    const closeProfile=()=>{profileModal?.classList.remove('open');profileModal?.setAttribute('aria-hidden','true');};
+    document.getElementById('farm-profile-close')?.addEventListener('click',closeProfile);
+    document.getElementById('farm-profile-cancel')?.addEventListener('click',closeProfile);
+    profileModal?.addEventListener('click',e=>{if(e.target===e.currentTarget)closeProfile();});
+    document.getElementById('farm-profile-form')?.addEventListener('submit',e=>{
+      e.preventDefault();
+      const farmerInput=document.getElementById('profile-farmer-name') as HTMLInputElement|null;
+      const farmInput=document.getElementById('profile-farm-name') as HTMLInputElement|null;
+      const error=document.getElementById('profile-form-error');
+      const farmer=farmerInput?.value.trim().slice(0,24)||'';
+      const farm=farmInput?.value.trim().slice(0,28)||'';
+      if(!farmer||!farm){if(error)error.textContent='Please enter both your farmer and farm names.';return;}
+      this.farmerName=farmer;this.farmName=farm;this.saveFarm();this.refreshHud();closeProfile();this.toast('Your farm profile has been updated.');
+    });
     document.querySelectorAll<HTMLElement>('[data-close-modal]').forEach(x=>x.addEventListener('click',()=>this.closeMarket()));
     document.getElementById('market-modal')?.addEventListener('click',e=>{if(e.target===e.currentTarget)this.closeMarket();});
     document.querySelectorAll<HTMLButtonElement>('[data-market-tab]').forEach(tab=>tab.addEventListener('click',()=>{document.querySelectorAll('[data-market-tab]').forEach(x=>x.classList.remove('active'));tab.classList.add('active');const cat=tab.dataset.marketTab||'seeds';const intro=document.getElementById('market-intro');if(intro)intro.textContent=cat==='seeds'?'Choose seeds for your next harvest.':cat==='animals'?'Welcome new animals to your farm.':cat==='decor'?'Grow your orchard and personalise your homestead.':cat==='buildings'?'Build and upgrade new farm facilities as your farmer levels up.':cat==='sell'?'Sell harvested crops, orchard fruit, animal produce and crafted goods for coins.':'Buy the correct feed for each animal. Feed is required to produce eggs and milk.';this.renderMarket(cat);}));
-    document.addEventListener('keydown',e=>{if(e.key==='Escape')this.closeMarket();});
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'){this.closeMarket();document.getElementById('farm-profile-modal')?.classList.remove('open');document.getElementById('farm-profile-modal')?.setAttribute('aria-hidden','true');}});
     document.getElementById('animal-action')?.addEventListener('click',()=>this.careForAnimals());
      document.getElementById('market-items')?.addEventListener('click',e=>{const target=e.target as HTMLElement;const seed=target.closest<HTMLButtonElement>('[data-field-seed]');if(seed&&!seed.disabled){this.selectedCrop=seed.dataset.fieldSeed as CropId;this.activeTool='plant';document.querySelectorAll('[data-tool]').forEach(el=>el.classList.toggle('active',(el as HTMLElement).dataset.tool==='plant'));if(this.selected?.state==='tilled')this.sowSelectedPlot();else{this.closeMarket();this.toast(CROPS[this.selectedCrop].name+' selected. Tap prepared fields to sow.');}}const fieldBuy=target.closest<HTMLButtonElement>('[data-field-buy]');if(fieldBuy&&!fieldBuy.disabled){const id=fieldBuy.dataset.fieldBuy as CropId;const crop=CROPS[id];if(crop&&this.selected&&this.selected.state==='tilled'&&Math.floor(this.xp/100)+1>=crop.unlockLevel&&this.coins>=crop.cost){this.coins-=crop.cost;this.inventory[id]++;this.selectedCrop=id;this.saveFarm();this.refreshHud();this.renderFieldSeedPicker();this.toast(crop.name+' seeds purchased and added to your bag.');}else if(crop&&this.coins<crop.cost)this.toast('Not enough coins to buy '+crop.name+' seeds.');}const sell=target.closest<HTMLButtonElement>('[data-sell-item]');if(sell&&!sell.disabled)this.sellInventoryItem(sell.dataset.sellItem||'');if(target.closest('#sell-produce'))this.sellProduce();const quest=target.closest<HTMLButtonElement>('[data-claim-quest]');if(quest)this.claimQuest(quest.dataset.claimQuest||'');const order=target.closest<HTMLButtonElement>('[data-fulfil-order]');if(order)this.fulfilOrder(order.dataset.fulfilOrder||'');const warehouse=target.closest<HTMLButtonElement>('#upgrade-warehouse');if(warehouse){const cost=this.buildings.warehouseLevel*400;if(this.buildings.warehouseLevel<10&&this.coins>=cost){this.coins-=cost;this.buildings.warehouseLevel++;this.buildingLevels.silo=this.buildings.warehouseLevel;this.saveFarm();this.refreshHud();this.renderInventory();this.toast('Silo upgraded. Egg and milk storage expanded!');}}const toggle=target.closest<HTMLButtonElement>('[data-animal-toggle]');if(toggle){const animal=this.animals[Number(toggle.dataset.animalToggle)];if(animal){animal.assigned=animal.assigned===false;this.saveFarm();this.refreshHud();if(this.activeBuilding==='coop'||this.activeBuilding==='barn')this.renderBuildingPanel(this.activeBuilding);else if(this.activeBuilding)this.renderGenericBuildingPanel(this.activeBuilding);else this.renderInventory();this.toast(animal.assigned?'Animal assigned to production.':'Animal is resting.');}}const action=target.closest<HTMLButtonElement>('[data-building-action]')?.dataset.buildingAction;if(action&&(this.activeBuilding==='coop'||this.activeBuilding==='barn'))this.runBuildingAction(this.activeBuilding,action as 'collect'|'feed');const start=target.closest<HTMLButtonElement>('[data-production-start]')?.dataset.productionStart;if(start&&this.activeBuilding)this.startProduction(this.activeBuilding,start);if(target.closest('#collect-production')&&this.activeBuilding)this.collectProduction(this.activeBuilding);const delivery=target.closest<HTMLButtonElement>('[data-fulfil-crafted]')?.dataset.fulfilCrafted;if(delivery)this.fulfilCraftedOrder(delivery);});
   }
