@@ -571,7 +571,8 @@ export class FarmScene extends Phaser.Scene {
       this.coins = Math.max(0, Math.floor(save.coins));
       this.xp = Math.max(0, Math.floor(save.xp));
       if (save.version >= 2 && save.inventory) this.inventory = {...this.inventory,...save.inventory};
-      if (save.version >= 4 && save.feed) this.feed = {...this.feed,...save.feed};\n      if (save.version >= 3) { this.animals = Array.isArray(save.animals) ? save.animals : []; this.harvests = Number(save.harvests) || 0; }
+      if (save.version >= 4 && save.feed) this.feed = {...this.feed,...save.feed};
+      if (save.version >= 3) { this.animals = Array.isArray(save.animals) ? save.animals : []; this.harvests = Number(save.harvests) || 0; }
       for (const saved of save.plots) {
         const plot = this.plots.get(this.key(saved.col, saved.row));
         if (!plot || !['grass', 'tilled', 'growing', 'ready'].includes(saved.state)) continue;
@@ -590,12 +591,13 @@ export class FarmScene extends Phaser.Scene {
 
   private saveFarm(): void {
     const save: FarmSave = {
-      version: 3,
+      version: 4,
       animals: this.animals,
       harvests: this.harvests,
       coins: this.coins,
       xp: this.xp,
       inventory: {...this.inventory},
+      feed: {...this.feed},
       plots: Array.from(this.plots.values()).map(plot => ({
         col: plot.col, row: plot.row, state: plot.state, watered: plot.watered, growth: plot.growth, crop:plot.crop, readyAt:plot.readyAt,
       })),
@@ -611,12 +613,17 @@ export class FarmScene extends Phaser.Scene {
     const coins = document.getElementById('coins');
     const xp = document.getElementById('xp');
     if (coins) coins.textContent = String(this.coins);
-    if (xp) xp.textContent = `Level 1 · ${this.xp} XP`;
+    const level = Math.floor(this.xp / 100) + 1;
+    if (xp) xp.textContent = `Level ${level} · ${this.xp} XP`;
+    const levelBadge = document.querySelector<HTMLElement>('.profile-card .level');
+    if (levelBadge) levelBadge.textContent = `LV ${level}`;
+    const farmerSub = document.querySelector<HTMLElement>('.profile-card small');
+    if (farmerSub) farmerSub.textContent = level === 1 ? 'Your farm adventure begins!' : level < 5 ? 'Growing into a skilled farmer!' : 'A flourishing farm awaits!';
     const progress = document.getElementById('progress-text');
     const fill = document.getElementById('progress-fill');
     if (progress) progress.textContent = `${this.xp % 100} / 100 XP`;
     if (fill) (fill as HTMLElement).style.width = `${this.xp % 100}%`;
-    const animalStatus=document.getElementById('animal-status'); if(animalStatus){const ready=this.animals.filter(a=>a.readyAt>0&&a.readyAt<=Date.now()).length;animalStatus.textContent=this.animals.length?this.animals.length+' animal(s) · '+ready+' product(s) ready · feed stock: '+this.feed.hen+' hen / '+this.feed.cow+' cow.':'No animals yet. Buy a hen or cow in the Market.';}
+    const animalStatus=document.getElementById('animal-status'); if(animalStatus){const now=Date.now();const ready=this.animals.filter(a=>a.readyAt>0&&a.readyAt<=now).length;const producing=this.animals.filter(a=>a.readyAt>now).length;const waiting=this.animals.filter(a=>a.readyAt===0).length;animalStatus.textContent=this.animals.length?this.animals.length+' animal(s) · '+ready+' ready · '+producing+' producing · '+waiting+' waiting for feed · stock: '+this.feed.hen+' hen / '+this.feed.cow+' cow.':'No animals yet. Buy a hen or cow in the Market.';}
     const w=document.getElementById('wheat-count'); if(w) w.textContent=String(this.inventory.wheat);
     const inv=document.getElementById('inventory-count'); if(inv) inv.textContent=String(Object.values(this.inventory).reduce((a,b)=>a+b,0)+this.feed.hen+this.feed.cow);
     const bal=document.getElementById('market-balance'); if(bal) bal.textContent=`${this.coins} coins`;
