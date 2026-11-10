@@ -10,16 +10,15 @@ Notable changes are documented here using the principles of Keep a Changelog.
 - Isometric tile-world foundation with original vector placeholder scenery.
 - Camera zoom/pan, plot selection and plow/plant/water/harvest interaction scaffold.
 - Timed crop maturation and accelerated growth when watered.
-- Manually triggered game build/type-check and documentation workflows.
+- Manual-only GitHub Pages deployment workflow for publishing the game client.
 
 ### Changed
-- GitHub Actions workflows no longer run on every push or pull request; both are manual-only.
-- Documentation now distinguishes the live prototype from the next-generation client.
+- GitHub Actions workflows remain manual-only to avoid unnecessary usage.
 
 ### Notes
-- The new client is not yet deployed to the public GitHub Pages URL.
+- The Pages deployment workflow has been committed but must be manually dispatched to publish the new client.
 - Production sprite art, persistent saves, full inventory/economy and deeper gameplay systems remain future work.
-- A package lockfile and local build validation are still outstanding.
+- Build and browser validation must be completed before declaring a public release.
 
 ## [0.1.0] — Development baseline
 
@@ -30,4 +29,3 @@ Notable changes are documented here using the principles of Keep a Changelog.
 
 ### Notes
 - Prototype baseline only; not a stable production release.
-- The current implementation will be replaced incrementally as the modular game foundation is introduced.
