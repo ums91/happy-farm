@@ -552,8 +552,7 @@ export class FarmScene extends Phaser.Scene {
     const plot=this.plots.get(this.key(tile.col,tile.row));
     if(!plot)return;
     this.selected=plot;
-    if(this.activeTool==='select'){this.openFieldSeedPicker();this.refreshSelection();this.drawSelection();return;}
-    if(this.activeTool==='plant'){this.openFieldSeedPicker();this.refreshSelection();this.drawSelection();return;}
+    if(plot.state==='tilled'||this.activeTool==='select'||this.activeTool==='plant'){this.openFieldSeedPicker();this.refreshSelection();this.drawSelection();return;}
     this.applyTool(plot);
     this.refreshSelection();
     this.drawSelection();
@@ -801,7 +800,7 @@ export class FarmScene extends Phaser.Scene {
   }
   private renderSideRail():void {
     const q=document.getElementById('rail-quests'),o=document.getElementById('rail-orders');
-    if(q)q.innerHTML=this.renderQuests();
+    if(q)q.innerHTML=this.renderQuests(true);
     if(o)o.innerHTML=this.renderOrders();
   }
   private openFieldSeedPicker():void {
@@ -1011,8 +1010,8 @@ export class FarmScene extends Phaser.Scene {
       {id:'bigger-silo',title:'Store More',description:'Upgrade your silo to level 2.',target:2,progress:this.buildings.warehouseLevel,coins:100,xp:25,icon:'🏚️'}
     ];
   }
-  private renderQuests(): string {
-    return this.questDefinitions().map(q=>{
+  private renderQuests(onlyUnclaimed=false): string {
+    return this.questDefinitions().filter(q=>!onlyUnclaimed||!this.claimedQuests.includes(q.id)).map(q=>{
       const claimed=this.claimedQuests.includes(q.id),done=q.progress>=q.target;
       const pct=Math.min(100,Math.round(q.progress/q.target*100));
       return '<article class="market-item quest-card"><div class="market-art">'+q.icon+'</div><div class="market-copy"><strong>'+q.title+(claimed?' · Complete':'')+'</strong><small>'+q.description+'</small><div class="quest-track"><i style="width:'+pct+'%"></i></div><small>'+Math.min(q.progress,q.target)+' / '+q.target+' · Reward: '+q.coins+' coins, '+q.xp+' XP</small></div><button class="market-buy" data-claim-quest="'+q.id+'" '+(!done||claimed?'disabled':'')+'>'+(claimed?'Claimed':done?'Claim reward':'In progress')+'</button></article>';
