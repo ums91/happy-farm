@@ -1,0 +1,275 @@
+import Phaser from 'phaser';
+
+type Tool = 'select' | 'plow' | 'plant' | 'water' | 'harvest';
+type PlotState = 'grass' | 'tilled' | 'planted' | 'ready';
+interface Plot { col: number; row: number; state: PlotState; watered: boolean; growth: number }
+
+const COLS = 13;
+const ROWS = 11;
+const TILE_W = 76;
+const TILE_H = 38;
+const ORIGIN_X = 0;
+const ORIGIN_Y = 40;
+
+export class FarmScene extends Phaser.Scene {
+  private plots = new Map<string, Plot>();
+  private plotGraphics!: Phaser.GameObjects.Graphics;
+  private overlay!: Phaser.GameObjects.Graphics;
+  private selected: Plot | null = null;
+  private activeTool: Tool = 'select';
+  private coins = 250;
+  private xp = 0;
+  private cameraDragging = false;
+  private dragPoint = new Phaser.Math.Vector2();
+
+  constructor() { super('FarmScene'); }
+
+  create(): void {
+    this.cameras.main.setZoom(0.88);
+    this.cameras.main.centerOn(0, 0);
+    this.plotGraphics = this.add.graphics();
+    this.overlay = this.add.graphics();
+    this.drawWorld();
+    this.drawScenery();
+    this.bindWorldInput();
+    this.bindToolbar();
+    this.refreshHud();
+    this.refreshSelection();
+    this.input.on('wheel', (_pointer: Phaser.Input.Pointer, _objects: unknown[], _dx: number, dy: number) => {
+      this.cameras.main.setZoom(Phaser.Math.Clamp(this.cameras.main.zoom - dy * 0.001, 0.55, 1.35));
+    });
+  }
+
+  private key(col: number, row: number): string { return col + ':' + row; }
+
+  private toWorld(col: number, row: number): Phaser.Math.Vector2 {
+    return new Phaser.Math.Vector2((col - row) * TILE_W / 2 + ORIGIN_X, (col + row) * TILE_H / 2 + ORIGIN_Y);
+  }
+
+  private toTile(x: number, y: number): { col: number; row: number } | null {
+    const px = x - ORIGIN_X;
+    const py = y - ORIGIN_Y;
+    const a = px / (TILE_W / 2);
+    const b = py / (TILE_H / 2);
+    const col = Math.floor((a + b) / 2);
+    const row = Math.floor((b - a) / 2);
+    if (col < 0 || row < 0 || col >= COLS || row >= ROWS) return null;
+    return { col, row };
+  }
+
+  private diamond(g: Phaser.GameObjects.Graphics, x: number, y: number, fill: number, stroke = 0x5c9147): void {
+    g.fillStyle(fill, 1);
+    g.lineStyle(1.3, stroke, 0.75);
+    g.beginPath();
+    g.moveTo(x, y - TILE_H / 2);
+    g.lineTo(x + TILE_W / 2, y);
+    g.lineTo(x, y + TILE_H / 2);
+    g.lineTo(x - TILE_W / 2, y);
+    g.closePath();
+    g.fillPath();
+    g.strokePath();
+  }
+
+  private drawWorld(): void {
+    this.plotGraphics.clear();
+    for (let row = 0; row < ROWS; row += 1) {
+      for (let col = 0; col < COLS; col += 1) {
+        const point = this.toWorld(col, row);
+        this.plots.set(this.key(col, row), { col, row, state: 'grass', watered: false, growth: 0 });
+        const shades = [0x9bcf69, 0xa5d875, 0x94c762, 0xaedb7d, 0x9fce70];
+        this.diamond(this.plotGraphics, point.x, point.y, shades[(col * 7 + row * 11) % shades.length] ?? 0x9bcf69, 0x78ae54);
+        if ((col * 3 + row * 5) % 13 === 0) this.drawGrassTuft(point.x, point.y);
+      }
+    }
+    this.drawPath();
+  }
+
+  private drawGrassTuft(x: number, y: number): void {
+    this.plotGraphics.lineStyle(1.5, 0x6b9e47, 0.8);
+    this.plotGraphics.beginPath();
+    this.plotGraphics.moveTo(x - 3, y + 2);
+    this.plotGraphics.lineTo(x - 1, y - 3);
+    this.plotGraphics.moveTo(x, y + 2);
+    this.plotGraphics.lineTo(x + 2, y - 4);
+    this.plotGraphics.strokePath();
+  }
+
+  private drawPath(): void {
+    const g = this.plotGraphics;
+    const points = [this.toWorld(0, 8), this.toWorld(3, 8), this.toWorld(5, 7), this.toWorld(8, 7), this.toWorld(11, 8), this.toWorld(12, 8)];
+    g.lineStyle(25, 0x9b784b, 1);
+    g.beginPath();
+    g.moveTo(points[0]!.x, points[0]!.y);
+    points.slice(1).forEach(p => g.lineTo(p.x, p.y));
+    g.strokePath();
+    g.lineStyle(17, 0xc5a16a, 1);
+    g.beginPath();
+    g.moveTo(points[0]!.x, points[0]!.y);
+    points.slice(1).forEach(p => g.lineTo(p.x, p.y));
+    g.strokePath();
+  }
+
+  private drawScenery(): void {
+    const g = this.add.graphics();
+    [[1, 1], [3, 0], [5, 1], [7, 0], [10, 1], [12, 2]].forEach(([col, row], i) => {
+      const p = this.toWorld(col!, row!);
+      g.fillStyle(0x765338, 1);
+      g.fillRoundedRect(p.x - 5, p.y - 26, 10, 31, 3);
+      g.fillStyle([0x4c8b43, 0x5b9a48, 0x6da74f][i % 3] ?? 0x4c8b43, 1);
+      g.fillCircle(p.x, p.y - 37, 20);
+      g.fillCircle(p.x - 12, p.y - 29, 13);
+      g.fillCircle(p.x + 12, p.y - 29, 13);
+      g.fillStyle(0x8cbd5d, 0.75);
+      g.fillCircle(p.x - 5, p.y - 43, 5);
+    });
+    const home = this.toWorld(5, 2);
+    const barn = this.toWorld(9, 3);
+    this.drawBuilding(g, home.x, home.y - 12, 0xd9c28c, 0x9c5544, 'HOME');
+    this.drawBuilding(g, barn.x, barn.y - 15, 0xc66f54, 0x864338, 'BARN');
+    const silo = this.toWorld(11, 3);
+    g.fillStyle(0xe4e4d5, 1);
+    g.fillRoundedRect(silo.x + 18, silo.y - 49, 25, 55, 8);
+    g.fillStyle(0xb8c4b3, 1);
+    g.fillEllipse(silo.x + 30, silo.y - 49, 25, 11);
+  }
+
+  private drawBuilding(g: Phaser.GameObjects.Graphics, x: number, y: number, wall: number, roof: number, label: string): void {
+    g.fillStyle(0x000000, 0.15);
+    g.fillEllipse(x + 4, y + 11, 86, 27);
+    g.fillStyle(wall, 1);
+    g.fillRect(x - 31, y - 36, 62, 42);
+    g.fillStyle(roof, 1);
+    g.beginPath();
+    g.moveTo(x - 42, y - 34);
+    g.lineTo(x, y - 66);
+    g.lineTo(x + 42, y - 34);
+    g.closePath();
+    g.fillPath();
+    g.fillStyle(0x704c37, 1);
+    g.fillRect(x - 8, y - 5, 16, 11);
+    g.fillStyle(0xf1e5bd, 1);
+    g.fillRect(x - 24, y - 23, 11, 11);
+    g.fillRect(x + 13, y - 23, 11, 11);
+    g.fillStyle(0xffffff, 0.85);
+    g.fillRoundedRect(x - 25, y + 12, 50, 14, 5);
+    g.fillStyle(0x435b32, 1);
+    g.fillText(label, x, y + 19, { fontFamily: 'Arial', fontSize: '8px', fontStyle: 'bold' }).setOrigin(0.5);
+  }
+
+  private bindWorldInput(): void {
+    this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+      if (pointer.rightButtonDown() || pointer.middleButtonDown()) {
+        this.cameraDragging = true;
+        this.dragPoint.set(pointer.x, pointer.y);
+        return;
+      }
+      const world = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
+      const tile = this.toTile(world.x, world.y);
+      if (!tile) return;
+      const plot = this.plots.get(this.key(tile.col, tile.row));
+      if (!plot) return;
+      this.selected = plot;
+      this.applyTool(plot);
+      this.refreshSelection();
+      this.drawSelection();
+    });
+    this.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
+      if (this.cameraDragging && pointer.isDown) {
+        this.cameras.main.scrollX -= (pointer.x - this.dragPoint.x) / this.cameras.main.zoom;
+        this.cameras.main.scrollY -= (pointer.y - this.dragPoint.y) / this.cameras.main.zoom;
+        this.dragPoint.set(pointer.x, pointer.y);
+      }
+    });
+    this.input.on('pointerup', () => { this.cameraDragging = false; });
+    this.input.on('pointerupoutside', () => { this.cameraDragging = false; });
+    this.input.mouse?.disableContextMenu();
+  }
+
+  private applyTool(plot: Plot): void {
+    switch (this.activeTool) {
+      case 'plow':
+        if (plot.state === 'grass') plot.state = 'tilled';
+        break;
+      case 'plant':
+        if (plot.state === 'tilled' && this.coins >= 5) { plot.state = 'planted'; plot.growth = 0; this.coins -= 5; }
+        break;
+      case 'water':
+        if (plot.state === 'planted') { plot.watered = true; plot.growth = 100; plot.state = 'ready'; }
+        break;
+      case 'harvest':
+        if (plot.state === 'ready') { plot.state = 'tilled'; plot.growth = 0; this.coins += 18; this.xp += 5; }
+        break;
+      case 'select':
+        break;
+    }
+    this.redrawPlot(plot);
+    this.refreshHud();
+  }
+
+  private redrawPlot(plot: Plot): void {
+    const p = this.toWorld(plot.col, plot.row);
+    const g = this.add.graphics();
+    if (plot.state !== 'grass') {
+      this.diamond(g, p.x, p.y, 0x805332, 0x68452f);
+      g.lineStyle(2, 0xb78655, 0.9);
+      for (let i = -2; i <= 2; i += 1) {
+        g.beginPath(); g.moveTo(p.x - 25, p.y + i * 5); g.lineTo(p.x + 25, p.y + i * 5); g.strokePath();
+      }
+      if (plot.state !== 'tilled') this.drawCrop(g, p.x, p.y, plot);
+    }
+  }
+
+  private drawCrop(g: Phaser.GameObjects.Graphics, x: number, y: number, plot: Plot): void {
+    const height = plot.state === 'ready' ? 25 : 10;
+    g.lineStyle(3, 0x397d39, 1);
+    g.beginPath(); g.moveTo(x, y + 2); g.lineTo(x - 2, y - height); g.strokePath();
+    g.beginPath(); g.moveTo(x - 1, y - height * 0.45); g.lineTo(x - 12, y - height * 0.7); g.strokePath();
+    g.beginPath(); g.moveTo(x - 1, y - height * 0.65); g.lineTo(x + 11, y - height * 0.9); g.strokePath();
+    g.fillStyle(plot.state === 'ready' ? 0xf2c94c : 0x70a94f, 1);
+    g.fillCircle(x - 2, y - height, plot.state === 'ready' ? 5 : 3);
+  }
+
+  private drawSelection(): void {
+    this.overlay.clear();
+    if (!this.selected) return;
+    const p = this.toWorld(this.selected.col, this.selected.row);
+    this.overlay.lineStyle(3, 0xfff6b2, 1);
+    this.overlay.beginPath();
+    this.overlay.moveTo(p.x, p.y - TILE_H / 2);
+    this.overlay.lineTo(p.x + TILE_W / 2, p.y);
+    this.overlay.lineTo(p.x, p.y + TILE_H / 2);
+    this.overlay.lineTo(p.x - TILE_W / 2, p.y);
+    this.overlay.closePath();
+    this.overlay.strokePath();
+  }
+
+  private bindToolbar(): void {
+    document.querySelectorAll<HTMLButtonElement>('[data-tool]').forEach(button => {
+      button.addEventListener('click', () => {
+        this.activeTool = button.dataset.tool as Tool;
+        document.querySelectorAll('[data-tool]').forEach(el => el.classList.remove('active'));
+        button.classList.add('active');
+        this.refreshSelection();
+      });
+    });
+  }
+
+  private refreshHud(): void {
+    const coins = document.getElementById('coins');
+    const xp = document.getElementById('xp');
+    if (coins) coins.textContent = String(this.coins);
+    if (xp) xp.textContent = `Level 1 · ${this.xp} XP`;
+  }
+
+  private refreshSelection(): void {
+    const host = document.getElementById('selection');
+    if (!host) return;
+    if (!this.selected) {
+      host.innerHTML = '<span class="selection-kicker">SELECTED LAND</span><strong>Choose a plot</strong><p>Select a field tile to see what you can do there.</p>';
+      return;
+    }
+    const names: Record<PlotState, string> = { grass: 'Open grassland', tilled: 'Freshly plowed soil', planted: 'Newly planted crop', ready: 'Ready to harvest' };
+    const actions: Record<Tool, string> = { select: 'Choose a tool to work this plot.', plow: 'Plow open grass to prepare the soil.', plant: 'Plant seeds in prepared soil.', water: 'Water a planted crop to help it grow.', harvest: 'Harvest a mature crop.' };
+    host.innerHTML = `<span class="selection-kicker">LAND · ${this.selected.col + 1}, ${this.selected.row + 1}</span><strong>${names[this.selected.state]}</strong><p>${actions[this.activeTool]}</p>`;
+  }
+}
