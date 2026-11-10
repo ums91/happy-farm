@@ -52,3 +52,8 @@ The game continues to save locally in `localStorage` under `happyFarmPhaserSaveV
 - If a cloud save exists on a new device, it is restored. If no cloud row exists, the player's existing local farm is uploaded.
 
 The root-level published prototype remains unchanged. These controls run in the Phaser client under `game/`; the Pages deployment must be switched to that client before players can use them.
+
+
+## Pull request validation
+
+Changes to this client are checked by the **Validate Happy Farm build** GitHub Actions workflow. It runs TypeScript typechecking and a Vite production build only; it does not publish or deploy the game. The separate GitHub Pages deployment workflow remains responsible for publishing from `main`.
