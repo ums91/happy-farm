@@ -87,11 +87,49 @@ export class FarmScene extends Phaser.Scene {
     this.bindMarket();
     this.bindSideRail();
     this.refreshHud();
+    this.bindDailyReward();
     this.refreshSelection();
     this.time.addEvent({ delay: 1000, loop: true, callback: () => { this.updateCropLifecycle(); this.updateProduction(); this.refreshCropHoverTooltip(); if(this.activeBuilding==='coop'||this.activeBuilding==='barn')this.renderBuildingPanel(this.activeBuilding);else if(this.activeBuilding)this.renderGenericBuildingPanel(this.activeBuilding); } });
     this.input.on('wheel', (_pointer: Phaser.Input.Pointer, _objects: unknown[], _dx: number, dy: number) => {
       this.cameras.main.setZoom(Phaser.Math.Clamp(this.cameras.main.zoom - dy * 0.001, 0.55, 1.35));
     });
+  }
+
+  private readonly rewardKey='happyFarmDailyRewardV1';
+  private rewardAvailableAt=0;
+  private rewardAmount=100;
+  private bindDailyReward():void {
+    try{this.rewardAvailableAt=Number(localStorage.getItem(this.rewardKey)||0)||0;}catch{this.rewardAvailableAt=0;}
+    document.getElementById('daily-reward-claim')?.addEventListener('click',()=>this.claimDailyReward());
+    if(this.rewardAvailableAt<=Date.now())this.showDailyReward();
+    else this.updateDailyRewardCountdown();
+    this.time.addEvent({delay:1000,loop:true,callback:()=>this.updateDailyRewardCountdown()});
+  }
+  private showDailyReward():void {
+    this.rewardAmount=100;
+    const amount=document.getElementById('daily-reward-amount');if(amount)amount.textContent='100';
+    const button=document.getElementById('daily-reward-claim') as HTMLButtonElement|null;
+    if(button){button.disabled=false;button.textContent='Collect 100 coins';}
+    const copy=document.getElementById('daily-reward-copy');if(copy)copy.textContent='Your farm welcome gift is ready. Collect 100 coins to keep growing!';
+    const modal=document.getElementById('daily-reward-modal');modal?.classList.add('open');modal?.setAttribute('aria-hidden','false');
+  }
+  private claimDailyReward():void {
+    if(this.rewardAvailableAt>Date.now())return;
+    this.coins+=this.rewardAmount;this.rewardAvailableAt=Date.now()+12*60*60*1000;
+    try{localStorage.setItem(this.rewardKey,String(this.rewardAvailableAt));}catch{}
+    this.saveFarm();this.refreshHud();
+    const button=document.getElementById('daily-reward-claim') as HTMLButtonElement|null;
+    if(button){button.disabled=true;button.textContent='✓ Reward collected';}
+    const copy=document.getElementById('daily-reward-copy');if(copy)copy.textContent='100 coins added to your farm balance. Happy farming!';
+    this.updateDailyRewardCountdown();
+    window.setTimeout(()=>{const modal=document.getElementById('daily-reward-modal');modal?.classList.remove('open');modal?.setAttribute('aria-hidden','true');},1100);
+  }
+  private updateDailyRewardCountdown():void {
+    const next=document.getElementById('daily-reward-next');if(!next)return;
+    const remaining=this.rewardAvailableAt-Date.now();
+    if(remaining<=0){next.textContent='Your next gift is ready now!';return;}
+    const hours=Math.floor(remaining/3600000),minutes=Math.floor((remaining%3600000)/60000);
+    next.textContent='Next reward in '+hours+'h '+String(minutes).padStart(2,'0')+'m · 100 coins every 12 hours';
   }
 
   private fitFarmToViewport(): void {
