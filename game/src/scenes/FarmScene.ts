@@ -8,7 +8,7 @@ type AnimalId = 'hen' | 'cow';
 interface Animal { id: AnimalId; readyAt: number; assigned?: boolean }
 interface BuildingProgress { coopLevel: number; barnLevel: number; warehouseLevel: number }
 interface AnimalProduce { eggs: number; milk: number }
-interface FarmSave { version: 9; claimedQuests?: string[]; ordersCompleted?: Record<string,number>; animals: Animal[]; harvests: number; coins: number; xp: number; selectedCrop?: CropId; decor?: Record<string,{col:number;row:number}>; feed: { hen: number; cow: number }; buildings?: BuildingProgress; produce?: AnimalProduce; inventory: Record<CropId, number>; plots: Array<{ col:number; row:number; state:PlotState; watered:boolean; growth:number; crop?:CropId; readyAt?:number; witherAt?:number }> }
+interface FarmSave { version: 10; randomQuests?: Array<{id:string;title:string;description:string;target:number;coins:number;xp:number;icon:string;metric:'harvests'|'hens'|'cows'|'eggs'|'milk'}>; claimedQuests?: string[]; ordersCompleted?: Record<string,number>; animals: Animal[]; harvests: number; coins: number; xp: number; selectedCrop?: CropId; decor?: Record<string,{col:number;row:number}>; feed: { hen: number; cow: number }; buildings?: BuildingProgress; produce?: AnimalProduce; inventory: Record<CropId, number>; plots: Array<{ col:number; row:number; state:PlotState; watered:boolean; growth:number; crop?:CropId; readyAt?:number; witherAt?:number }> }
 const CROPS: Record<CropId,{name:string;emoji:string;cost:number;reward:number;xp:number;growMs:number;color:number;unlockLevel:number}> = {
  wheat:{name:'Wheat',emoji:'🌾',cost:5,reward:18,xp:5,growMs:15000,color:0xe4b83f,unlockLevel:1},
  carrot:{name:'Carrot',emoji:'🥕',cost:9,reward:31,xp:8,growMs:22000,color:0xef873e,unlockLevel:1},
@@ -21,7 +21,7 @@ const CROPS: Record<CropId,{name:string;emoji:string;cost:number;reward:number;x
 };
 
 const COLS = 13;
-const ROWS = 11;
+const ROWS = 13;
 const TILE_W = 76;
 const TILE_H = 38;
 const ORIGIN_X = 0;
@@ -51,6 +51,8 @@ export class FarmScene extends Phaser.Scene {
   private movingDecor: string | null = null;
   private harvests = 0;
   private claimedQuests: string[] = [];
+  private randomQuests: Array<{id:string;title:string;description:string;target:number;coins:number;xp:number;icon:string;metric:'harvests'|'hens'|'cows'|'eggs'|'milk'}> = [];
+  private questCycle = 0;
   private ordersCompleted: Record<string,number> = {};
   private cameraDragging = false;
   private dragPoint = new Phaser.Math.Vector2();
@@ -769,7 +771,27 @@ export class FarmScene extends Phaser.Scene {
     const intro=document.getElementById('market-intro'); if(intro) intro.textContent='Your stored seeds, farm animals and field activity.';
     modal?.classList.add('open'); modal?.setAttribute('aria-hidden','false'); this.renderInventory();
   }
+  private questProgress(metric:'harvests'|'hens'|'cows'|'eggs'|'milk'):number {
+    if(metric==='harvests')return this.harvests;
+    if(metric==='hens')return this.animals.filter(a=>a.id==='hen').length;
+    if(metric==='cows')return this.animals.filter(a=>a.id==='cow').length;
+    if(metric==='eggs')return this.produce.eggs;
+    return this.produce.milk;
+  }
+  private createRandomQuests():void {
+    this.questCycle++;
+    const pool = [
+      {id:'harvest',title:'Golden Harvest',description:'Harvest 5 crops from your fields.',target:5,coins:75,xp:18,icon:'🌾',metric:'harvests' as const},
+      {id:'harvest12',title:'Village Granary',description:'Harvest 12 crops for the village.',target:12,coins:150,xp:35,icon:'🚜',metric:'harvests' as const},
+      {id:'hens',title:'A Clucking Good Day',description:'Keep 2 hens on your farm.',target:2,coins:90,xp:22,icon:'🐔',metric:'hens' as const},
+      {id:'cows',title:'Dairy Delight',description:'Raise 2 dairy cows.',target:2,coins:130,xp:30,icon:'🐄',metric:'cows' as const},
+      {id:'eggs',title:'Fresh from the Coop',description:'Collect 3 eggs into storage.',target:3,coins:65,xp:16,icon:'🥚',metric:'eggs' as const},
+      {id:'milk',title:'Milk Pail Mission',description:'Store 2 bottles of fresh milk.',target:2,coins:80,xp:20,icon:'🥛',metric:'milk' as const}
+    ];
+    this.randomQuests=[...pool].sort(()=>Math.random()-.5).slice(0,4).map((q,i)=>({...q,id:q.id+'-'+this.questCycle+'-'+i}));
+  }
   private questDefinitions(): Array<{id:string;title:string;description:string;target:number;progress:number;coins:number;xp:number;icon:string}> {
+    if(this.randomQuests.length)return this.randomQuests.map(q=>({...q,progress:this.questProgress(q.metric)}));
     return [
       {id:'first-harvest',title:'First Harvest',description:'Harvest your first crop.',target:1,progress:this.harvests,coins:40,xp:10,icon:'🌾'},
       {id:'busy-farmer',title:'A Busy Farmer',description:'Harvest 10 crops in total.',target:10,progress:this.harvests,coins:120,xp:30,icon:'🚜'},
@@ -790,9 +812,9 @@ export class FarmScene extends Phaser.Scene {
     const quest=this.questDefinitions().find(q=>q.id===id);
     if(!quest||quest.progress<quest.target||this.claimedQuests.includes(id))return;
     this.claimedQuests.push(id);this.coins+=quest.coins;this.xp+=quest.xp;
+    if(this.questDefinitions().every(q=>this.claimedQuests.includes(q.id)))this.createRandomQuests();
     this.saveFarm();this.refreshHud();this.renderInventory();this.toast('Quest complete: '+quest.title+' · +'+quest.coins+' coins · +'+quest.xp+' XP');
   }
-
   private deliveryOrders(): Array<{id:string;title:string;description:string;icon:string;eggs:number;milk:number;coins:number;xp:number}> {
     return [
       {id:'egg-crate',title:'Market Egg Crate',description:'Pack 2 fresh eggs for the village grocer.',icon:'🥚',eggs:2,milk:0,coins:34,xp:12},
@@ -842,9 +864,11 @@ export class FarmScene extends Phaser.Scene {
       const raw = localStorage.getItem(this.saveKey);
       if (!raw) return;
       const save = JSON.parse(raw) as any;
-      if (![1,2,3,4,5,6,7,8,9].includes(save.version) || !Array.isArray(save.plots)) return;
+      if (![1,2,3,4,5,6,7,8,9,10].includes(save.version) || !Array.isArray(save.plots)) return;
       this.coins = Math.max(0, Math.floor(save.coins));
-      this.claimedQuests = Array.isArray(save.claimedQuests) ? save.claimedQuests.filter((id:string)=>['first-harvest','busy-farmer','first-hen','first-cow','better-coop','bigger-silo'].includes(id)) : [];
+      this.randomQuests = Array.isArray(save.randomQuests) ? save.randomQuests : [];
+      this.questCycle = this.randomQuests.length ? 1 : 0;
+      this.claimedQuests = Array.isArray(save.claimedQuests) ? save.claimedQuests.filter((id:string)=>(['first-harvest','busy-farmer','first-hen','first-cow','better-coop','bigger-silo'].includes(id) || this.randomQuests.some(q=>q.id===id))) : [];
       this.ordersCompleted = save.version >= 9 && save.ordersCompleted && typeof save.ordersCompleted === 'object' ? Object.fromEntries(Object.entries(save.ordersCompleted).map(([id,count])=>[id,Math.max(0,Math.floor(Number(count)||0))]).filter(([id])=>['egg-crate','milk-run','farm-breakfast'].includes(String(id)))) : {};
       this.xp = Math.max(0, Math.floor(save.xp));
       if(save.decor && typeof save.decor==='object') for(const [id,pos] of Object.entries(save.decor as Record<string,{col:number;row:number}>)){if(id in this.decor && Number.isInteger(pos.col)&&Number.isInteger(pos.row)&&pos.col>=0&&pos.col<COLS&&pos.row>=0&&pos.row<ROWS)this.decor[id]={col:pos.col,row:pos.row};}
@@ -875,7 +899,8 @@ export class FarmScene extends Phaser.Scene {
 
   private saveFarm(): void {
     const save: FarmSave = {
-      version: 9,
+      version: 10,
+      randomQuests: this.randomQuests,
       ordersCompleted: {...this.ordersCompleted},
       claimedQuests: [...this.claimedQuests],
       animals: this.animals,
