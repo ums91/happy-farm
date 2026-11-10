@@ -6,7 +6,7 @@ type CropId = 'wheat' | 'carrot' | 'corn' | 'strawberry' | 'tomato' | 'pumpkin' 
 interface Plot { col: number; row: number; state: PlotState; watered: boolean; growth: number; crop: CropId; readyAt: number; witherAt: number }
 type AnimalId = 'hen' | 'cow';
 interface Animal { id: AnimalId; readyAt: number }
-interface FarmSave { version: 5; animals: Animal[]; harvests: number; coins: number; xp: number; feed: { hen: number; cow: number }; inventory: Record<CropId, number>; plots: Array<{ col:number; row:number; state:PlotState; watered:boolean; growth:number; crop?:CropId; readyAt?:number }> }
+interface FarmSave { version: 5; animals: Animal[]; harvests: number; coins: number; xp: number; feed: { hen: number; cow: number }; inventory: Record<CropId, number>; plots: Array<{ col:number; row:number; state:PlotState; watered:boolean; growth:number; crop?:CropId; readyAt?:number; witherAt?:number }> }
 const CROPS: Record<CropId,{name:string;emoji:string;cost:number;reward:number;xp:number;growMs:number;color:number;unlockLevel:number}> = {
  wheat:{name:'Wheat',emoji:'🌾',cost:5,reward:18,xp:5,growMs:15000,color:0xe4b83f,unlockLevel:1},
  carrot:{name:'Carrot',emoji:'🥕',cost:9,reward:31,xp:8,growMs:22000,color:0xef873e,unlockLevel:1},
@@ -448,7 +448,6 @@ export class FarmScene extends Phaser.Scene {
     const id = this.key(plot.col, plot.row);
     plot.readyAt = Date.now() + delay;
     plot.witherAt = 0;
-    plot.growth = 0;
     this.growthTimers.get(id)?.remove(false);
     this.growthTimers.set(id, this.time.delayedCall(delay, () => {
       plot.state = 'ready';
@@ -626,10 +625,10 @@ export class FarmScene extends Phaser.Scene {
       if (save.version >= 3) { this.animals = Array.isArray(save.animals) ? save.animals : []; this.harvests = Number(save.harvests) || 0; }
       for (const saved of save.plots) {
         const plot = this.plots.get(this.key(saved.col, saved.row));
-        if (!plot || !['grass', 'tilled', 'growing', 'ready'].includes(saved.state)) continue;
+        if (!plot || !['grass', 'tilled', 'growing', 'ready', 'withered'].includes(saved.state)) continue;
         plot.state = saved.state;
         plot.watered = Boolean(saved.watered);
-        plot.growth = saved.growth === 100 ? 100 : 0;
+        plot.growth = Math.max(0, Math.min(100, Number(saved.growth) || 0));
         if (saved.crop && saved.crop in CROPS) plot.crop = saved.crop;
         plot.readyAt = saved.readyAt || 0;
         plot.witherAt = save.version >= 5 ? (saved.witherAt || 0) : 0;
@@ -690,7 +689,7 @@ export class FarmScene extends Phaser.Scene {
       return;
     }
     const names: Record<PlotState, string> = { grass: 'Open grassland', tilled: 'Freshly plowed soil', growing: 'Growing crop', ready: 'Ready to harvest', withered: 'Withered crop · plow to clear' };
-    const actions: Record<Tool, string> = { select: 'Choose a tool to work this plot.', plow: 'Plow open grass to prepare the soil.', plant: `Plant ${CROPS[this.selectedCrop].name} · ${this.inventory[this.selectedCrop]} seeds in your bag.`, water: 'Water once to cut remaining growth time in half.', harvest: 'Harvest your crop for coins and experience.' };
+    const actions: Record<Tool, string> = { select: 'Choose a tool to work this plot.', plow: 'Plow open or withered land to prepare the soil.', plant: `Plant ${CROPS[this.selectedCrop].name} · ${this.inventory[this.selectedCrop]} seeds in your bag.`, water: 'Water once to cut remaining growth time in half.', harvest: this.selected.state === 'withered' ? 'This crop has withered. Select Plow to clear the plot.' : 'Harvest ripe crops before their harvest window closes.' };
     host.innerHTML = `<span class="selection-kicker">LAND · ${this.selected.col + 1}, ${this.selected.row + 1}</span><strong>${names[this.selected.state]}</strong><p>${actions[this.activeTool]}</p>`;
   }
 }
