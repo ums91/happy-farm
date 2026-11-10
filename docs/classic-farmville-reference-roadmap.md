@@ -76,18 +76,22 @@ The preservation repository is GPL-3.0. This roadmap records it as a design/beha
 
 ## Phase 2 — Buildings and animal production (v1.0)
 
-- Added a dedicated chicken coop and made the coop and dairy barn interactive from the farm scene.
+- Added a dedicated chicken coop and interactive dairy barn.
 - Added animal housing capacity: 2 animals at level 1, with +2 capacity per upgrade, up to level 5.
 - Added persistent building upgrade levels and capacity checks when purchasing animals.
-- Animal care now stores eggs and milk in a dedicated produce inventory instead of immediately converting them into coins.
+- Animal care stores eggs and milk in dedicated produce inventory instead of immediately converting them into coins.
 - Added produce selling: eggs sell for 12 coins and milk for 28 coins; sales also award XP.
 - Added save schema v6 with backward-compatible loading for save versions 1–5.
-- Added species-specific building controls to collect produce or feed idle animals independently.
-- Added live per-animal production progress and countdowns in the coop and dairy barn.
-- Added produce storage limits (10 units at Level 1, +5 per building level); full storage blocks collection without discarding ready products.
-- Building upgrades now increase both animal housing and produce storage.
-- Next improvements: dedicated building art, richer animal assignment and production feedback, storage capacity, and building-specific interactions.
-ntdowns in the coop and dairy barn.
-- Added produce storage limits (10 units at Level 1, +5 per building level); full storage blocks collection without discarding ready products.
-- Building upgrades now increase both animal housing and produce storage.
-- Next improvements: dedicated building art, richer animal assignment and production feedback, storage capacity, and building-specific interactions.
+- Added species-specific controls to collect produce or feed idle animals independently.
+- Added live per-animal production progress and countdowns.
+- Added produce storage limits (10 units at level 1, +5 per building level); full storage blocks collection without discarding ready products.
+- Building upgrades increase both animal housing and produce storage.
+
+## Phase 3 — Animal management and silo storage (v1.1)
+
+- Added individual animal assignment controls in the coop and dairy barn. Resting animals retain their housing space but do not consume feed or produce goods.
+- Collection and feeding actions now operate only on assigned animals.
+- Added persistent silo/warehouse upgrades, increasing both egg and milk storage by 10 spaces per level.
+- Added save schema v7 with backward-compatible migration from earlier saves; existing animals remain assigned by default.
+- Added silo upgrade controls to the inventory screen, with escalating coin costs.
+- Next improvements: dedicated silo/building artwork, richer animal animations and production feedback, farm expansions, quests and ribbons.
