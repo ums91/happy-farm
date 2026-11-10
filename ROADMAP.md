@@ -5,20 +5,22 @@ Milestones describe intended outcomes, not fixed delivery dates. Scope may evolv
 ## M0 — Project foundation
 - [x] Public repository and playable prototype.
 - [x] Documentation, contribution guidance and release conventions.
-- [ ] Modular application structure and reproducible local build.
-- [ ] Automated validation and deployment workflow.
+- [x] Phaser + TypeScript + Vite client scaffold.
+- [x] Initial isometric tile-world and farm-scene interaction scaffold.
+- [x] Manual-only GitHub Actions workflows.
+- [ ] Commit dependency lockfile and validate reproducible build.
 - [ ] Asset licensing and attribution register.
 
 ## M1 — Game foundation
-- [ ] Select and integrate the 2D game engine.
-- [ ] Scene lifecycle, camera, input and responsive scaling.
-- [ ] Layered tile-based farm world and camera navigation.
-- [ ] Placement, selection, rotation and removal of world objects.
-- [ ] Asset loading, animation and audio pipelines.
+- [x] Select and integrate the 2D game engine.
+- [x] Establish initial scene lifecycle, camera, input and responsive scaling.
+- [ ] Build a layered, detailed farm world with camera navigation.
+- [ ] Implement robust placement, selection, rotation and removal of world objects.
+- [ ] Add production asset loading, animation and audio pipelines.
 
 ## M2 — Core farming
 - [ ] Data-driven crop definitions.
-- [ ] Soil preparation, planting, watering and growth timers.
+- [ ] Soil preparation, planting, watering and real-time growth timers.
 - [ ] Harvesting, inventory and barn capacity.
 - [ ] Seed shop, crop selling and economy rules.
 - [ ] Persistent saves with schema versioning.
