@@ -40,3 +40,36 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
 .inventory-stat{flex:1;min-width:90px;padding:10px;border-radius:12px;background:#fff9e9;border:1px solid #ead7ad;text-align:center}
 .inventory-stat strong,.inventory-stat small{display:block}.inventory-stat strong{font:800 22px 'Baloo 2';color:#6f9847}.inventory-stat small{font-size:10px;color:#a58b63;font-weight:800}
 @media(max-width:560px){.inventory-grid{grid-template-columns:1fr}}
+
+/* Release 0.5 — FarmVille-inspired visual polish: richer landscape framing, tactile panels and lively motion. */
+:root{color:#59432b;background:#a8d8ed}
+body{background:radial-gradient(ellipse at 50% 22%,#e8f8ff 0,#b9e3f5 34%,transparent 62%),linear-gradient(180deg,#8bc9e8 0,#d6eff8 185px,#91c85f 186px,#6fa94b 100%);background-attachment:fixed}
+#app{max-width:1660px;padding:0 28px}
+.topbar{position:relative;z-index:5;height:88px;padding:0 22px;background:linear-gradient(180deg,#fffef8 0%,#fbf1d7 58%,#f0dfb6 100%);border:5px solid #fff;border-top:0;border-radius:0 0 24px 24px;box-shadow:0 5px 0 #a77d45,0 10px 24px #315a362c,inset 0 -3px #e6d1a3}
+.brand-mark{width:54px;height:54px;background:radial-gradient(circle at 35% 25%,#c7ee87,#83c64c 58%,#4f9639);box-shadow:0 3px 0 #578b37, inset 0 2px 5px #ffffff9c}
+.brand strong{font-size:28px;text-shadow:0 2px #fff}
+.resource{background:linear-gradient(180deg,#fff 0%,#fff8e8 100%);border:2px solid #e7c783;box-shadow:inset 0 2px #fff,0 3px 0 #c29b5d,0 5px 10px #79572a18}
+.game-shell{gap:20px;padding-top:25px}
+.world-panel{min-height:660px;border:10px solid #fff;border-radius:24px;background:linear-gradient(180deg,#9cdbf5 0%,#c4ebf8 17%,#9bcf67 18%,#7eb653 100%);box-shadow:0 5px 0 #a77d45,0 14px 32px #315a3635,inset 0 0 0 2px #e7f5d4}
+.world-panel:before{height:90px;background:linear-gradient(180deg,#83cbed 0%,#c5eafa 100%);box-shadow:0 8px 18px #548d5a25}
+.world-label{top:17px;left:18px;padding:9px 16px;border:2px solid #fff;border-radius:20px;background:linear-gradient(#fffef8,#f3e6c5);box-shadow:0 3px 0 #b28d55,0 5px 12px #3c633329}
+.game-canvas{filter:saturate(1.08) contrast(1.025)}
+.world-hint{bottom:15px;padding:9px 16px;background:#fffdf0ed;border:2px solid #fff;box-shadow:0 3px 0 #c8a36b,0 6px 16px #315a3624;font-size:11px}
+.side-panel{border:6px solid #fff;border-radius:22px;background:linear-gradient(180deg,#fffef7 0%,#f8edcf 100%);box-shadow:0 5px 0 #a77d45,0 12px 26px #315a3628,inset 0 0 0 1px #ead9b2}
+.profile-card,.selected-card{background:linear-gradient(145deg,#fffdf3,#f8edcf);box-shadow:inset 0 1px #fff,0 2px 5px #92733a12}
+.tool{border-radius:14px;min-height:70px;background:linear-gradient(180deg,#fffef9,#f1e2bf);box-shadow:0 3px 0 #c8ad78,inset 0 1px #fff}
+.tool.active{background:linear-gradient(180deg,#f1ffdc,#bfe48d);box-shadow:0 3px 0 #83a953,inset 0 1px #fff}
+.nav-button{border:2px solid #e2c27e;box-shadow:0 3px 0 #bd985a,0 4px 9px #77552a18;transition:transform .15s,filter .15s}
+.nav-button:hover,.market-buy:hover,.care-button:hover{transform:translateY(-2px);filter:brightness(1.04)}
+.market-button{background:linear-gradient(#fff0b5,#f4bd4e)}
+.market-window{border:8px solid #fff;border-radius:25px;box-shadow:0 8px 0 #956c3c,0 24px 75px #17261680,inset 0 0 0 1px #e9d5a8}
+.market-item{background:linear-gradient(145deg,#fffef8,#fff6e4);box-shadow:0 2px 6px #795b2b0d}
+.market-art{box-shadow:inset 0 1px #fff,0 2px 5px #77934a20}
+.market-buy{box-shadow:0 2px 0 #63933c}
+.toast{box-shadow:0 4px 0 #b58a50,0 8px 20px #314e2d30}
+.animal-care{background:linear-gradient(145deg,#f5f9e9,#e9f0d5);box-shadow:inset 0 1px #fff}
+.season-card{box-shadow:inset 0 1px #fff,0 2px 6px #aa7d2b12}
+@keyframes meadow-glow{0%,100%{opacity:.72}50%{opacity:1}}
+.live-dot{animation:meadow-glow 2.2s ease-in-out infinite}
+@media(max-width:900px){#app{padding:0 14px}.world-panel{min-height:570px}.topbar{border-radius:0 0 20px 20px}}
+@media(max-width:560px){#app{padding:0 8px}.world-panel{min-height:450px;border-width:6px}.topbar{min-height:76px}.brand-mark{width:42px;height:42px}.brand strong{font-size:21px}}
