@@ -3,16 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#7bba55" />
+    <meta name="theme-color" content="#a9d9f4" />
     <meta name="description" content="Happy Farm — grow your own little world." />
-    <title>Happy Farm</title>
+    <title>Happy Farm — A Little Piece of Paradise</title>
   </head>
   <body>
     <div id="app">
       <header class="topbar">
         <a class="brand" href="#" aria-label="Happy Farm home">
           <span class="brand-mark">HF</span>
-          <span><strong>Happy Farm</strong><small>YOUR LITTLE PIECE OF PARADISE</small></span>
+          <span><strong>Happy Farm</strong><small>A LITTLE PIECE OF PARADISE</small></span>
         </a>
         <div class="resources">
           <div class="resource"><span class="resource-icon coin">●</span><span><small>COINS</small><strong id="coins">250</strong></span></div>
@@ -21,16 +21,16 @@
       </header>
       <main class="game-shell">
         <section class="world-panel" aria-label="Farm world">
-          <div class="world-label"><span class="live-dot"></span> MY FARM <span class="world-coords">VALLEY · 01</span></div>
+          <div class="world-label"><span class="live-dot"></span> MY FARM <span class="world-coords">GREEN VALLEY · 01</span></div>
           <div id="game" class="game-canvas"></div>
-          <div class="world-hint">Drag with right mouse button to explore · Scroll to zoom · Select a plot</div>
+          <div class="world-hint">Right-click and drag to explore · Scroll to zoom · Select a field</div>
         </section>
         <aside class="side-panel">
           <div class="panel-heading"><span>FARM JOURNAL</span><span class="journal-icon">✦</span></div>
-          <div class="profile-card"><div class="avatar">🌱</div><div><strong>New Farmer</strong><small>Just getting started</small></div><span class="level">LV 1</span></div>
-          <div class="progress-label"><span>FARM PROGRESS</span><strong>0 / 100 XP</strong></div>
-          <div class="progress-track"><span></span></div>
-          <div class="panel-heading tools-heading">FARM TOOLS</div>
+          <div class="profile-card"><div class="avatar">👩‍🌾</div><div><strong>New Farmer</strong><small>Your farm adventure begins!</small></div><span class="level">LV 1</span></div>
+          <div class="progress-label"><span>FARM PROGRESS</span><strong id="progress-text">0 / 100 XP</strong></div>
+          <div class="progress-track"><span id="progress-fill"></span></div>
+          <div class="panel-heading tools-heading">YOUR FARM TOOLS</div>
           <div class="tool-grid" id="tool-grid">
             <button class="tool active" data-tool="select"><span>↖</span><small>Select</small></button>
             <button class="tool" data-tool="plow"><span>⌁</span><small>Plow</small></button>
@@ -38,11 +38,11 @@
             <button class="tool" data-tool="water"><span>♒</span><small>Water</small></button>
             <button class="tool" data-tool="harvest"><span>✧</span><small>Harvest</small></button>
           </div>
-          <div class="selected-card" id="selection"><span class="selection-kicker">SELECTED LAND</span><strong>Choose a plot</strong><p>Select a field tile to see what you can do there.</p></div>
-          <div class="season-card"><span class="sun">☀</span><span><strong>Beautiful day!</strong><small>Perfect weather for farming.</small></span></div>
+          <div class="selected-card" id="selection"><span class="selection-kicker">YOUR LAND</span><strong>Choose a field</strong><p>Pick a plot and get your farm growing. Every little seed counts!</p></div>
+          <div class="season-card"><span class="sun">☀</span><span><strong>Lovely sunny day!</strong><small>Perfect weather for farming.</small></span></div>
         </aside>
       </main>
-      <footer class="footer"><span>HAPPY FARM <b>·</b> DEVELOPMENT BUILD 0.2.0</span><span>AN ORIGINAL FARMING WORLD</span></footer>
+      <footer class="footer"><span>HAPPY FARM <b>·</b> DEVELOPMENT BUILD 0.2.0</span><span>GROW · HARVEST · MAKE IT YOURS</span></footer>
     </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
