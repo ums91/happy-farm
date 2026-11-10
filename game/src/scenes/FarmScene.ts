@@ -3,6 +3,12 @@ import Phaser from 'phaser';
 type Tool = 'select' | 'plow' | 'plant' | 'water' | 'harvest';
 type PlotState = 'grass' | 'tilled' | 'growing' | 'ready';
 interface Plot { col: number; row: number; state: PlotState; watered: boolean; growth: number }
+interface FarmSave {
+  version: 1;
+  coins: number;
+  xp: number;
+  plots: Array<{ col: number; row: number; state: PlotState; watered: boolean; growth: number }>;
+}
 
 const COLS = 13;
 const ROWS = 11;
@@ -23,6 +29,7 @@ export class FarmScene extends Phaser.Scene {
   private xp = 0;
   private cameraDragging = false;
   private dragPoint = new Phaser.Math.Vector2();
+  private readonly saveKey = 'happyFarmPhaserSaveV1';
 
   constructor() { super('FarmScene'); }
 
@@ -32,6 +39,7 @@ export class FarmScene extends Phaser.Scene {
     this.plotGraphics = this.add.graphics();
     this.overlay = this.add.graphics();
     this.drawWorld();
+    this.loadFarm();
     this.drawScenery();
     this.bindWorldInput();
     this.bindToolbar();
@@ -244,6 +252,7 @@ export class FarmScene extends Phaser.Scene {
     }
     this.redrawPlot(plot);
     this.refreshHud();
+    this.saveFarm();
   }
 
   private scheduleGrowth(plot: Plot, delay: number): void {
@@ -254,6 +263,7 @@ export class FarmScene extends Phaser.Scene {
       plot.growth = 100;
       this.redrawPlot(plot);
       if (this.selected === plot) this.refreshSelection();
+      this.saveFarm();
     }));
   }
 
@@ -322,11 +332,54 @@ export class FarmScene extends Phaser.Scene {
     });
   }
 
+
+  private loadFarm(): void {
+    try {
+      const raw = localStorage.getItem(this.saveKey);
+      if (!raw) return;
+      const save = JSON.parse(raw) as FarmSave;
+      if (save.version !== 1 || !Array.isArray(save.plots)) return;
+      this.coins = Math.max(0, Math.floor(save.coins));
+      this.xp = Math.max(0, Math.floor(save.xp));
+      for (const saved of save.plots) {
+        const plot = this.plots.get(this.key(saved.col, saved.row));
+        if (!plot || !['grass', 'tilled', 'growing', 'ready'].includes(saved.state)) continue;
+        plot.state = saved.state;
+        plot.watered = Boolean(saved.watered);
+        plot.growth = saved.growth === 100 ? 100 : 0;
+        if (plot.state === 'growing') this.scheduleGrowth(plot, plot.watered ? 5000 : 15000);
+        this.redrawPlot(plot);
+      }
+    } catch {
+      // Ignore malformed or unavailable browser storage and start a fresh farm.
+    }
+  }
+
+  private saveFarm(): void {
+    const save: FarmSave = {
+      version: 1,
+      coins: this.coins,
+      xp: this.xp,
+      plots: Array.from(this.plots.values()).map(plot => ({
+        col: plot.col, row: plot.row, state: plot.state, watered: plot.watered, growth: plot.growth,
+      })),
+    };
+    try {
+      localStorage.setItem(this.saveKey, JSON.stringify(save));
+    } catch {
+      // Storage may be disabled or full; gameplay remains available for this session.
+    }
+  }
+
   private refreshHud(): void {
     const coins = document.getElementById('coins');
     const xp = document.getElementById('xp');
     if (coins) coins.textContent = String(this.coins);
     if (xp) xp.textContent = `Level 1 · ${this.xp} XP`;
+    const progress = document.getElementById('progress-text');
+    const fill = document.getElementById('progress-fill');
+    if (progress) progress.textContent = `${this.xp % 100} / 100 XP`;
+    if (fill) (fill as HTMLElement).style.width = `${this.xp % 100}%`;
   }
 
   private refreshSelection(): void {
