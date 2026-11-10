@@ -460,6 +460,7 @@ export class FarmScene extends Phaser.Scene {
     this.input.on('pointermove',(pointer:Phaser.Input.Pointer)=>{
       if(pointer.wasTouch&&this.touchPositions.has(pointer.id)){
         const touch=this.touchPositions.get(pointer.id)!;
+        const previousX=touch.x,previousY=touch.y;
         touch.x=pointer.x;touch.y=pointer.y;
         const pts=Array.from(this.touchPositions.values());
         if(pts.length>=2){
@@ -473,8 +474,8 @@ export class FarmScene extends Phaser.Scene {
           this.cameraDragging=true;this.touchGesture=true;
         }
         if(this.cameraDragging){
-          this.cameras.main.scrollX-=(pointer.x-touch.x)/this.cameras.main.zoom;
-          this.cameras.main.scrollY-=(pointer.y-touch.y)/this.cameras.main.zoom;
+          this.cameras.main.scrollX-=(pointer.x-previousX)/this.cameras.main.zoom;
+          this.cameras.main.scrollY-=(pointer.y-previousY)/this.cameras.main.zoom;
         }
         return;
       }
