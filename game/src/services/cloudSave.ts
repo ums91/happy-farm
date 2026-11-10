@@ -2,6 +2,7 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 const SAVE_KEY = 'happyFarmPhaserSaveV1';
 const LOCAL_UPDATED_KEY = 'happyFarmLocalUpdatedAtV1';
+const LOCAL_DIRTY_KEY = 'happyFarmLocalDirtyV1';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
 const supabaseKey = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY) as string | undefined;
 
@@ -70,13 +71,14 @@ async function syncWithCloud(): Promise<void> {
 
     const local = localSnapshot();
     const storedLocalUpdatedAt = Number(localStorage.getItem(LOCAL_UPDATED_KEY) || 0);
+    const hasPendingLocalChanges = localStorage.getItem(LOCAL_DIRTY_KEY) === 'true';
     // Legacy farms predate the cloud timestamp key. Preserve and upload that local farm
     // on its first cloud sign-in instead of allowing an existing remote row to overwrite it.
     const preserveLegacyLocal = Boolean(local) && (!Number.isFinite(storedLocalUpdatedAt) || storedLocalUpdatedAt <= 0);
     const localUpdatedAt = preserveLegacyLocal ? Date.now() : storedLocalUpdatedAt;
     if (preserveLegacyLocal) localStorage.setItem(LOCAL_UPDATED_KEY, String(localUpdatedAt));
     const remoteUpdatedAt = remote?.updated_at ? Date.parse(remote.updated_at) : 0;
-    if (remote?.save_data && !preserveLegacyLocal && remoteUpdatedAt > localUpdatedAt) {
+    if (remote?.save_data && !preserveLegacyLocal && !hasPendingLocalChanges && remoteUpdatedAt > localUpdatedAt) {
       localStorage.setItem(SAVE_KEY, JSON.stringify(remote.save_data));
       localStorage.setItem(LOCAL_UPDATED_KEY, String(remoteUpdatedAt));
       setStatus('synced', 'Cloud farm restored · refreshing game…');
@@ -85,11 +87,17 @@ async function syncWithCloud(): Promise<void> {
     }
 
     if (local) {
+      const uploadedLocalUpdatedAt = Number(localStorage.getItem(LOCAL_UPDATED_KEY) || 0);
       const { error: saveError } = await client.from('farm_saves').upsert({
         user_id: currentUserId, save_data: local, updated_at: new Date().toISOString(),
       }, { onConflict: 'user_id' });
       if (saveError) throw saveError;
-      localStorage.setItem(LOCAL_UPDATED_KEY, String(Date.now()));
+      if (Number(localStorage.getItem(LOCAL_UPDATED_KEY) || 0) === uploadedLocalUpdatedAt) {
+        localStorage.removeItem(LOCAL_DIRTY_KEY);
+      } else {
+        cloudSaveQueued = true;
+      }
+      localStorage.setItem(LOCAL_UPDATED_KEY, String(Math.max(uploadedLocalUpdatedAt, Date.now())));
     }
     cloudReady = true;
     setStatus('synced');
@@ -114,9 +122,12 @@ function scheduleCloudSave(): void {
 }
 
 export function queueCloudSave(): void {
-  if (!client || !currentUserId || !cloudReady) return;
+  if (!client || !currentUserId) return;
+  // Mark the local snapshot as authoritative until this exact version reaches the cloud.
+  // This prevents a slightly newer server receipt timestamp from overwriting a fresh purchase.
+  try { localStorage.setItem(LOCAL_DIRTY_KEY, 'true'); } catch { /* Local gameplay save remains available. */ }
   cloudSaveQueued = true;
-  if (!syncInProgress) scheduleCloudSave();
+  if (!syncInProgress && cloudReady) scheduleCloudSave();
 }
 
 function showAccountModal(): void {
