@@ -285,44 +285,57 @@ export class FarmScene extends Phaser.Scene {
     this.animalActors = [];
     const pen = this.toWorld(2, 5);
     this.animals.forEach((animal, index) => {
-      const actor = this.add.container(pen.x - 24 + (index % 4) * 16, pen.y - 7 + Math.floor(index / 4) * 8);
-      actor.setDepth(pen.y + index);
-      const art = this.add.graphics();
-      // Soft ground shadow keeps the characters anchored to the paddock.
-      art.fillStyle(0x33452a, 0.22);
-      art.fillEllipse(0, 8, animal.id === 'cow' ? 31 : 18, 7);
-      if (animal.id === 'cow') {
-        // Rounded dairy cow, spots, muzzle, ears, horns and little legs.
-        art.fillStyle(0xf8f4e8, 1);
-        art.fillRoundedRect(-15, -17, 30, 20, 8);
-        art.fillStyle(0x51483f, 1);
-        art.fillEllipse(-8, -13, 9, 8); art.fillEllipse(5, -5, 8, 7);
-        art.fillRoundedRect(8, -22, 15, 17, 6);
-        art.fillStyle(0xf0c2ad, 1); art.fillEllipse(17, -9, 12, 8);
-        art.fillStyle(0xf8f4e8, 1);
-        art.fillTriangle(9, -19, 5, -25, 13, -22); art.fillTriangle(19, -20, 25, -25, 24, -17);
-        art.fillStyle(0xe9c77d, 1);
-        art.fillTriangle(12, -23, 14, -29, 17, -22); art.fillTriangle(21, -23, 24, -28, 25, -21);
-        art.fillStyle(0x3b332d, 1); art.fillCircle(18, -15, 1.4);
-        art.fillStyle(0xf8f4e8, 1);
-        [-10, 8].forEach(x => art.fillRoundedRect(x, -2, 5, 11, 2));
-        art.lineStyle(2, 0x51483f, 1); art.beginPath(); art.moveTo(-14, -12); art.lineTo(-20, -7); art.strokePath();
-      } else {
-        // Plump little hen with comb, beak, wing and feet.
-        art.fillStyle(0xf4e7c9, 1); art.fillEllipse(0, -8, 22, 18);
-        art.fillStyle(0xfffbef, 1); art.fillEllipse(-7, -11, 11, 10);
-        art.fillStyle(0xd95f42, 1); art.fillCircle(3, -20, 3); art.fillCircle(8, -19, 2.5);
-        art.fillTriangle(10, -12, 19, -9, 10, -7);
-        art.fillStyle(0x3f342b, 1); art.fillCircle(7, -14, 1.5);
-        art.fillStyle(0xd89a39, 1);
-        art.fillRect(-5, 0, 2, 7); art.fillRect(4, 0, 2, 7);
-        art.fillStyle(0xe6cba0, 1); art.fillEllipse(-8, -8, 9, 7);
+      const startX = pen.x - 25 + (index % 4) * 17;
+      const startY = pen.y - 7 + Math.floor(index / 4) * 9;
+      const actor = this.add.container(startX, startY);
+      actor.setDepth(startY + index);
+      actor.add(this.add.ellipse(0, 8, animal.id === 'cow' ? 34 : 22, 8, 0x304b2a, 0.24));
+      const legs: Phaser.GameObjects.Graphics[] = [];
+      const legCount = animal.id === 'cow' ? 4 : 2;
+      for (let leg = 0; leg < legCount; leg += 1) {
+        const limb = this.add.graphics();
+        const lx = animal.id === 'cow' ? (leg % 2 === 0 ? -10 : 8) : (leg === 0 ? -5 : 4);
+        limb.lineStyle(animal.id === 'cow' ? 4 : 2.5, animal.id === 'cow' ? 0xf5f0df : 0xd69a3d, 1);
+        limb.beginPath(); limb.moveTo(lx, -3); limb.lineTo(lx + (leg % 2 ? 1 : -1), animal.id === 'cow' ? 8 : 6); limb.strokePath();
+        if (animal.id === 'cow') { limb.fillStyle(0x4d443c, 1); limb.fillRoundedRect(lx - 2, 5, 5, 3, 1); }
+        actor.add(limb); legs.push(limb);
       }
-      actor.add(art);
+      const body = this.add.graphics();
+      if (animal.id === 'cow') {
+        body.fillStyle(0xfaf6e9, 1); body.fillEllipse(-1, -12, 34, 23);
+        body.fillStyle(0x4b443e, 1); body.fillEllipse(-10, -17, 11, 9); body.fillEllipse(5, -7, 10, 8); body.fillEllipse(-2, -5, 6, 5);
+        body.fillStyle(0xf7f1e3, 1); body.fillEllipse(14, -19, 18, 18); body.fillEllipse(19, -15, 13, 11);
+        body.fillStyle(0xe9bca8, 1); body.fillEllipse(23, -11, 13, 9);
+        body.fillStyle(0xfaf6e9, 1); body.fillTriangle(10, -24, 7, -31, 15, -27); body.fillTriangle(20, -25, 27, -31, 26, -23);
+        body.fillStyle(0xd9b878, 1); body.fillTriangle(13, -25, 15, -31, 17, -24); body.fillTriangle(22, -25, 24, -30, 26, -23);
+        body.fillStyle(0x3d342e, 1); body.fillCircle(20, -18, 1.5); body.fillCircle(27, -12, 1);
+        body.fillStyle(0xe7b9a4, 1); body.fillEllipse(1, -1, 11, 8);
+        body.lineStyle(2, 0xf7f1e3, 1); body.beginPath(); body.moveTo(-16, -15); body.lineTo(-22, -8); body.strokePath();
+        body.lineStyle(3, 0x4b443e, 1); body.beginPath(); body.moveTo(-22, -8); body.lineTo(-25, -5); body.strokePath();
+      } else {
+        body.fillStyle(0xf5e9cb, 1); body.fillEllipse(0, -9, 25, 20);
+        body.fillStyle(0xfff9e9, 1); body.fillEllipse(-8, -12, 11, 11);
+        body.fillStyle(0xe3c99d, 1); body.fillEllipse(-2, -8, 13, 9);
+        body.fillStyle(0xd95f42, 1); body.fillEllipse(4, -21, 5, 5); body.fillCircle(9, -20, 3);
+        body.fillTriangle(10, -13, 19, -10, 10, -8);
+        body.fillStyle(0x40372f, 1); body.fillCircle(7, -15, 1.5);
+        body.fillStyle(0xfff5e0, 1); body.fillTriangle(-10, -12, -18, -18, -13, -7);
+      }
+      actor.add(body);
+      if (animal.id === 'hen') {
+        const wing = this.add.graphics(); wing.fillStyle(0xe5c99a, 1); wing.fillEllipse(-5, -8, 11, 7);
+        wing.lineStyle(1, 0xc7a97c, 0.9); wing.beginPath(); wing.moveTo(-9, -8); wing.lineTo(-3, -5); wing.strokePath();
+        actor.add(wing);
+        this.tweens.add({ targets: wing, angle: -9, duration: 420, yoyo: true, repeat: -1, ease: 'Sine.inOut', delay: index * 130 });
+      }
       this.animalActors.push(actor);
-      const roam = 9 + (index % 3) * 5;
-      this.tweens.add({ targets: actor, x: actor.x + roam, duration: 1800 + (index % 4) * 420, yoyo: true, repeat: -1, ease: 'Sine.inOut', delay: index * 170 });
-      this.tweens.add({ targets: actor, y: actor.y - 2, duration: 520 + (index % 3) * 90, yoyo: true, repeat: -1, ease: 'Sine.inOut', delay: index * 90 });
+      const roam = 8 + (index % 3) * 4, walkDuration = 2200 + (index % 4) * 350;
+      this.tweens.add({ targets: actor, x: startX + roam, duration: walkDuration, yoyo: true, repeat: -1, ease: 'Sine.inOut', delay: index * 190,
+        onYoyo: () => actor.setScale(-1, 1), onRepeat: () => actor.setScale(1, 1) });
+      this.tweens.add({ targets: actor, y: startY - (animal.id === 'cow' ? 1.5 : 2.5), duration: 360, yoyo: true, repeat: -1, ease: 'Sine.inOut', delay: index * 80 });
+      legs.forEach((leg, legIndex) => this.tweens.add({ targets: leg, angle: (legIndex % 2 === 0 ? 1 : -1) * 17,
+        duration: 190 + (legIndex % 2) * 30, yoyo: true, repeat: -1, ease: 'Sine.inOut', delay: index * 110 + legIndex * 75 }));
+      if (animal.id === 'cow') this.tweens.add({ targets: body, angle: 1.5, duration: 850, yoyo: true, repeat: -1, ease: 'Sine.inOut', delay: index * 100 });
     });
   }
 
