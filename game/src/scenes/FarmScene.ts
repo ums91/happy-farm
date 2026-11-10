@@ -64,6 +64,8 @@ export class FarmScene extends Phaser.Scene {
   private fruitTreeReadyAt:Record<string,number>={};
   private fruitTreeBadges:Record<string,Phaser.GameObjects.Text>={};
   private movingDecor: string | null = null;
+  private movingPlotKey: string | null = null;
+  private lastMoveWarning='';
   private harvests = 0;
   private claimedQuests: string[] = [];
   private randomQuests: Array<{id:string;title:string;description:string;target:number;coins:number;xp:number;icon:string;metric:'harvests'|'hens'|'cows'|'eggs'|'milk'}> = [];
@@ -632,8 +634,12 @@ export class FarmScene extends Phaser.Scene {
   private handleWorldTap(pointer: Phaser.Input.Pointer): void {
     const world=this.cameras.main.getWorldPoint(pointer.x,pointer.y);
     if(this.activeTool==='move'){
+      const tile=this.toTile(world.x,world.y),plot=tile?this.plots.get(this.key(tile.col,tile.row)):undefined;
+      if(plot&&plot.state!=='grass'){
+        this.movingPlotKey=this.key(plot.col,plot.row);this.toast('Moving field. Drag it onto an empty grass tile.');return;
+      }
       const hit=Object.keys(this.decor).find(id=>{const p=this.toWorld(this.decor[id]!.col,this.decor[id]!.row);return Phaser.Math.Distance.Between(world.x,world.y,p.x,p.y)<58;});
-      this.movingDecor=hit||null;if(hit)this.toast('Moving '+hit+'. Drag to a new tile.');return;
+      this.movingDecor=hit||null;if(hit)this.toast('Moving '+hit+'. Drag to an empty tile.');return;
     }
     const tile=this.toTile(world.x,world.y);
     const plot=tile?this.plots.get(this.key(tile.col,tile.row)):undefined;
@@ -696,10 +702,17 @@ export class FarmScene extends Phaser.Scene {
         }
         return;
       }
-      if(this.movingDecor&&pointer.isDown){
-        const w=this.cameras.main.getWorldPoint(pointer.x,pointer.y);
-        const tile=this.toTile(w.x,w.y);
-        if(tile){this.decor[this.movingDecor]={col:tile.col,row:tile.row};this.drawScenery();this.renderOwnedAnimals();}
+      if((this.movingDecor||this.movingPlotKey)&&pointer.isDown){
+        const w=this.cameras.main.getWorldPoint(pointer.x,pointer.y),tile=this.toTile(w.x,w.y);
+        if(tile){
+          if(this.movingDecor){
+            if(this.canPlaceDecor(tile,this.movingDecor)){this.decor[this.movingDecor]={col:tile.col,row:tile.row};this.drawScenery();this.renderOwnedAnimals();this.renderFruitTreeBadges();}
+            else this.warnMoveBlocked('That tile is occupied. Choose an empty tile.');
+          } else if(this.movingPlotKey){
+            if(this.canMovePlot(this.movingPlotKey,tile)){const source=this.plots.get(this.movingPlotKey)!,target=this.plots.get(this.key(tile.col,tile.row))!;const saved={state:target.state,watered:target.watered,growth:target.growth,crop:target.crop,readyAt:target.readyAt,witherAt:target.witherAt};Object.assign(target,{state:source.state,watered:source.watered,growth:source.growth,crop:source.crop,readyAt:source.readyAt,witherAt:source.witherAt});Object.assign(source,saved);this.redrawPlot(source);this.redrawPlot(target);this.selected=target;this.refreshSelection();this.drawSelection();}
+            else this.warnMoveBlocked('Fields can only be moved onto empty grass tiles.');
+          }
+        }
         return;
       }
       if(this.cameraDragging&&pointer.isDown){
@@ -723,16 +736,27 @@ export class FarmScene extends Phaser.Scene {
         return;
       }
       this.cameraDragging=false;
-      if(this.movingDecor){this.saveFarm();this.toast('Farm layout saved.');this.movingDecor=null;}
+      if(this.movingDecor||this.movingPlotKey){this.saveFarm();this.toast('Farm layout saved.');this.movingDecor=null;this.movingPlotKey=null;this.lastMoveWarning='';}
     });
     this.input.on('pointerupoutside',(pointer:Phaser.Input.Pointer)=>{
       if(pointer.wasTouch)this.touchPositions.delete(pointer.id);
       this.cameraDragging=false;
+      if(this.movingDecor||this.movingPlotKey){this.movingDecor=null;this.movingPlotKey=null;}
       if(this.touchPositions.size===0){this.touchGesture=false;this.pinchDistance=0;}
     });
     this.input.mouse?.disableContextMenu();
   }
 
+
+  private warnMoveBlocked(message:string):void {if(this.lastMoveWarning===message)return;this.lastMoveWarning=message;this.toast(message);}
+  private canPlaceDecor(tile:{col:number;row:number},movingId:string):boolean {
+    const target=this.plots.get(this.key(tile.col,tile.row));if(!target||target.state!=='grass')return false;
+    return !Object.entries(this.decor).some(([id,pos])=>id!==movingId&&pos.col===tile.col&&pos.row===tile.row);
+  }
+  private canMovePlot(sourceKey:string,tile:{col:number;row:number}):boolean {
+    const source=this.plots.get(sourceKey),target=this.plots.get(this.key(tile.col,tile.row));if(!source||!target||source===target||target.state!=='grass')return false;
+    return !Object.values(this.decor).some(pos=>pos.col===tile.col&&pos.row===tile.row);
+  }
 
   private createCropHoverTooltip():void {
     const host=document.getElementById('game');if(!host)return;
