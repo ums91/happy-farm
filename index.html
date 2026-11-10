@@ -1,143 +1,23 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#78b85b">
-<title>Happy Farm</title>
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#83bd59"><title>Happy Farm</title>
 <style>
-:root{--green:#397b3d;--leaf:#78b85b;--cream:#fff8e8;--ink:#29412c;--gold:#f5c451;--soil:#9b653c}
-*{box-sizing:border-box}
-body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--ink);background:linear-gradient(#bfe9ff 0 235px,#e5f3d7 235px 100%);min-height:100vh}
-button{font:inherit;border:0;cursor:pointer}
-button:disabled{opacity:.45;cursor:not-allowed}
-.top{max-width:1100px;margin:auto;padding:18px 18px 8px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
-.brand{display:flex;align-items:center;gap:10px}.logo{font-size:42px;filter:drop-shadow(0 3px 1px #6c9d4a)}h1{font-size:clamp(25px,5vw,38px);margin:0;color:#285e32;text-shadow:0 2px #fff}
-.stats{display:flex;gap:8px;flex-wrap:wrap}.pill{background:#fffdf1;border:2px solid #e7d8a7;border-radius:999px;padding:8px 13px;font-weight:800;box-shadow:0 3px 0 #d5c59a}
-main{max-width:1100px;margin:10px auto;padding:0 14px 36px}
-.hero{background:#fffdf0d9;border:2px solid #fff;border-radius:22px;padding:13px 16px;margin:8px 0 14px;box-shadow:0 5px 0 #b5d59d;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
-.level{font-weight:800}.bar{height:10px;background:#e4e4c9;border-radius:20px;overflow:hidden;width:180px;margin-top:5px}.bar span{display:block;height:100%;background:linear-gradient(90deg,#8acb53,#4a9c4a);width:0}
-.layout{display:grid;grid-template-columns:minmax(0,1fr) 285px;gap:14px;align-items:start}
-.farm-card,.panel{background:#fffdf2;border:3px solid #fff;border-radius:22px;box-shadow:0 5px 0 #bfd7a7;overflow:hidden}
-.farm-head{padding:13px 16px;background:#e7f4d8;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
-h2{font-size:19px;margin:0}.farm{padding:18px;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:9px;background:linear-gradient(135deg,#b7df8d,#91c86d)}
-.plot{aspect-ratio:1/1;border-radius:13px;background:linear-gradient(#b47a48,#86512e);border:3px solid #75482b;box-shadow:inset 0 3px 0 #d39b63,0 3px 0 #679c4d;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;color:white;padding:3px;min-width:0}
-.plot.empty{background:linear-gradient(#bd8957,#96613a)}
-.plot.ready{outline:3px solid #ffe071;animation:pulse 1.4s infinite}
-@keyframes pulse{50%{filter:brightness(1.14)}}
-.crop{font-size:clamp(24px,4vw,37px);line-height:1.1;text-shadow:0 2px 2px #68452b}
-.plot small{font-size:10px;font-weight:800;text-shadow:0 1px 2px #4a2c1a;text-align:center}
-.plot .timer{font-size:9px;background:#52361dcc;border-radius:10px;padding:2px 5px;margin-top:3px}
-.plot .harvest{position:absolute;top:-7px;right:-5px;background:#ffe071;color:#67481d;border-radius:20px;padding:2px 5px;font-size:10px;font-weight:900}
-.btn{background:#4f9b4c;color:white;border-radius:12px;padding:9px 12px;font-weight:800;box-shadow:0 3px 0 #347238}
-.btn.gold{background:#e8ad32;color:#51370c;box-shadow:0 3px 0 #b77e1e}.btn.light{background:#edf5df;color:#355e35;box-shadow:0 3px 0 #c8dcb3}.btn.red{background:#cf6b54;box-shadow:0 3px 0 #984331}
-.side{display:grid;gap:12px}.panel h2{padding:13px 15px;background:#e7f4d8}.panel-body{padding:13px 14px}
-.crop-row{display:flex;align-items:center;gap:9px;padding:9px 0;border-bottom:1px solid #eee5c9}.crop-row:last-child{border:0}.crop-icon{font-size:27px;width:34px;text-align:center}.crop-info{flex:1;min-width:0}.crop-info b{display:block}.crop-info small{color:#71806b;font-size:11px}
-.actions{display:flex;gap:7px;flex-wrap:wrap}.inventory{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}.inv{background:#f4f1dd;border-radius:10px;padding:8px;font-size:13px;display:flex;justify-content:space-between;gap:5px}
-.notice{font-size:12px;color:#64755d;line-height:1.45;margin:10px 0 0}.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#294d2d;color:white;padding:11px 17px;border-radius:99px;box-shadow:0 5px 18px #0003;opacity:0;pointer-events:none;transition:.2s;z-index:5;font-weight:700}.toast.show{opacity:1}
-footer{text-align:center;color:#54734c;font-size:12px;padding:20px}
-@media(max-width:760px){.layout{grid-template-columns:1fr}.farm{gap:6px;padding:12px}.plot{border-width:2px;border-radius:10px}.farm-card{order:0}.side{grid-template-columns:1fr 1fr}.side .panel:first-child{grid-column:1/-1}}
-@media(max-width:420px){.side{grid-template-columns:1fr}.farm{gap:5px;padding:9px}.plot small{font-size:8px}.stats{gap:5px}.pill{padding:6px 9px;font-size:13px}}
-</style>
-</head>
-<body>
-<header class="top">
-  <div class="brand"><span class="logo">🌻</span><div><h1>Happy Farm</h1><div style="font-size:12px;color:#4d7b46;font-weight:700">Grow a little happiness every day</div></div></div>
-  <div class="stats"><div class="pill">🪙 <span id="coins">120</span></div><div class="pill">⭐ <span id="xp">0</span> XP</div><div class="pill">🏅 Level <span id="level">1</span></div></div>
-</header>
-<main>
-  <section class="hero">
-    <div><div class="level">🌱 Farmer's progress <span id="progressText">0 / 50 XP</span></div><div class="bar"><span id="progressBar"></span></div></div>
-    <div class="actions"><button class="btn gold" id="harvestAll">🌾 Harvest ready</button><button class="btn light" id="expand">➕ Expand farm · 250 🪙</button></div>
-  </section>
-  <div class="layout">
-    <section class="farm-card">
-      <div class="farm-head"><h2>🏡 Your little farm</h2><span id="plotCount" style="font-size:12px;font-weight:800">36 plots</span></div>
-      <div class="farm" id="farm" aria-label="Farm plots"></div>
-    </section>
-    <aside class="side">
-      <section class="panel"><h2>🛒 Seed shop</h2><div class="panel-body" id="shop"></div></section>
-      <section class="panel"><h2>🧺 Barn inventory</h2><div class="panel-body"><div class="inventory" id="inventory"></div><div class="actions" style="margin-top:12px"><button class="btn gold" id="sellAll">Sell all produce</button></div><p class="notice">Sell your harvest to earn coins. Every harvest also earns experience.</p></div></section>
-      <section class="panel"><h2>📜 Farm tips</h2><div class="panel-body"><div style="font-size:13px;line-height:1.55">🌱 Buy seeds and plant an empty plot.<br>⏳ Crops grow while you're away.<br>🌾 Harvest ripe crops for XP and produce.<br>🪙 Sell produce to fund your next planting.<br>💾 Your farm saves automatically on this device.</div><p class="notice">Growth continues using your device clock. Keep this page bookmarked to return to your farm.</p></div></section>
-    </aside>
-  </div>
-</main>
-<footer>Happy Farm · A small original farming game made for the web</footer>
-<div class="toast" id="toast"></div>
+*{box-sizing:border-box}body{margin:0;background:#d9edc3;color:#29472d;font:14px Verdana,Arial,sans-serif}header{background:linear-gradient(#fff9e9,#efdfb5);border-bottom:5px solid #a8cc77;padding:12px max(12px,calc((100% - 1100px)/2));display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.brand{display:flex;align-items:center;gap:10px}h1{font: bold 32px Georgia;color:#427c3d;margin:0}.sub{font-size:10px;letter-spacing:1px;color:#78915b}.stats{display:flex;gap:8px}.stat{background:#fffdf2;border:2px solid #dfcc91;border-radius:20px;padding:8px 12px;font-weight:bold}main{max-width:1100px;margin:auto;padding:12px}.toolbar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;background:#f8edcf;border:2px solid white;border-radius:12px;padding:9px;box-shadow:0 3px #d3c18c}.tool{background:linear-gradient(white,#e9e2c9);border:2px solid #c6b88c;border-radius:9px;padding:8px 11px;font-weight:bold;color:#4b6039}.tool.active{background:linear-gradient(#ffec9e,#f2c75d);border-color:#b78b32}.xp{margin-left:auto;font-size:11px;font-weight:bold}.bar{display:inline-block;width:90px;height:9px;background:#d6d2b5;border-radius:9px;overflow:hidden;vertical-align:middle}.bar i{display:block;height:100%;background:#6caf4b}.world{margin-top:12px;border:7px solid #f7e9c1;border-radius:15px;overflow:auto;box-shadow:0 5px #c5a86c;background:#8acb67;max-height:calc(100vh - 235px);min-height:400px}canvas{display:block;width:100%;min-width:650px;height:auto;touch-action:manipulation}.bottom{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:12px}.status{background:#fff9e8;border:2px solid white;border-radius:10px;padding:10px;box-shadow:0 3px #d3c18e}.btn{background:linear-gradient(#82c55c,#4e9842);border:2px solid #3c7b37;border-radius:9px;color:white;padding:9px 13px;font-weight:bold}.btn.gold{background:linear-gradient(#ffe18a,#eeb43e);color:#674a1d;border-color:#b8892c}.modal{display:none;position:fixed;inset:0;background:#183a2dbb;z-index:5;align-items:center;justify-content:center;padding:15px}.modal.open{display:flex}.box{background:#fff8e7;border:5px solid #e3c77d;border-radius:16px;width:min(520px,100%);max-height:85vh;overflow:auto}.boxhead{padding:13px;background:#e9f3d6;display:flex;justify-content:space-between;font:bold 20px Georgia}.seeds{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px}.seed{border:2px solid #e8d9ad;background:#fffdf5;border-radius:10px;padding:10px;display:flex;align-items:center;gap:8px}.seed button{background:#70ad4e;color:white;border:0;border-radius:7px;padding:7px}.seed span{font-size:26px}.seed small{display:block}.close{background:#c66b50;color:white;border:0;border-radius:50%;width:28px;height:28px}@media(max-width:650px){header{justify-content:center}.stats{justify-content:center}.xp{width:100%;margin:5px 0;text-align:center}.world{max-height:calc(100vh - 260px)}.seeds{grid-template-columns:1fr}}
+</style></head><body>
+<header><div class="brand"><span style="font-size:40px">🌻</span><div><h1>Happy Farm</h1><div class="sub">A LITTLE PATCH OF HAPPINESS</div></div></div><div class="stats"><div class="stat">🪙 <b id="coins">250</b></div><div class="stat">⭐ Level <b id="level">1</b></div><div class="stat">📦 <b id="barn">0</b></div></div></header>
+<main><div class="toolbar"><button class="tool active" data-mode="select">👆 Select</button><button class="tool" data-mode="plow">⛏️ Plow</button><button class="tool" data-mode="plant">🌱 Plant</button><button class="tool" data-mode="water">💧 Water</button><button class="tool" data-mode="harvest">🌾 Harvest</button><button class="tool" id="marketBtn">🛒 Market</button><span class="xp">XP <span id="xp">0</span>/100 <span class="bar"><i id="xpbar"></i></span></span></div>
+<div class="world"><canvas id="farm" width="960" height="640"></canvas></div><div class="bottom"><div class="status" id="status">Welcome! Plow a grassy tile to start your farm.</div><button class="btn gold" id="sell">🧺 Sell harvest</button></div></main>
+<div class="modal" id="market"><div class="box"><div class="boxhead">🌻 Country Market <button class="close" id="close">×</button></div><div class="seeds" id="seeds"></div></div></div>
 <script>
-(() => {
-"use strict";
-const CROPS = {
- wheat:{name:"Wheat",icon:"🌾",seed:5,sell:11,time:12,xp:5},
- carrot:{name:"Carrot",icon:"🥕",seed:9,sell:19,time:25,xp:8},
- corn:{name:"Corn",icon:"🌽",seed:15,sell:32,time:45,xp:12},
- potato:{name:"Potato",icon:"🥔",seed:12,sell:26,time:35,xp:10},
- strawberry:{name:"Strawberry",icon:"🍓",seed:22,sell:48,time:65,xp:16}
-};
-const SAVE_KEY="happyFarmSave_v1";
-const fresh=()=>({coins:120,xp:0,plots:Array.from({length:36},()=>null),inventory:{wheat:0,carrot:0,corn:0,potato:0,strawberry:0},expanded:false});
-let state=load();
-function load(){try{const s=JSON.parse(localStorage.getItem(SAVE_KEY));if(s&&Array.isArray(s.plots)&&s.inventory)return {...fresh(),...s};}catch(e){}return fresh();}
-function save(){localStorage.setItem(SAVE_KEY,JSON.stringify(state));}
-function level(){return Math.floor(state.xp/50)+1}
-function nextXP(){return level()*50}
-function toast(msg){const el=document.getElementById("toast");el.textContent=msg;el.classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove("show"),1900)}
-function fmt(sec){if(sec<=0)return "Ready!";if(sec<60)return Math.ceil(sec)+"s";const m=Math.floor(sec/60),s=Math.ceil(sec%60);return m+"m "+s+"s"}
-function stage(plot,now){const c=CROPS[plot.crop],elapsed=(now-plot.planted)/1000,ratio=Math.min(1,elapsed/c.time);return {ratio,ready:ratio>=1,icon:ratio<.34?"🌱":ratio<.72?(c.icon==="🌾"?"🌿":"🪴"):c.icon,remaining:Math.max(0,c.time-elapsed)}}
-function render(){
- const now=Date.now();
- document.getElementById("coins").textContent=state.coins;
- document.getElementById("xp").textContent=state.xp;
- document.getElementById("level").textContent=level();
- const xpIn=state.xp%50,need=50;
- document.getElementById("progressText").textContent=xpIn+" / "+need+" XP";
- document.getElementById("progressBar").style.width=(xpIn/need*100)+"%";
- document.getElementById("plotCount").textContent=state.plots.length+" plots";
- document.getElementById("expand").disabled=state.expanded||state.coins<250;
- document.getElementById("expand").textContent=state.expanded?"✓ Farm expanded":"➕ Expand farm · 250 🪙";
- const farm=document.getElementById("farm");farm.innerHTML="";
- state.plots.forEach((p,i)=>{
-   const b=document.createElement("button");b.className="plot"+(!p?" empty":"");b.type="button";
-   if(!p){b.innerHTML='<span class="crop">＋</span><small>Empty</small>';b.setAttribute("aria-label","Plant a crop in plot "+(i+1));b.onclick=()=>plant(i);}
-   else{const s=stage(p,now),c=CROPS[p.crop];b.className="plot"+(s.ready?" ready":"");
-     b.innerHTML='<span class="crop">'+(s.ready?c.icon:s.icon)+'</span><small>'+c.name+'</small><span class="timer">'+(s.ready?"READY":fmt(s.remaining))+'</span>'+(s.ready?'<span class="harvest">PICK</span>':'');
-     b.setAttribute("aria-label",s.ready?"Harvest "+c.name:"Growing "+c.name+", "+fmt(s.remaining)+" remaining");b.onclick=()=>s.ready?harvest(i):toast(c.name+" is still growing: "+fmt(s.remaining));
-   }
-   farm.appendChild(b);
- });
- const shop=document.getElementById("shop");shop.innerHTML="";
- Object.entries(CROPS).forEach(([key,c])=>{
-   const row=document.createElement("div");row.className="crop-row";
-   row.innerHTML='<span class="crop-icon">'+c.icon+'</span><div class="crop-info"><b>'+c.name+'</b><small>🪙 '+c.seed+' · Sell '+c.sell+' · '+c.time+' sec</small></div>';
-   const btn=document.createElement("button");btn.className="btn";btn.textContent=(selectedCrop===key?"Selected":"Select");btn.disabled=state.coins<c.seed;btn.onclick=()=>{selectedCrop=key;toast(c.name+" seeds selected — tap an empty plot");};row.appendChild(btn);shop.appendChild(row);
- });
- const inv=document.getElementById("inventory");inv.innerHTML="";
- Object.entries(CROPS).forEach(([key,c])=>{const d=document.createElement("div");d.className="inv";d.innerHTML="<span>"+c.icon+" "+c.name+"</span><b>"+(state.inventory[key]||0)+"</b>";inv.appendChild(d);});
- document.getElementById("sellAll").disabled=Object.values(state.inventory).every(v=>!v);
-}
-let selectedCrop="wheat";
-function plant(i){
- if(state.plots[i])return;
- const c=CROPS[selectedCrop];
- if(state.coins<c.seed){toast("Not enough coins for "+c.name+" seeds");return;}
- state.coins-=c.seed;state.plots[i]={crop:selectedCrop,planted:Date.now()};
- save();render();toast(c.name+" planted! 🌱");
-}
-function harvest(i){
- const p=state.plots[i];if(!p)return;
- const s=stage(p,Date.now());if(!s.ready){toast("Not ready yet");return;}
- const c=CROPS[p.crop];state.inventory[p.crop]=(state.inventory[p.crop]||0)+1;state.xp+=c.xp;state.plots[i]=null;
- const old=level();if(level()>old){state.coins+=50;toast("Level up! Level "+level()+" · 50 bonus coins 🎉");}else toast(c.name+" harvested! +"+c.xp+" XP");
- save();render();
-}
-function harvestReady(){let n=0;const oldLevel=level();state.plots.forEach((p,i)=>{if(p&&stage(p,Date.now()).ready){const c=CROPS[p.crop];state.inventory[p.crop]=(state.inventory[p.crop]||0)+1;state.xp+=c.xp;state.plots[i]=null;n++;}});if(!n){toast("No crops are ready yet");return;}const gained=level()-oldLevel;if(gained>0){state.coins+=gained*50;}save();render();toast(gained>0?"Level up! +"+(gained*50)+" bonus coins 🎉":"Harvested "+n+" crop"+(n===1?"":"s")+"! 🌾");}
-document.getElementById("harvestAll").onclick=harvestReady;
-document.getElementById("sellAll").onclick=()=>{let total=0,items=0;Object.entries(CROPS).forEach(([k,c])=>{const n=state.inventory[k]||0;total+=n*c.sell;items+=n;state.inventory[k]=0;});if(!items){toast("Your barn is empty");return;}state.coins+=total;save();render();toast("Sold "+items+" produce for "+total+" coins! 🪙");};
-document.getElementById("expand").onclick=()=>{if(state.expanded||state.coins<250)return;state.coins-=250;state.expanded=true;state.plots.push(...Array.from({length:12},()=>null));save();render();toast("Farm expanded! 12 new plots 🎉");};
-render();
-setInterval(()=>{render();},1000);
-window.addEventListener("beforeunload",save);
-})();
-</script>
-</body>
-</html>
+(()=>{const $=id=>document.getElementById(id),cv=$('farm'),ctx=cv.getContext('2d'),cols={wheat:{n:'Wheat',e:'🌾',cost:8,price:18,time:35,xp:8},carrot:{n:'Carrot',e:'🥕',cost:13,price:29,time:55,xp:12},corn:{n:'Corn',e:'🌽',cost:20,price:46,time:85,xp:18},potato:{n:'Potato',e:'🥔',cost:17,price:38,time:70,xp:15},berry:{n:'Strawberry',e:'🍓',cost:28,price:68,time:115,xp:24}},W=12,H=8,T=64,X=96,Y=56,key='happyFarmClassic';let s;try{s=JSON.parse(localStorage.getItem(key))}catch{}if(!s||!Array.isArray(s.fields))s={coins:250,xp:0,fields:Array.from({length:W*H},()=>({soil:false,crop:null,at:0,water:false})),barn:{}};let mode='select',seed='wheat',timer;
+const save=()=>localStorage.setItem(key,JSON.stringify(s)),level=()=>Math.floor(s.xp/100)+1;
+function msg(t){$('status').textContent=t;clearTimeout(timer);timer=setTimeout(()=>{$('status').textContent='Choose a tool and tap a field tile.'},3500)}
+function em(e,x,y,z){ctx.font=z+'px "Apple Color Emoji","Segoe UI Emoji",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(e,x,y)}
+function tree(x,y){ctx.fillStyle='#805333';ctx.fillRect(x-4,y+5,8,23);ctx.fillStyle='#397c3d';ctx.beginPath();ctx.arc(x,y,22,0,7);ctx.fill();ctx.fillStyle='#72ae4e';ctx.beginPath();ctx.arc(x-9,y-9,13,0,7);ctx.fill()}
+function house(x,y,w,h,wall,roof,label,icon){ctx.fillStyle='#0003';ctx.fillRect(x+5,y+h-2,w,h*.12);ctx.fillStyle=wall;ctx.fillRect(x,y,w,h);ctx.fillStyle=roof;ctx.beginPath();ctx.moveTo(x-8,y+5);ctx.lineTo(x+w/2,y-h*.48);ctx.lineTo(x+w+8,y+5);ctx.fill();ctx.strokeStyle='#70472b';ctx.lineWidth=3;ctx.stroke();ctx.fillStyle='#70472b';ctx.fillRect(x+w*.42,y+h*.48,w*.18,h*.52);ctx.fillStyle='#c5e8ed';ctx.fillRect(x+w*.12,y+h*.3,w*.2,h*.2);ctx.fillRect(x+w*.68,y+h*.3,w*.2,h*.2);ctx.fillStyle='white';ctx.font='bold 11px Verdana';ctx.textAlign='center';ctx.fillText(label,x+w/2,y+h+14);em(icon,x+w/2,y+h*.2,21)}
+function draw(){let g=ctx.createLinearGradient(0,0,0,640);g.addColorStop(0,'#a8d77c');g.addColorStop(1,'#72b85b');ctx.fillStyle=g;ctx.fillRect(0,0,960,640);for(let i=0;i<65;i++){ctx.fillStyle=i%2?'#ffffff0a':'#386f3210';ctx.beginPath();ctx.ellipse(i*137%950,i*83%630,18,7,.3,0,7);ctx.fill()}ctx.strokeStyle='#d8bb82';ctx.lineWidth=48;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(15,500);ctx.bezierCurveTo(180,440,210,540,400,500);ctx.bezierCurveTo(600,450,720,540,950,470);ctx.stroke();ctx.strokeStyle='#ead4a4';ctx.lineWidth=3;ctx.setLineDash([10,12]);ctx.stroke();ctx.setLineDash([]);tree(55,95);tree(65,190);tree(900,105);tree(900,220);tree(55,570);tree(900,570);house(35,300,92,72,'#f0d9a6','#b85d43','Farmhouse','🏡');house(790,295,112,82,'#d9b276','#a94e39','Barn','🚜');house(800,440,80,55,'#e7d39b','#a65b40','Silo','🌽');ctx.strokeStyle='#e8d3a0';ctx.lineWidth=7;ctx.strokeRect(X-12,Y-12,W*T+24,H*T+24);for(let i=0;i<s.fields.length;i++){let f=s.fields[i],x=X+i%W*T,y=Y+Math.floor(i/W)*T;if(!f.soil){ctx.fillStyle=(i%W+Math.floor(i/W))%2?'#86c65e':'#7cbd55';ctx.fillRect(x,y,T,T);ctx.strokeStyle='#6ba74c';ctx.lineWidth=1;ctx.strokeRect(x,y,T,T)}else{ctx.fillStyle='#98613b';ctx.fillRect(x,y,T,T);ctx.fillStyle='#b47a4d';for(let k=0;k<4;k++)ctx.fillRect(x+5,y+8+k*14,T-10,4);ctx.strokeStyle='#71452c';ctx.lineWidth=2;ctx.strokeRect(x+2,y+2,T-4,T-4)}if(f.crop){let c=cols[f.crop],r=Math.min(1,(Date.now()-f.at)/1000/c.time);em(r<.3?'🌱':r<.72?'🪴':c.e,x+32,y+29,r<.3?24:36);if(r>=1){ctx.fillStyle='#fff1a9';ctx.beginPath();ctx.roundRect(x+7,y+46,50,14,7);ctx.fill();ctx.fillStyle='#6c4c20';ctx.font='bold 9px Verdana';ctx.textAlign='center';ctx.fillText('READY',x+32,y+56)}else{ctx.fillStyle='#3d2b1d';ctx.fillRect(x+9,y+52,46,5);ctx.fillStyle='#b9e66b';ctx.fillRect(x+9,y+52,46*r,5)}if(f.water)em('💧',x+51,y+11,13)}}for(let i=0;i<15;i++)em(i%2?'🌼':'🌸',18+(i*59)%925,30+(i*41)%590,12)}
+function update(){ $('coins').textContent=s.coins;$('level').textContent=level();$('barn').textContent=Object.values(s.barn).reduce((a,b)=>a+b,0);$('xp').textContent=s.xp%100;$('xpbar').style.width=(s.xp%100)+'%';draw();save()}
+function act(e){let r=cv.getBoundingClientRect(),x=(e.clientX-r.left)*cv.width/r.width,y=(e.clientY-r.top)*cv.height/r.height,c=Math.floor((x-X)/T),row=Math.floor((y-Y)/T);if(c<0||c>=W||row<0||row>=H)return;let f=s.fields[row*W+c],crop=cols[seed];if(mode==='plow'){if(f.soil){msg('This plot is already plowed.');return}f.soil=true;msg('Soil plowed. Choose Plant!')}else if(mode==='plant'){if(!f.soil||f.crop){msg('Plow an empty plot first.');return}if(s.coins<crop.cost){msg('Not enough coins for '+crop.n+'.');return}s.coins-=crop.cost;f.crop=seed;f.at=Date.now();f.water=false;msg(crop.n+' planted!')}else if(mode==='water'){if(!f.crop){msg('Plant a crop first.');return}if(!f.water){f.water=true;f.at-=cols[f.crop].time*1000*.15}msg('Watered! Crop growth boosted.')}else{if(!f.crop){msg('Nothing planted here.');return}let c=cols[f.crop];if(Date.now()-f.at<c.time*1000){msg(c.n+' is still growing.');return}s.barn[f.crop]=(s.barn[f.crop]||0)+1;s.xp+=c.xp;f.crop=null;f.soil=false;msg('Harvested '+c.n+'! +'+c.xp+' XP') }update()}
+cv.addEventListener('click',act);document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{mode=b.dataset.mode;document.querySelectorAll('[data-mode]').forEach(x=>x.classList.toggle('active',x===b));msg('Tool selected: '+mode+'. Tap a field.')});
+function market(){let list=$('seeds');list.innerHTML='';Object.entries(cols).forEach(([k,c])=>{let d=document.createElement('div');d.className='seed';d.innerHTML='<span>'+c.e+'</span><div><b>'+c.n+'</b><small>🪙 '+c.cost+' · Sell '+c.price+' · '+c.time+' sec</small></div><button>Choose</button>';d.querySelector('button').onclick=()=>{seed=k;mode='plant';document.querySelectorAll('[data-mode]').forEach(x=>x.classList.toggle('active',x.dataset.mode==='plant'));$('market').classList.remove('open');msg(c.n+' selected. Tap a plowed plot.');};list.appendChild(d)});$('market').classList.add('open')}
+$('marketBtn').onclick=market;$('close').onclick=()=>$('market').classList.remove('open');$('market').onclick=e=>{if(e.target===$('market'))$('market').classList.remove('open')};$('sell').onclick=()=>{let total=0,n=0;Object.entries(s.barn).forEach(([k,v])=>{total+=cols[k].price*v;n+=v});if(!n){msg('Barn is empty. Harvest crops first.');return}s.barn={};s.coins+=total;msg('Sold '+n+' harvest for '+total+' coins!');update()};update();setInterval(draw,1000);
+})();</script></body></html>
