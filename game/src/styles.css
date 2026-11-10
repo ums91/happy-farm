@@ -523,3 +523,25 @@ button,.tool,select{touch-action:manipulation}
 .cloud-account-actions{display:flex;gap:10px;margin:12px 0}
 .cloud-account-actions button:last-child{background:#e9eee5;color:#4d624c}
 .cloud-account-card>small{display:block;color:#71806d;line-height:1.5}
+
+
+/* Cloud save account */
+#cloud-account{border:1px solid rgba(71,125,85,.25);border-radius:12px;padding:8px 12px;background:#f3f8ed;color:#315b3b;font-weight:700;cursor:pointer}
+.cloud-account-backdrop{position:fixed;inset:0;z-index:10000;background:rgba(26,43,29,.48);display:none;align-items:center;justify-content:center;padding:18px}
+.cloud-account-backdrop.open{display:flex}
+.cloud-account-card{width:min(100%,420px);background:#fffdf6;border:1px solid #dce8d0;border-radius:20px;padding:24px;box-shadow:0 24px 80px rgba(20,45,25,.25);color:#304b32}
+.cloud-account-card header{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
+.cloud-account-card header small{font-size:10px;letter-spacing:.12em;color:#6e9560;font-weight:800}
+.cloud-account-card h2{font-size:22px;margin:5px 0 14px}
+.cloud-account-card header button{border:0;background:#edf3e8;border-radius:50%;width:34px;height:34px;font-size:22px;cursor:pointer}
+.cloud-account-card form{display:grid;gap:8px;margin-top:16px}
+.cloud-account-card label{font-size:12px;font-weight:700}
+.cloud-account-card input{border:1px solid #d8e3d2;border-radius:10px;padding:12px;font:inherit;background:white;color:#304b32}
+.cloud-account-card form button,.cloud-account-actions button{border:0;border-radius:10px;padding:12px;background:#4c8747;color:white;font-weight:700;cursor:pointer}
+.cloud-save-status{background:#edf5e9;border-radius:10px;padding:10px;font-size:12px}
+.cloud-save-status[data-status="error"]{background:#fff0e8;color:#9c492b}
+.cloud-save-status[data-status="syncing"]{background:#edf3ff;color:#365b91}
+.cloud-account-card .cloud-text-button{border:0;background:none;color:#477a43;text-decoration:underline;margin-top:12px;cursor:pointer}
+.cloud-account-actions{display:flex;gap:10px;margin:12px 0}
+.cloud-account-actions button:last-child{background:#e9eee5;color:#4d624c}
+.cloud-account-card>small{display:block;color:#71806d;line-height:1.5}
