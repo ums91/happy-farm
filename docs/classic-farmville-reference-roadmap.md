@@ -40,3 +40,36 @@ The following community wiki pages inform the gameplay specification. Wiki page 
 3. Keep save migrations backward-compatible whenever the save schema changes.
 4. Treat wiki statistics as historical reference values, not mandatory balance values; tune Happy Farm's economy for a playable standalone game.
 5. Ship in small verified increments. A release is complete only after typecheck, production build and GitHub Pages deployment succeed.
+
+## Additional technical reference: Farm Village preservation project
+
+Repository: https://github.com/AcidCaos/farmvillage  
+License declared by repository: GNU General Public License v3.0 (GPL-3.0).  
+Purpose: preservation and local play of the original FarmVille 1 Flash client, backed by a Python server.
+
+### Reviewed architecture and useful behaviour references
+
+- `engine.py`: world-object identity and mutation helpers; XP/level transitions; currency/item adjustments; time-aware crop/world calculations.
+- `items.py`: data-driven item catalogue loaded from AMF and cached as JSON; item feature lookup.
+- `player.py`: new-farm bootstrap, save loading and migration, neighbour discovery, player state.
+- `quests.py`: quest definitions, task progression, prerequisite filtering and active quest slots.
+- `storage.py`: inventory categories, item quantities, deposits/withdrawals, gift metadata.
+- `commands.py`: authoritative gameplay actions and server-side validation, including farm interactions, purchases, harvests, feeding/social actions.
+- `game_settings.py`: XP-to-level curves and farming/economy configuration.
+- `version.py`: save-format migrations.
+- `server.py`: Flask routes, local session handling and game protocol endpoints.
+
+### How Happy Farm will use this reference
+
+Happy Farm is a separate Phaser/TypeScript web game. The preservation project's Python server and Flash client are not being embedded or imported into this build. Instead, its documented/reverse-engineered behaviours guide independent implementations:
+
+1. Use stable IDs for farm objects and make plot/object operations deterministic.
+2. Move item catalogue, crop values, level thresholds and unlock requirements into data files rather than hard-coding every market card.
+3. Create a versioned save migration layer and keep player, world, inventory and quest state separate.
+4. Model quests as definitions plus prerequisite predicates, tracked actions, objective progress and rewards.
+5. Use explicit inventory groups and validated quantity changes for seeds, feed, harvested products and gifts.
+6. Keep the browser build client-authoritative for this standalone demo; introduce a server-authoritative API only when multiplayer or shared farms are implemented.
+
+### Licensing and asset boundary
+
+The preservation repository is GPL-3.0. This roadmap records it as a design/behaviour reference only. No Python source, SWF files, Flash client code, recovered binary game data, or FarmVille artwork has been copied into Happy Farm. If future implementation directly adapts GPL-covered code, Happy Farm's distribution and source-availability obligations must be reviewed and the derivative component must retain GPL-compatible licensing and notices. The preservation repository's README itself describes automatic downloads of large archived WARC/asset collections; ownership and provenance of each recovered game asset must be checked independently before any reuse. The repository's GPL notice does not, by itself, establish that Zynga-originated game assets are GPL-licensed.
