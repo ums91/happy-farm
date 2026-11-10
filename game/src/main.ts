@@ -12,8 +12,8 @@ const game = new Phaser.Game({
   scale: {
     mode: Phaser.Scale.RESIZE,
     autoCenter: Phaser.Scale.CENTER_BOTH,
-    width: '100%',
-    height: '100%',
+    width: 1100,
+    height: 720,
   },
   scene: [FarmScene],
   render: { roundPixels: true, powerPreference: 'high-performance' },
