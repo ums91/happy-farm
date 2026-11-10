@@ -105,7 +105,6 @@ export class FarmScene extends Phaser.Scene {
     this.refreshHud();
     this.bindDailyReward();
     initializeCloudSaves();
-    initializeCloudSaves();
     this.refreshSelection();
     this.time.addEvent({ delay: 1000, loop: true, callback: () => { if((this.questRefreshAt>0&&Date.now()>=this.questRefreshAt)||(this.eventStartedAt>0&&Date.now()-this.eventStartedAt>=604800000)){this.ensureQuestAndEventCycles();this.renderSideRail();} this.updateCropLifecycle(); this.updateProduction(); this.updateFruitTrees(); this.refreshCropHoverTooltip(); if(this.activeBuilding==='coop'||this.activeBuilding==='barn')this.renderBuildingPanel(this.activeBuilding);else if(this.activeBuilding)this.renderGenericBuildingPanel(this.activeBuilding); } });
     this.input.on('wheel', (_pointer: Phaser.Input.Pointer, _objects: unknown[], _dx: number, dy: number) => {
@@ -1364,8 +1363,6 @@ export class FarmScene extends Phaser.Scene {
     try {
       localStorage.setItem(this.saveKey, JSON.stringify(save));
       localStorage.setItem('happyFarmLocalUpdatedAtV1', String(Math.max(Date.now(), Number(localStorage.getItem('happyFarmLocalUpdatedAtV1') || 0))));
-      queueCloudSave();
-      localStorage.setItem('happyFarmLocalUpdatedAtV1', String(Date.now()));
       queueCloudSave();
     } catch {
       // Storage may be disabled or full; gameplay remains available for this session.
