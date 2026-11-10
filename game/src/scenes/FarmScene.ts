@@ -9,7 +9,9 @@ interface Animal { id: AnimalId; readyAt: number; assigned?: boolean }
 interface BuildingProgress { coopLevel: number; barnLevel: number; warehouseLevel: number }
 interface AnimalProduce { eggs: number; milk: number }
 type BuildingId = 'coop'|'barn'|'silo'|'bakery'|'greenhouse'|'windmill';
-interface FarmSave { version: 11; farmerName?:string; farmName?:string; buildingLevels?:Partial<Record<BuildingId,number>>; randomQuests?: Array<{id:string;title:string;description:string;target:number;coins:number;xp:number;icon:string;metric:'harvests'|'hens'|'cows'|'eggs'|'milk'}>; claimedQuests?: string[]; ordersCompleted?: Record<string,number>; animals: Animal[]; harvests: number; coins: number; xp: number; selectedCrop?: CropId; decor?: Record<string,{col:number;row:number}>; feed: { hen: number; cow: number }; buildings?: BuildingProgress; produce?: AnimalProduce; inventory: Record<CropId, number>; plots: Array<{ col:number; row:number; state:PlotState; watered:boolean; growth:number; crop?:CropId; readyAt?:number; witherAt?:number }> }
+type ProductId='flour'|'bread'|'pastry'|'grapes';
+interface ProductionJob { recipe:string; readyAt:number }
+interface FarmSave { version: 12; farmerName?:string; farmName?:string; buildingLevels?:Partial<Record<BuildingId,number>>; productionJobs?:Partial<Record<BuildingId,ProductionJob|null>>; crafted?:Partial<Record<ProductId,number>>; randomQuests?: Array<{id:string;title:string;description:string;target:number;coins:number;xp:number;icon:string;metric:'harvests'|'hens'|'cows'|'eggs'|'milk'}>; claimedQuests?: string[]; ordersCompleted?: Record<string,number>; animals: Animal[]; harvests: number; coins: number; xp: number; selectedCrop?: CropId; decor?: Record<string,{col:number;row:number}>; feed: { hen: number; cow: number }; buildings?: BuildingProgress; produce?: AnimalProduce; inventory: Record<CropId, number>; plots: Array<{ col:number; row:number; state:PlotState; watered:boolean; growth:number; crop?:CropId; readyAt?:number; witherAt?:number }> }
 const CROPS: Record<CropId,{name:string;emoji:string;cost:number;reward:number;xp:number;growMs:number;color:number;unlockLevel:number}> = {
  wheat:{name:'Wheat',emoji:'🌾',cost:5,reward:18,xp:5,growMs:15000,color:0xe4b83f,unlockLevel:1},
  carrot:{name:'Carrot',emoji:'🥕',cost:9,reward:31,xp:8,growMs:22000,color:0xef873e,unlockLevel:1},
@@ -48,6 +50,8 @@ export class FarmScene extends Phaser.Scene {
   private farmerName='New Farmer';
   private farmName='My Farm';
   private buildingLevels: Record<BuildingId,number>={coop:1,barn:1,silo:1,bakery:0,greenhouse:0,windmill:0};
+  private productionJobs: Record<BuildingId,ProductionJob|null>={coop:null,barn:null,silo:null,bakery:null,greenhouse:null,windmill:null};
+  private crafted: Record<ProductId,number>={flour:0,bread:0,pastry:0,grapes:0};
   private animalActors: Phaser.GameObjects.Container[] = [];
   private sceneryGraphics: Phaser.GameObjects.Graphics[] = [];
   private sceneryLabels: Phaser.GameObjects.Text[] = [];
@@ -79,7 +83,7 @@ export class FarmScene extends Phaser.Scene {
     this.bindMarket();
     this.refreshHud();
     this.refreshSelection();
-    this.time.addEvent({ delay: 1000, loop: true, callback: () => { this.updateCropLifecycle(); if(this.activeBuilding==='coop'||this.activeBuilding==='barn')this.renderBuildingPanel(this.activeBuilding);else if(this.activeBuilding)this.renderGenericBuildingPanel(this.activeBuilding); } });
+    this.time.addEvent({ delay: 1000, loop: true, callback: () => { this.updateCropLifecycle(); this.updateProduction(); if(this.activeBuilding==='coop'||this.activeBuilding==='barn')this.renderBuildingPanel(this.activeBuilding);else if(this.activeBuilding)this.renderGenericBuildingPanel(this.activeBuilding); } });
     this.input.on('wheel', (_pointer: Phaser.Input.Pointer, _objects: unknown[], _dx: number, dy: number) => {
       this.cameras.main.setZoom(Phaser.Math.Clamp(this.cameras.main.zoom - dy * 0.001, 0.55, 1.35));
     });
@@ -840,7 +844,7 @@ export class FarmScene extends Phaser.Scene {
     document.querySelectorAll<HTMLButtonElement>('[data-market-tab]').forEach(tab=>tab.addEventListener('click',()=>{document.querySelectorAll('[data-market-tab]').forEach(x=>x.classList.remove('active'));tab.classList.add('active');const cat=tab.dataset.marketTab||'seeds';const intro=document.getElementById('market-intro');if(intro)intro.textContent=cat==='seeds'?'Choose seeds for your next harvest.':cat==='animals'?'Welcome new animals to your farm.':cat==='decor'?'Grow your orchard and personalise your homestead.':cat==='buildings'?'Build and upgrade new farm facilities as your farmer levels up.':'Buy the correct feed for each animal. Feed is required to produce eggs and milk.';this.renderMarket(cat);}));
     document.addEventListener('keydown',e=>{if(e.key==='Escape')this.closeMarket();});
     document.getElementById('animal-action')?.addEventListener('click',()=>this.careForAnimals());
-     document.getElementById('market-items')?.addEventListener('click',e=>{const target=e.target as HTMLElement;if(target.closest('#sell-produce'))this.sellProduce();const quest=target.closest<HTMLButtonElement>('[data-claim-quest]');if(quest)this.claimQuest(quest.dataset.claimQuest||'');const order=target.closest<HTMLButtonElement>('[data-fulfil-order]');if(order)this.fulfilOrder(order.dataset.fulfilOrder||'');const warehouse=target.closest<HTMLButtonElement>('#upgrade-warehouse');if(warehouse){const cost=this.buildings.warehouseLevel*400;if(this.buildings.warehouseLevel<10&&this.coins>=cost){this.coins-=cost;this.buildings.warehouseLevel++;this.buildingLevels.silo=this.buildings.warehouseLevel;this.saveFarm();this.refreshHud();this.renderInventory();this.toast('Silo upgraded. Egg and milk storage expanded!');}}const toggle=target.closest<HTMLButtonElement>('[data-animal-toggle]');if(toggle){const animal=this.animals[Number(toggle.dataset.animalToggle)];if(animal){animal.assigned=animal.assigned===false;this.saveFarm();this.refreshHud();if(this.activeBuilding==='coop'||this.activeBuilding==='barn')this.renderBuildingPanel(this.activeBuilding);else if(this.activeBuilding)this.renderGenericBuildingPanel(this.activeBuilding);else this.renderInventory();this.toast(animal.assigned?'Animal assigned to production.':'Animal is resting.');}}const action=target.closest<HTMLButtonElement>('[data-building-action]')?.dataset.buildingAction;if(action&&(this.activeBuilding==='coop'||this.activeBuilding==='barn'))this.runBuildingAction(this.activeBuilding,action as 'collect'|'feed');});
+     document.getElementById('market-items')?.addEventListener('click',e=>{const target=e.target as HTMLElement;if(target.closest('#sell-produce'))this.sellProduce();const quest=target.closest<HTMLButtonElement>('[data-claim-quest]');if(quest)this.claimQuest(quest.dataset.claimQuest||'');const order=target.closest<HTMLButtonElement>('[data-fulfil-order]');if(order)this.fulfilOrder(order.dataset.fulfilOrder||'');const warehouse=target.closest<HTMLButtonElement>('#upgrade-warehouse');if(warehouse){const cost=this.buildings.warehouseLevel*400;if(this.buildings.warehouseLevel<10&&this.coins>=cost){this.coins-=cost;this.buildings.warehouseLevel++;this.buildingLevels.silo=this.buildings.warehouseLevel;this.saveFarm();this.refreshHud();this.renderInventory();this.toast('Silo upgraded. Egg and milk storage expanded!');}}const toggle=target.closest<HTMLButtonElement>('[data-animal-toggle]');if(toggle){const animal=this.animals[Number(toggle.dataset.animalToggle)];if(animal){animal.assigned=animal.assigned===false;this.saveFarm();this.refreshHud();if(this.activeBuilding==='coop'||this.activeBuilding==='barn')this.renderBuildingPanel(this.activeBuilding);else if(this.activeBuilding)this.renderGenericBuildingPanel(this.activeBuilding);else this.renderInventory();this.toast(animal.assigned?'Animal assigned to production.':'Animal is resting.');}}const action=target.closest<HTMLButtonElement>('[data-building-action]')?.dataset.buildingAction;if(action&&(this.activeBuilding==='coop'||this.activeBuilding==='barn'))this.runBuildingAction(this.activeBuilding,action as 'collect'|'feed');const start=target.closest<HTMLButtonElement>('[data-production-start]')?.dataset.productionStart;if(start&&this.activeBuilding)this.startProduction(this.activeBuilding,start);if(target.closest('#collect-production')&&this.activeBuilding)this.collectProduction(this.activeBuilding);const delivery=target.closest<HTMLButtonElement>('[data-fulfil-crafted]')?.dataset.fulfilCrafted;if(delivery)this.fulfilCraftedOrder(delivery);});
   }
   private careForAnimals(): void { if(!this.animals.length){this.openMarket();document.querySelector<HTMLButtonElement>('[data-market-tab=animals]')?.click();return;}let collected=0,fed=0,waiting=0;for(const kind of ['hen','cow'] as AnimalId[]){const result=this.collectAndFeed(kind);collected+=result.collected;fed+=result.fed;waiting+=result.waiting;}this.saveFarm();this.refreshHud();this.toast('Stored '+collected+' product(s) · fed '+fed+' · waiting for feed: '+waiting+'.');}
   private productionCapacity(kind:AnimalId):number{return 10+((kind==='hen'?this.buildings.coopLevel:this.buildings.barnLevel)-1)*5+(this.buildings.warehouseLevel-1)*10;}
@@ -852,12 +856,59 @@ export class FarmScene extends Phaser.Scene {
     modal?.querySelector('.market-tabs')?.classList.add('inventory-hidden');const intro=document.getElementById('market-intro');if(intro)intro.textContent='Upgrade this farm building as you progress.';modal?.classList.add('open');modal?.setAttribute('aria-hidden','false');this.renderGenericBuildingPanel(id);
   }
   private renderGenericBuildingPanel(id:BuildingId):void {
+    if(id==='bakery'||id==='greenhouse'||id==='windmill'){this.renderProductionPanel(id);return;}
     const level=this.buildingLevels[id]||this.buildings.warehouseLevel;const cost=level*350;const names:Record<BuildingId,string>={coop:'Chicken Coop',barn:'Dairy Barn',silo:'Grain Silo',bakery:'Village Bakery',greenhouse:'Greenhouse',windmill:'Windmill'};
     const perks:Record<BuildingId,string>={coop:'Adds 2 hen spaces and 5 egg storage per level.',barn:'Adds 2 cow spaces and 5 milk storage per level.',silo:'Adds 10 shared animal-product storage spaces per level.',bakery:'A growing production hub for future baked-goods recipes.',greenhouse:'Unlocks advanced crop-growing space and future specialist crops.',windmill:'A landmark upgrade on your way to a thriving farm.'};
     const host=document.getElementById('market-items');if(!host)return;
     host.innerHTML='<section class="inventory-section"><h3>🏗️ '+names[id]+' · Level '+level+'</h3><p>'+perks[id]+'</p><div class="building-levels">'+[1,2,3,4,5].map(n=>'<span class="'+(n<=level?'reached':'')+'">★</span>').join('')+'</div><p>Upgrade cost: '+cost+' coins. Maximum level: 5.</p><button class="market-buy" id="upgrade-generic-building" '+(level>=5||this.coins<cost?'disabled':'')+'>'+(level>=5?'Maximum level reached':'🪙 '+cost+' · Upgrade to Level '+(level+1))+'</button></section>';
     host.querySelector<HTMLButtonElement>('#upgrade-generic-building')?.addEventListener('click',()=>{if(level>=5||this.coins<cost)return;this.coins-=cost;if(id==='silo')this.buildings.warehouseLevel++;this.buildingLevels[id]=level+1;this.saveFarm();this.refreshHud();this.renderGenericBuildingPanel(id);this.toast(names[id]+' upgraded to Level '+(level+1)+'.');});
   }
+
+  private productionRecipes(id:'bakery'|'greenhouse'|'windmill'):Array<{id:string;name:string;icon:string;seconds:number;inputs:Partial<Record<CropId,number>>;goods:Partial<Record<ProductId,number>>;output:ProductId;quantity:number;coins:number;xp:number}> {
+    if(id==='windmill')return [{id:'flour',name:'Mill Wheat into Flour',icon:'🌾',seconds:45,inputs:{wheat:2},goods:{},output:'flour',quantity:2,coins:0,xp:5}];
+    if(id==='bakery')return [{id:'bread',name:'Bake Fresh Bread',icon:'🍞',seconds:75,inputs:{},goods:{flour:2},output:'bread',quantity:1,coins:0,xp:9},{id:'pastry',name:'Bake Country Pastries',icon:'🥐',seconds:110,inputs:{},goods:{flour:2},output:'pastry',quantity:1,coins:0,xp:13}];
+    return [{id:'grapes',name:'Grow Greenhouse Grapes',icon:'🍇',seconds:100,inputs:{strawberry:2},goods:{},output:'grapes',quantity:2,coins:0,xp:11}];
+  }
+  private productName(id:ProductId):string{return ({flour:'Flour',bread:'Fresh Bread',pastry:'Country Pastries',grapes:'Greenhouse Grapes'} as Record<ProductId,string>)[id];}
+  private updateProduction():void {
+    if(this.activeBuilding==='bakery'||this.activeBuilding==='greenhouse'||this.activeBuilding==='windmill')this.renderProductionPanel(this.activeBuilding);
+  }
+  private renderProductionPanel(id:'bakery'|'greenhouse'|'windmill'):void {
+    const host=document.getElementById('market-items');if(!host)return;
+    const level=this.buildingLevels[id],job=this.productionJobs[id],recipes=this.productionRecipes(id),now=Date.now();
+    const cards=recipes.map(r=>{const available=Object.entries(r.inputs).every(([key,n])=>this.inventory[key as CropId]>=(n||0))&&Object.entries(r.goods).every(([key,n])=>this.crafted[key as ProductId]>=(n||0));const costs=[...Object.entries(r.inputs).map(([k,n])=>(n||0)+' '+CROPS[k as CropId].name),...Object.entries(r.goods).map(([k,n])=>(n||0)+' '+this.productName(k as ProductId))].join(' + ');return '<article class="market-item"><div class="market-art">'+r.icon+'</div><div class="market-copy"><strong>'+r.name+'</strong><small>Uses '+costs+' · '+Math.max(10,Math.round(r.seconds*(1-(level-1)*.1)))+' sec · Produces '+r.quantity+' '+this.productName(r.output)+'</small></div><button class="market-buy" data-production-start="'+r.id+'" '+(job||!available?'disabled':'')+'>'+(job?'Busy':available?'Start':'Missing ingredients')+'</button></article>';}).join('');
+    const active=job?recipes.find(r=>r.id===job.recipe):null,remaining=job?Math.max(0,Math.ceil((job.readyAt-now)/1000)):0;
+    const jobCard=job&&active?'<section class="inventory-section"><h3>⏳ Production in progress</h3><p>'+active.icon+' '+active.name+' · '+(remaining>0?remaining+' seconds remaining':'Ready to collect')+'</p><div class="production-track"><i style="width:'+Math.max(0,Math.min(100,(1-(job.readyAt-now)/(active.seconds*1000))*100))+'%"></i></div><button class="market-buy" id="collect-production" '+(remaining>0?'disabled':'')+'>Collect '+active.quantity+' '+this.productName(active.output)+'</button></section>':'<section class="inventory-section"><h3>🏭 Production queue</h3><p>One production order can run at a time. Building upgrades reduce production time by 10% per level.</p></section>';
+    host.innerHTML='<section class="inventory-section"><h3>🏗️ '+({bakery:'Village Bakery',greenhouse:'Greenhouse',windmill:'Windmill'} as Record<string,string>)[id]+' · Level '+level+'</h3><p>'+({windmill:'Turn harvested wheat into flour for your bakery.',bakery:'Use flour to bake goods for delivery and sale.',greenhouse:'Grow premium grapes using strawberry seeds.'} as Record<string,string>)[id]+'</p><div class="building-levels">'+[1,2,3,4,5].map(n=>'<span class="'+(n<=level?'reached':'')+'">★</span>').join('')+'</div></section>'+jobCard+'<section class="inventory-section"><h3>📋 Available recipes</h3><div class="quest-list">'+cards+'</div></section><section class="inventory-section"><h3>📦 Crafted goods</h3><div class="inventory-grid">'+(['flour','bread','pastry','grapes'] as ProductId[]).map(p=>'<article class="market-item"><div class="market-art">'+({flour:'🌾',bread:'🍞',pastry:'🥐',grapes:'🍇'} as Record<ProductId,string>)[p]+'</div><div class="market-copy"><strong>'+this.productName(p)+'</strong></div><span class="inventory-quantity">× '+this.crafted[p]+'</span></article>').join('')+'</div></section><section class="inventory-section"><h3>⬆️ Building upgrade · Level '+level+'</h3><p>Each upgrade reduces production time by 10%, up to Level 5.</p><button class="market-buy" id="upgrade-generic-building" '+(level>=5||this.coins<level*350?'disabled':'')+'>'+(level>=5?'Maximum level reached':'🪙 '+(level*350)+' · Upgrade to Level '+(level+1))+'</button></section>';
+    host.querySelectorAll<HTMLButtonElement>('[data-production-start]').forEach(btn=>btn.addEventListener('click',()=>this.startProduction(id,btn.dataset.productionStart||'')));
+    host.querySelector<HTMLButtonElement>('#collect-production')?.addEventListener('click',()=>this.collectProduction(id));
+    host.querySelector<HTMLButtonElement>('#upgrade-generic-building')?.addEventListener('click',()=>{const cost=level*350;if(level>=5||this.coins<cost)return;this.coins-=cost;this.buildingLevels[id]=level+1;this.saveFarm();this.refreshHud();this.renderProductionPanel(id);this.toast('Building upgraded to Level '+(level+1)+'.');});
+  }
+  private startProduction(id:BuildingId,recipeId:string):void {
+    if(id!=='bakery'&&id!=='greenhouse'&&id!=='windmill')return;
+    if(this.productionJobs[id])return;
+    const recipe=this.productionRecipes(id).find(r=>r.id===recipeId);if(!recipe)return;
+    if(!Object.entries(recipe.inputs).every(([k,n])=>this.inventory[k as CropId]>=(n||0))||!Object.entries(recipe.goods).every(([k,n])=>this.crafted[k as ProductId]>=(n||0))){this.toast('Not enough ingredients for this recipe.');return;}
+    Object.entries(recipe.inputs).forEach(([k,n])=>this.inventory[k as CropId]-=(n||0));
+    Object.entries(recipe.goods).forEach(([k,n])=>this.crafted[k as ProductId]-=(n||0));
+    const duration=Math.max(10000,recipe.seconds*1000*(1-(this.buildingLevels[id]-1)*.1));
+    this.productionJobs[id]={recipe:recipe.id,readyAt:Date.now()+duration};
+    this.saveFarm();this.refreshHud();this.renderProductionPanel(id);this.toast(recipe.name+' started.');
+  }
+  private collectProduction(id:BuildingId):void {
+    if(id!=='bakery'&&id!=='greenhouse'&&id!=='windmill')return;
+    const job=this.productionJobs[id];if(!job||job.readyAt>Date.now())return;
+    const recipe=this.productionRecipes(id).find(r=>r.id===job.recipe);if(!recipe)return;
+    this.crafted[recipe.output]+=recipe.quantity;this.xp+=recipe.xp;this.productionJobs[id]=null;
+    this.saveFarm();this.refreshHud();this.renderProductionPanel(id);this.toast('Collected '+recipe.quantity+' '+this.productName(recipe.output)+' · +'+recipe.xp+' XP');
+  }
+  private fulfilCraftedOrder(id:string):void {
+    const orders:Record<string,{product:ProductId;quantity:number;coins:number;xp:number}>={bread:{product:'bread',quantity:1,coins:58,xp:16},pastry:{product:'pastry',quantity:1,coins:86,xp:24},grapes:{product:'grapes',quantity:2,coins:72,xp:20}};
+    const order=orders[id];if(!order||this.crafted[order.product]<order.quantity)return;
+    this.crafted[order.product]-=order.quantity;this.coins+=order.coins;this.xp+=order.xp;this.ordersCompleted['crafted-'+id]=(this.ordersCompleted['crafted-'+id]||0)+1;
+    this.saveFarm();this.refreshHud();this.renderInventory();this.toast('Crafted-goods delivery complete · +'+order.coins+' coins · +'+order.xp+' XP');
+  }
+
   private openBuilding(id: 'coop'|'barn'): void { this.activeBuilding=id; const modal=document.getElementById('market-modal'); const title=modal?.querySelector('.market-header h2'); if(title)title.textContent=id==='coop'?'Chicken Coop':'Dairy Barn'; modal?.querySelector('.market-tabs')?.classList.add('inventory-hidden'); const intro=document.getElementById('market-intro'); if(intro)intro.textContent='Manage housing, collect products and keep production moving.'; modal?.classList.add('open');modal?.setAttribute('aria-hidden','false');this.renderBuildingPanel(id); }
   private renderBuildingPanel(id:'coop'|'barn'):void{const kind:AnimalId=id==='coop'?'hen':'cow';const level=id==='coop'?this.buildings.coopLevel:this.buildings.barnLevel;const capacity=this.buildingCapacity(kind);const storage=this.productionCapacity(kind);const field=kind==='hen'?'eggs':'milk';const owned=this.animals.filter(a=>a.id===kind);const ready=owned.filter(a=>a.readyAt>0&&a.readyAt<=Date.now()).length;const producing=owned.filter(a=>a.readyAt>Date.now()).length;const idle=owned.length-ready-producing;const cycle=kind==='hen'?45000:60000;const progress=owned.map((a,i)=>{const remaining=Math.max(0,a.readyAt-Date.now());const pct=a.readyAt===0?0:a.readyAt<=Date.now()?100:Math.max(0,Math.min(100,(1-remaining/cycle)*100));return '<div class="animal-progress"><span>'+(kind==='hen'?'🐔 Hen ':'🐄 Cow ')+(i+1)+(a.assigned===false?' · Resting':'')+'</span><strong>'+(a.assigned===false?'Not assigned':a.readyAt===0?'Needs feed':remaining===0?'Ready':Math.ceil(remaining/1000)+'s')+'</strong><div class="production-track"><i style="width:'+pct+'%"></i></div><button class="market-buy" data-animal-toggle="'+this.animals.indexOf(a)+'">'+(a.assigned===false?'Assign to production':'Unassign')+'</button></div>';}).join('');const cost=level*250;const host=document.getElementById('market-items');if(!host)return;host.innerHTML='<section class="inventory-section"><h3>'+(kind==='hen'?'🥚 Egg production':'🥛 Milk production')+'</h3><div class="inventory-grid"><article class="market-item"><div class="market-art">'+(kind==='hen'?'🥚':'🥛')+'</div><div class="market-copy"><strong>'+owned.length+' / '+capacity+' animals housed</strong><small>'+ready+' ready · '+producing+' producing · '+idle+' need feed</small></div></article><article class="market-item"><div class="market-art">📦</div><div class="market-copy"><strong>Produce storage</strong><small>'+this.produce[field]+' / '+storage+' '+field+' stored</small></div></article></div>'+ (progress||'<p>No animals housed yet. Visit the Market to buy one.</p>')+'</section><section class="inventory-section"><h3>🥣 Feed & collection</h3><p>Feed in storage: '+this.feed[kind]+' · '+(kind==='hen'?'45':'60')+' seconds per production cycle.</p><div class="building-actions"><button class="market-buy" data-building-action="collect" '+(ready===0||this.produce[field]>=storage?'disabled':'')+'>Collect '+(kind==='hen'?'eggs':'milk')+'</button><button class="market-buy" data-building-action="feed" '+(idle===0||this.feed[kind]===0?'disabled':'')+'>Feed idle animals</button></div></section><section class="inventory-section"><h3>🏗️ Building upgrade · Level '+level+'</h3><p class="market-intro">Next level: '+(capacity+2)+' animal spaces and '+(storage+5)+' produce storage. Each upgrade adds 2 housing spaces and 5 storage spaces.</p><button class="market-buy" id="upgrade-building" '+(this.coins<cost||level>=5?'disabled':'')+'>'+(level>=5?'Maximum level reached':'🪙 '+cost+' · Upgrade building')+'</button></section>';host.querySelector<HTMLButtonElement>('#upgrade-building')?.addEventListener('click',()=>{if(level>=5||this.coins<cost)return;this.coins-=cost;if(id==='coop')this.buildings.coopLevel++;else this.buildings.barnLevel++;this.saveFarm();this.refreshHud();this.renderBuildingPanel(id);this.toast('Building upgraded! Housing and storage increased.');});}
   private sellProduce(): void { const value=this.produce.eggs*12+this.produce.milk*28; if(value<=0){this.toast('No animal products to sell yet.');return;}const eggs=this.produce.eggs,milk=this.produce.milk;this.produce={eggs:0,milk:0};this.coins+=value;this.xp+=eggs*2+milk*4;this.saveFarm();this.refreshHud();this.renderInventory();this.toast('Sold '+eggs+' eggs and '+milk+' milk for '+value+' coins!'); }
@@ -984,7 +1035,7 @@ export class FarmScene extends Phaser.Scene {
       const raw = localStorage.getItem(this.saveKey);
       if (!raw) return;
       const save = JSON.parse(raw) as any;
-      if (![1,2,3,4,5,6,7,8,9,10,11].includes(save.version) || !Array.isArray(save.plots)) return;
+      if (![1,2,3,4,5,6,7,8,9,10,11,12].includes(save.version) || !Array.isArray(save.plots)) return;
       this.coins = Math.max(0, Math.floor(save.coins));
       this.farmerName=typeof save.farmerName==='string'&&save.farmerName.trim()?save.farmerName.slice(0,24):'New Farmer';
       this.farmName=typeof save.farmName==='string'&&save.farmName.trim()?save.farmName.slice(0,28):'My Farm';
@@ -998,6 +1049,7 @@ export class FarmScene extends Phaser.Scene {
       if (save.version >= 2 && save.inventory) this.inventory = {...this.inventory,...save.inventory};
       if (save.version >= 4 && save.feed) this.feed = {...this.feed,...save.feed};
        if (save.version >= 6 && save.buildings) this.buildings = {...this.buildings,...save.buildings,warehouseLevel:save.buildings.warehouseLevel||1};
+      if(save.version>=12){if(save.productionJobs)for(const id of ['bakery','greenhouse','windmill'] as BuildingId[])this.productionJobs[id]=save.productionJobs[id]||null;if(save.crafted)this.crafted={...this.crafted,...save.crafted};}
       this.buildingLevels.coop=this.buildings.coopLevel;this.buildingLevels.barn=this.buildings.barnLevel;this.buildingLevels.silo=this.buildings.warehouseLevel;
        if (save.version >= 6 && save.produce) this.produce = {...this.produce,...save.produce};
       this.animals=this.animals.map(a=>({...a,assigned:a.assigned!==false}));
@@ -1022,10 +1074,12 @@ export class FarmScene extends Phaser.Scene {
 
   private saveFarm(): void {
     const save: FarmSave = {
-      version: 11,
+      version: 12,
       farmerName:this.farmerName,
       farmName:this.farmName,
       buildingLevels:{...this.buildingLevels},
+      productionJobs:{...this.productionJobs},
+      crafted:{...this.crafted},
       randomQuests: this.randomQuests,
       ordersCompleted: {...this.ordersCompleted},
       claimedQuests: [...this.claimedQuests],
