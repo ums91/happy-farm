@@ -47,7 +47,7 @@ export class FarmScene extends Phaser.Scene {
   private animalActors: Phaser.GameObjects.Container[] = [];
   private sceneryGraphics: Phaser.GameObjects.Graphics[] = [];
   private sceneryLabels: Phaser.GameObjects.Text[] = [];
-  private decor: Record<string,{col:number;row:number}> = {tree1:{col:1,row:1},tree2:{col:3,row:0},tree3:{col:5,row:1},tree4:{col:7,row:0},tree5:{col:10,row:1},tree6:{col:12,row:2},tree7:{col:0,row:7},tree8:{col:12,row:7},farmhouse:{col:5,row:2},barn:{col:9,row:3},silo:{col:11,row:3},pen:{col:2,row:5},coop:{col:4,row:5}};
+  private decor: Record<string,{col:number;row:number}> = {tree1:{col:1,row:1},tree2:{col:3,row:0},tree3:{col:5,row:1},tree4:{col:7,row:0},tree5:{col:10,row:1},tree6:{col:12,row:2},tree7:{col:0,row:7},tree8:{col:12,row:7},appleTree1:{col:1,row:10},appleTree2:{col:3,row:11},pearTree1:{col:10,row:10},cherryTree1:{col:11,row:11},farmhouse:{col:5,row:2},barn:{col:9,row:3},silo:{col:11,row:3},pen:{col:2,row:5},coop:{col:4,row:5}};
   private movingDecor: string | null = null;
   private harvests = 0;
   private claimedQuests: string[] = [];
@@ -124,6 +124,7 @@ export class FarmScene extends Phaser.Scene {
 
   private drawWorld(): void {
     this.plotGraphics.clear();
+    this.drawForestBorder();
     // A soft meadow base extends beyond the cultivated diamond field.
     const meadow = this.add.graphics();
     meadow.fillStyle(0x5d9d48, 1);
@@ -165,6 +166,22 @@ export class FarmScene extends Phaser.Scene {
     this.drawPath();
     this.drawFence();
     this.drawFlowerPatches();
+  }
+
+  private drawForestBorder(): void {
+    const forest=this.add.graphics();
+    const trees:Array<[number,number]>=[];
+    for(let i=0;i<20;i++){trees.push([-545+i*57,-12-(i%3)*17],[-545+i*57,535+(i%4)*13]);}
+    for(let i=0;i<14;i++){trees.push([-565,35+i*38],[565,35+i*38]);}
+    trees.forEach(([x,y],i)=>{
+      const r=27+(i%4)*4;
+      forest.fillStyle(0x244b2c,0.4);forest.fillEllipse(x+5,y+13,r*2.2,r*.65);
+      forest.fillStyle(0x68452c,1);forest.fillRoundedRect(x-5,y-5,10,34,4);
+      forest.fillStyle([0x285b32,0x326b37,0x3d783b,0x28552e][i%4]!,1);
+      forest.fillCircle(x,y-23,r);forest.fillCircle(x-r*.55,y-13,r*.72);forest.fillCircle(x+r*.55,y-14,r*.75);
+      forest.fillStyle(0x79a94e,0.72);forest.fillCircle(x-r*.3,y-35,r*.28);forest.fillCircle(x+r*.35,y-26,r*.22);
+    });
+    forest.setDepth(-20);
   }
 
   private drawFence(): void {
@@ -230,7 +247,7 @@ export class FarmScene extends Phaser.Scene {
     this.sceneryLabels.forEach(x=>x.destroy()); this.sceneryLabels=[];
     const g = this.add.graphics(); this.sceneryGraphics.push(g);
     // Layered orchard trees: trunk, canopy shadow, clustered leaves and sunlit highlights.
-    ['tree1','tree2','tree3','tree4','tree5','tree6','tree7','tree8'].forEach((id, i) => {
+    ['tree1','tree2','tree3','tree4','tree5','tree6','tree7','tree8','appleTree1','appleTree2','pearTree1','cherryTree1'].forEach((id, i) => {
       const pos=this.decor[id]!; const p = this.toWorld(pos.col, pos.row);
       const palette = [0x356f36, 0x477f3b, 0x568d43, 0x3d7838];
       const canopyY = p.y - 49;
@@ -249,6 +266,9 @@ export class FarmScene extends Phaser.Scene {
       g.fillStyle(0x2c6233,0.58);
       [[-13,2],[7,-8],[22,13],[-27,-7],[0,-31]].forEach(([dx,dy])=>g.fillCircle(p.x+dx!,canopyY+dy!,3));
       if (i % 3 === 0) { g.fillStyle(0xe9a34b,1); [[-19,2],[18,12],[5,-19]].forEach(([dx,dy])=>g.fillCircle(p.x+dx!,canopyY+dy!,3)); }
+      if(id.startsWith('appleTree')){g.fillStyle(0xc83e37,1);[[-18,-5],[15,4],[2,-22],[25,-16]].forEach(([dx,dy])=>g.fillCircle(p.x+dx!,canopyY+dy!,4));}
+      if(id.startsWith('pearTree')){g.fillStyle(0xc9cf4e,1);[[-17,-4],[15,3],[2,-22],[25,-16]].forEach(([dx,dy])=>g.fillEllipse(p.x+dx!,canopyY+dy!,7,9));}
+      if(id.startsWith('cherryTree')){g.fillStyle(0xb72e45,1);[[-18,-5],[15,4],[2,-22],[25,-16]].forEach(([dx,dy])=>g.fillCircle(p.x+dx!,canopyY+dy!,3));}
     });
     // Small garden beds and stepping stones around the homestead.
     const homePos=this.decor.farmhouse!; const barnPos=this.decor.barn!;
