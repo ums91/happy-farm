@@ -409,35 +409,109 @@ export class FarmScene extends Phaser.Scene {
     this.sceneryLabels.push(this.add.text(x, y + 19, label, { fontFamily: 'Arial', fontSize: '8px', fontStyle: 'bold', color: '#526c39' }).setOrigin(0.5));
   }
 
+  private touchPositions = new Map<number,{x:number;y:number;startX:number;startY:number}>();
+  private touchGesture = false;
+  private pinchDistance = 0;
+
+  private handleWorldTap(pointer: Phaser.Input.Pointer): void {
+    const world = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
+    if (this.activeTool === 'select') {
+      const buildingHit = (['coop','barn'] as const).find(id => {
+        const p=this.toWorld(this.decor[id]!.col,this.decor[id]!.row);
+        return Math.abs(world.x-p.x)<57 && Math.abs(world.y-(p.y-28))<62;
+      });
+      if(buildingHit){this.openBuilding(buildingHit);return;}
+    }
+    if (this.activeTool === 'move') {
+      const hit=Object.keys(this.decor).find(id=>{
+        const p=this.toWorld(this.decor[id]!.col,this.decor[id]!.row);
+        return Phaser.Math.Distance.Between(world.x,world.y,p.x,p.y)<58;
+      });
+      this.movingDecor=hit||null;
+      if(hit)this.toast('Moving '+hit+'. Drag to a new tile.');
+      return;
+    }
+    const tile=this.toTile(world.x,world.y);
+    if(!tile)return;
+    const plot=this.plots.get(this.key(tile.col,tile.row));
+    if(!plot)return;
+    this.selected=plot;
+    this.applyTool(plot);
+    this.refreshSelection();
+    this.drawSelection();
+  }
+
   private bindWorldInput(): void {
     this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
-      if (pointer.rightButtonDown() || pointer.middleButtonDown()) {
-        this.cameraDragging = true;
-        this.dragPoint.set(pointer.x, pointer.y);
+      if(pointer.wasTouch){
+        this.touchPositions.set(pointer.id,{x:pointer.x,y:pointer.y,startX:pointer.x,startY:pointer.y});
+        if(this.touchPositions.size>=2){
+          this.touchGesture=true;
+          const pts=Array.from(this.touchPositions.values());
+          this.pinchDistance=Phaser.Math.Distance.Between(pts[0]!.x,pts[0]!.y,pts[1]!.x,pts[1]!.y);
+        }
         return;
       }
-      const world = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
-      if (this.activeTool === 'select') { const buildingHit=(['coop','barn'] as const).find(id=>{const p=this.toWorld(this.decor[id]!.col,this.decor[id]!.row);return Math.abs(world.x-p.x)<57&&Math.abs(world.y-(p.y-28))<62;}); if(buildingHit){this.openBuilding(buildingHit);return;} }
-      if (this.activeTool === 'move') { const hit=Object.keys(this.decor).find(id=>{const p=this.toWorld(this.decor[id]!.col,this.decor[id]!.row);return Phaser.Math.Distance.Between(world.x,world.y,p.x,p.y)<58;}); this.movingDecor=hit||null; if(hit)this.toast('Moving '+hit+'. Drag to a new tile.'); return; }
-      const tile = this.toTile(world.x, world.y);
-      if (!tile) return;
-      const plot = this.plots.get(this.key(tile.col, tile.row));
-      if (!plot) return;
-      this.selected = plot;
-      this.applyTool(plot);
-      this.refreshSelection();
-      this.drawSelection();
+      if(pointer.rightButtonDown()||pointer.middleButtonDown()){
+        this.cameraDragging=true;this.dragPoint.set(pointer.x,pointer.y);return;
+      }
+      this.handleWorldTap(pointer);
     });
-    this.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
-      if (this.movingDecor && pointer.isDown) { const w=this.cameras.main.getWorldPoint(pointer.x,pointer.y); const tile=this.toTile(w.x,w.y); if(tile){this.decor[this.movingDecor]={col:tile.col,row:tile.row};this.drawScenery();this.renderOwnedAnimals();} return; }
-      if (this.cameraDragging && pointer.isDown) {
-        this.cameras.main.scrollX -= (pointer.x - this.dragPoint.x) / this.cameras.main.zoom;
-        this.cameras.main.scrollY -= (pointer.y - this.dragPoint.y) / this.cameras.main.zoom;
-        this.dragPoint.set(pointer.x, pointer.y);
+    this.input.on('pointermove',(pointer:Phaser.Input.Pointer)=>{
+      if(pointer.wasTouch&&this.touchPositions.has(pointer.id)){
+        const touch=this.touchPositions.get(pointer.id)!;
+        touch.x=pointer.x;touch.y=pointer.y;
+        const pts=Array.from(this.touchPositions.values());
+        if(pts.length>=2){
+          const distance=Phaser.Math.Distance.Between(pts[0]!.x,pts[0]!.y,pts[1]!.x,pts[1]!.y);
+          if(this.pinchDistance>0&&distance>0){
+            this.cameras.main.setZoom(Phaser.Math.Clamp(this.cameras.main.zoom*(distance/this.pinchDistance),0.55,1.35));
+          }
+          this.pinchDistance=distance;this.touchGesture=true;return;
+        }
+        if(Math.hypot(pointer.x-touch.startX,pointer.y-touch.startY)>10){
+          this.cameraDragging=true;this.touchGesture=true;
+        }
+        if(this.cameraDragging){
+          this.cameras.main.scrollX-=(pointer.x-touch.x)/this.cameras.main.zoom;
+          this.cameras.main.scrollY-=(pointer.y-touch.y)/this.cameras.main.zoom;
+        }
+        return;
+      }
+      if(this.movingDecor&&pointer.isDown){
+        const w=this.cameras.main.getWorldPoint(pointer.x,pointer.y);
+        const tile=this.toTile(w.x,w.y);
+        if(tile){this.decor[this.movingDecor]={col:tile.col,row:tile.row};this.drawScenery();this.renderOwnedAnimals();}
+        return;
+      }
+      if(this.cameraDragging&&pointer.isDown){
+        this.cameras.main.scrollX-=(pointer.x-this.dragPoint.x)/this.cameras.main.zoom;
+        this.cameras.main.scrollY-=(pointer.y-this.dragPoint.y)/this.cameras.main.zoom;
+        this.dragPoint.set(pointer.x,pointer.y);
       }
     });
-    this.input.on('pointerup', () => { this.cameraDragging = false; if(this.movingDecor){this.saveFarm();this.toast('Farm layout saved.');this.movingDecor=null;} });
-    this.input.on('pointerupoutside', () => { this.cameraDragging = false; });
+    this.input.on('pointerup',(pointer:Phaser.Input.Pointer)=>{
+      if(pointer.wasTouch&&this.touchPositions.has(pointer.id)){
+        const touch=this.touchPositions.get(pointer.id)!;
+        const wasTap=!this.touchGesture&&Math.hypot(pointer.x-touch.startX,pointer.y-touch.startY)<=10;
+        this.touchPositions.delete(pointer.id);
+        if(this.touchPositions.size===0){
+          if(wasTap)this.handleWorldTap(pointer);
+          this.touchGesture=false;this.pinchDistance=0;this.cameraDragging=false;
+        } else {
+          const pts=Array.from(this.touchPositions.values());
+          this.pinchDistance=pts.length>=2?Phaser.Math.Distance.Between(pts[0]!.x,pts[0]!.y,pts[1]!.x,pts[1]!.y):0;
+        }
+        return;
+      }
+      this.cameraDragging=false;
+      if(this.movingDecor){this.saveFarm();this.toast('Farm layout saved.');this.movingDecor=null;}
+    });
+    this.input.on('pointerupoutside',(pointer:Phaser.Input.Pointer)=>{
+      if(pointer.wasTouch)this.touchPositions.delete(pointer.id);
+      this.cameraDragging=false;
+      if(this.touchPositions.size===0){this.touchGesture=false;this.pinchDistance=0;}
+    });
     this.input.mouse?.disableContextMenu();
   }
 
