@@ -127,7 +127,7 @@ export class FarmScene extends Phaser.Scene {
     if(button){button.disabled=true;button.textContent='✓ Reward collected';}
     const copy=document.getElementById('daily-reward-copy');if(copy)copy.textContent='100 coins added to your farm balance. Happy farming!';
     this.updateDailyRewardCountdown();
-    window.setTimeout(()=>{const modal=document.getElementById('daily-reward-modal');modal?.classList.remove('open');modal?.setAttribute('aria-hidden','true');},1100);
+    const modal=document.getElementById('daily-reward-modal');modal?.classList.remove('open');modal?.setAttribute('aria-hidden','true');
   }
   private updateDailyRewardCountdown():void {
     const next=document.getElementById('daily-reward-next');if(!next)return;
