@@ -1,12 +1,12 @@
 import Phaser from 'phaser';
 
-type Tool = 'select' | 'plow' | 'plant' | 'water' | 'harvest';
+type Tool = 'select' | 'plow' | 'plant' | 'water' | 'harvest' | 'move';
 type PlotState = 'grass' | 'tilled' | 'growing' | 'ready' | 'withered';
 type CropId = 'wheat' | 'carrot' | 'corn' | 'strawberry' | 'tomato' | 'pumpkin' | 'blueberry' | 'watermelon';
 interface Plot { col: number; row: number; state: PlotState; watered: boolean; growth: number; crop: CropId; readyAt: number; witherAt: number }
 type AnimalId = 'hen' | 'cow';
 interface Animal { id: AnimalId; readyAt: number }
-interface FarmSave { version: 5; animals: Animal[]; harvests: number; coins: number; xp: number; selectedCrop?: CropId; feed: { hen: number; cow: number }; inventory: Record<CropId, number>; plots: Array<{ col:number; row:number; state:PlotState; watered:boolean; growth:number; crop?:CropId; readyAt?:number; witherAt?:number }> }
+interface FarmSave { version: 5; animals: Animal[]; harvests: number; coins: number; xp: number; selectedCrop?: CropId; decor?: Record<string,{col:number;row:number}>; feed: { hen: number; cow: number }; inventory: Record<CropId, number>; plots: Array<{ col:number; row:number; state:PlotState; watered:boolean; growth:number; crop?:CropId; readyAt?:number; witherAt?:number }> }
 const CROPS: Record<CropId,{name:string;emoji:string;cost:number;reward:number;xp:number;growMs:number;color:number;unlockLevel:number}> = {
  wheat:{name:'Wheat',emoji:'🌾',cost:5,reward:18,xp:5,growMs:15000,color:0xe4b83f,unlockLevel:1},
  carrot:{name:'Carrot',emoji:'🥕',cost:9,reward:31,xp:8,growMs:22000,color:0xef873e,unlockLevel:1},
@@ -40,6 +40,10 @@ export class FarmScene extends Phaser.Scene {
   private animals: Animal[] = [];
   private feed: Record<AnimalId, number> = { hen: 0, cow: 0 };
   private animalActors: Phaser.GameObjects.Container[] = [];
+  private sceneryGraphics: Phaser.GameObjects.Graphics[] = [];
+  private sceneryLabels: Phaser.GameObjects.Text[] = [];
+  private decor: Record<string,{col:number;row:number}> = {tree1:{col:1,row:1},tree2:{col:3,row:0},tree3:{col:5,row:1},tree4:{col:7,row:0},tree5:{col:10,row:1},tree6:{col:12,row:2},tree7:{col:0,row:7},tree8:{col:12,row:7},farmhouse:{col:5,row:2},barn:{col:9,row:3},silo:{col:11,row:3},pen:{col:2,row:5}};
+  private movingDecor: string | null = null;
   private harvests = 0;
   private cameraDragging = false;
   private dragPoint = new Phaser.Math.Vector2();
@@ -213,10 +217,12 @@ export class FarmScene extends Phaser.Scene {
   }
 
   private drawScenery(): void {
-    const g = this.add.graphics();
+    this.sceneryGraphics.forEach(x=>x.destroy()); this.sceneryGraphics=[];
+    this.sceneryLabels.forEach(x=>x.destroy()); this.sceneryLabels=[];
+    const g = this.add.graphics(); this.sceneryGraphics.push(g);
     // Layered orchard trees: trunk, canopy shadow, clustered leaves and sunlit highlights.
-    [[1, 1], [3, 0], [5, 1], [7, 0], [10, 1], [12, 2], [0, 7], [12, 7]].forEach(([col, row], i) => {
-      const p = this.toWorld(col!, row!);
+    ['tree1','tree2','tree3','tree4','tree5','tree6','tree7','tree8'].forEach((id, i) => {
+      const pos=this.decor[id]!; const p = this.toWorld(pos.col, pos.row);
       const palette = [0x397b3c, 0x4b8d43, 0x5b9948, 0x47833d];
       g.fillStyle(0x3f6e38, 0.24);
       g.fillEllipse(p.x + 5, p.y + 4, 62, 17);
@@ -240,11 +246,12 @@ export class FarmScene extends Phaser.Scene {
       }
     });
     // Small garden beds and stepping stones around the homestead.
-    const home = this.toWorld(5, 2);
-    const barn = this.toWorld(9, 3);
+    const homePos=this.decor.farmhouse!; const barnPos=this.decor.barn!;
+    const home = this.toWorld(homePos.col, homePos.row);
+    const barn = this.toWorld(barnPos.col, barnPos.row);
     this.drawBuilding(g, home.x, home.y - 12, 0xe7d4a0, 0xa84f3c, 'FARMHOUSE');
     this.drawBuilding(g, barn.x, barn.y - 15, 0xc97855, 0x8e3e35, 'BARN');
-    const silo = this.toWorld(11, 3);
+    const siloPos=this.decor.silo!; const silo = this.toWorld(siloPos.col, siloPos.row);
     g.fillStyle(0x426f3d, 0.22);
     g.fillEllipse(silo.x + 31, silo.y + 5, 52, 15);
     g.fillStyle(0xc9d4c5, 1);
@@ -271,7 +278,7 @@ export class FarmScene extends Phaser.Scene {
   }
 
   private drawAnimalPen(g: Phaser.GameObjects.Graphics): void {
-    const p = this.toWorld(2, 5);
+    const pos=this.decor.pen!; const p = this.toWorld(pos.col, pos.row);
     const left = p.x - 42;
     const top = p.y - 27;
     g.fillStyle(0x9a7043, 1);
@@ -290,7 +297,7 @@ export class FarmScene extends Phaser.Scene {
   private renderOwnedAnimals(): void {
     this.animalActors.forEach(actor => actor.destroy());
     this.animalActors = [];
-    const pen = this.toWorld(2, 5);
+    const penPos=this.decor.pen!; const pen = this.toWorld(penPos.col, penPos.row);
     this.animals.forEach((animal, index) => {
       const startX = pen.x - 25 + (index % 4) * 17;
       const startY = pen.y - 7 + Math.floor(index / 4) * 9;
@@ -390,7 +397,7 @@ export class FarmScene extends Phaser.Scene {
     g.beginPath(); g.moveTo(x + 19, y - 24); g.lineTo(x + 19, y - 12); g.moveTo(x + 13, y - 18); g.lineTo(x + 25, y - 18); g.strokePath();
     g.fillStyle(0xffffff, 0.92);
     g.fillRoundedRect(x - 35, y + 12, 70, 15, 6);
-    this.add.text(x, y + 19, label, { fontFamily: 'Arial', fontSize: '8px', fontStyle: 'bold', color: '#526c39' }).setOrigin(0.5);
+    this.sceneryLabels.push(this.add.text(x, y + 19, label, { fontFamily: 'Arial', fontSize: '8px', fontStyle: 'bold', color: '#526c39' }).setOrigin(0.5));
   }
 
   private bindWorldInput(): void {
@@ -401,6 +408,7 @@ export class FarmScene extends Phaser.Scene {
         return;
       }
       const world = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
+      if (this.activeTool === 'move') { const hit=Object.keys(this.decor).find(id=>{const p=this.toWorld(this.decor[id]!.col,this.decor[id]!.row);return Phaser.Math.Distance.Between(world.x,world.y,p.x,p.y)<58;}); this.movingDecor=hit||null; if(hit)this.toast('Moving '+hit+'. Drag to a new tile.'); return; }
       const tile = this.toTile(world.x, world.y);
       if (!tile) return;
       const plot = this.plots.get(this.key(tile.col, tile.row));
@@ -411,13 +419,14 @@ export class FarmScene extends Phaser.Scene {
       this.drawSelection();
     });
     this.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
+      if (this.movingDecor && pointer.isDown) { const w=this.cameras.main.getWorldPoint(pointer.x,pointer.y); const tile=this.toTile(w.x,w.y); if(tile){this.decor[this.movingDecor]={col:tile.col,row:tile.row};this.drawScenery();this.renderOwnedAnimals();} return; }
       if (this.cameraDragging && pointer.isDown) {
         this.cameras.main.scrollX -= (pointer.x - this.dragPoint.x) / this.cameras.main.zoom;
         this.cameras.main.scrollY -= (pointer.y - this.dragPoint.y) / this.cameras.main.zoom;
         this.dragPoint.set(pointer.x, pointer.y);
       }
     });
-    this.input.on('pointerup', () => { this.cameraDragging = false; });
+    this.input.on('pointerup', () => { this.cameraDragging = false; if(this.movingDecor){this.saveFarm();this.toast('Farm layout saved.');this.movingDecor=null;} });
     this.input.on('pointerupoutside', () => { this.cameraDragging = false; });
     this.input.mouse?.disableContextMenu();
   }
@@ -456,7 +465,7 @@ export class FarmScene extends Phaser.Scene {
       plot.state = 'ready';
       plot.growth = 100;
       plot.readyAt = 0;
-      plot.witherAt = Date.now() + Math.round(CROPS[plot.crop].growMs * 1.2);
+      plot.witherAt = Date.now() + Math.max(300000, CROPS[plot.crop].growMs * 2);
       this.redrawPlot(plot);
       this.scheduleWithering(plot);
       if (this.selected === plot) this.refreshSelection();
@@ -565,7 +574,7 @@ export class FarmScene extends Phaser.Scene {
   private bindToolbar(): void {
     document.querySelectorAll<HTMLButtonElement>('[data-tool]').forEach(button => {
       button.addEventListener('click', () => {
-        this.activeTool = button.dataset.tool as Tool;
+        this.activeTool = button.dataset.tool as Tool; this.movingDecor=null;
         document.querySelectorAll('[data-tool]').forEach(el => el.classList.remove('active'));
         button.classList.add('active');
         this.refreshSelection();
@@ -640,7 +649,7 @@ export class FarmScene extends Phaser.Scene {
   private renderMarket(category='seeds'): void {
     const host=document.getElementById('market-items');if(!host)return;
     if(category==='feed'){host.innerHTML='<article class="market-item"><div class="market-art">🌾</div><div class="market-copy"><strong>Hen feed</strong><small>Feed one hen · starts a 45-second egg cycle · in storage: '+this.feed.hen+'</small></div><button class="market-buy" data-buy-feed="hen" '+(this.coins<12?'disabled':'')+'>🪙 12 · Buy</button></article><article class="market-item"><div class="market-art">🌿</div><div class="market-copy"><strong>Cow feed</strong><small>Feed one cow · starts a 60-second milk cycle · in storage: '+this.feed.cow+'</small></div><button class="market-buy" data-buy-feed="cow" '+(this.coins<18?'disabled':'')+'>🪙 18 · Buy</button></article>';host.querySelectorAll<HTMLButtonElement>('[data-buy-feed]').forEach(btn=>btn.addEventListener('click',()=>{const id=btn.dataset.buyFeed as AnimalId;const price=id==='hen'?12:18;if(this.coins<price)return;this.coins-=price;this.feed[id]++;this.saveFarm();this.refreshHud();this.renderMarket('feed');this.toast((id==='hen'?'Hen':'Cow')+' feed added to storage.');}));return;} if(category==='animals'){host.innerHTML='<article class="market-item"><div class="market-art">🐔</div><div class="market-copy"><strong>Happy Hen</strong><small>Lays an egg after feeding · owned: '+this.animals.filter(a=>a.id==='hen').length+'</small></div><button class="market-buy" data-buy-animal="hen" '+(this.coins<75?'disabled':'')+'>🪙 75 · Buy</button></article><article class="market-item"><div class="market-art">🐄</div><div class="market-copy"><strong>Daisy Cow</strong><small>Produces milk after feeding · owned: '+this.animals.filter(a=>a.id==='cow').length+'</small></div><button class="market-buy" data-buy-animal="cow" '+(this.coins<160?'disabled':'')+'>🪙 160 · Buy</button></article>';host.querySelectorAll<HTMLButtonElement>('[data-buy-animal]').forEach(btn=>btn.addEventListener('click',()=>{const id=btn.dataset.buyAnimal as AnimalId;const cost=id==='hen'?75:160;if(this.coins<cost)return;this.coins-=cost;this.animals.push({id,readyAt:0});this.renderOwnedAnimals();this.saveFarm();this.refreshHud();this.toast('A new animal joined your farm!');this.renderMarket('animals');}));return;} if(category==='decor'){host.innerHTML='<article class="market-item"><div class="market-art">🌷</div><div class="market-copy"><strong>Decorations</strong><small>Placeable decorations are coming in a future update.</small></div></article>';return;}
-    const level=Math.floor(this.xp/100)+1;host.innerHTML=(Object.entries(CROPS) as Array<[CropId,typeof CROPS[CropId]]>).map(([id,crop])=>{const locked=level<crop.unlockLevel;return `<article class="market-item ${locked?'crop-locked':''}"><div class="market-art">${crop.emoji}</div><div class="market-copy"><strong>${crop.name}</strong><small>${locked?'Unlocks at level '+crop.unlockLevel:Math.round(crop.growMs/1000)+'s grow · '+Math.round(crop.growMs*1.2/1000)+'s harvest window'} · reward ${crop.reward} coins · +${crop.xp} XP · bag: ${this.inventory[id]}</small></div><button class="market-buy" data-buy-seed="${id}" ${locked||this.coins<crop.cost?'disabled':''}>${locked?'🔒 Level '+crop.unlockLevel:'🪙 '+crop.cost+' · Buy'}</button></article>`;}).join('');
+    const level=Math.floor(this.xp/100)+1;host.innerHTML=(Object.entries(CROPS) as Array<[CropId,typeof CROPS[CropId]]>).map(([id,crop])=>{const locked=level<crop.unlockLevel;return `<article class="market-item ${locked?'crop-locked':''}"><div class="market-art">${crop.emoji}</div><div class="market-copy"><strong>${crop.name}</strong><small>${locked?'Unlocks at level '+crop.unlockLevel:Math.round(crop.growMs/1000)+'s grow · '+Math.round(Math.max(300000,crop.growMs*2)/1000)+'s harvest window'} · reward ${crop.reward} coins · +${crop.xp} XP · bag: ${this.inventory[id]}</small></div><button class="market-buy" data-buy-seed="${id}" ${locked||this.coins<crop.cost?'disabled':''}>${locked?'🔒 Level '+crop.unlockLevel:'🪙 '+crop.cost+' · Buy'}</button></article>`;}).join('');
     host.querySelectorAll<HTMLButtonElement>('[data-buy-seed]').forEach(btn=>btn.addEventListener('click',()=>{const id=btn.dataset.buySeed as CropId;const crop=CROPS[id];if(!crop||Math.floor(this.xp/100)+1<crop.unlockLevel||this.coins<crop.cost)return;this.coins-=crop.cost;this.inventory[id]++;this.saveFarm();this.refreshHud();this.refreshSelection();this.toast(`${crop.emoji} ${crop.name} seeds added to your bag`);}));
   }
   private toast(message:string): void {const el=document.getElementById('game-toast');if(!el)return;el.textContent=message;el.classList.add('show');window.setTimeout(()=>el.classList.remove('show'),2200);}
@@ -653,6 +662,7 @@ export class FarmScene extends Phaser.Scene {
       if (![1,2,3,4,5].includes(save.version) || !Array.isArray(save.plots)) return;
       this.coins = Math.max(0, Math.floor(save.coins));
       this.xp = Math.max(0, Math.floor(save.xp));
+      if(save.decor && typeof save.decor==='object') for(const [id,pos] of Object.entries(save.decor as Record<string,{col:number;row:number}>)){if(id in this.decor && Number.isInteger(pos.col)&&Number.isInteger(pos.row)&&pos.col>=0&&pos.col<COLS&&pos.row>=0&&pos.row<ROWS)this.decor[id]={col:pos.col,row:pos.row};}
       if (save.selectedCrop && save.selectedCrop in CROPS && Math.floor(this.xp / 100) + 1 >= CROPS[save.selectedCrop as CropId].unlockLevel) this.selectedCrop = save.selectedCrop as CropId;
       if (save.version >= 2 && save.inventory) this.inventory = {...this.inventory,...save.inventory};
       if (save.version >= 4 && save.feed) this.feed = {...this.feed,...save.feed};
@@ -667,7 +677,7 @@ export class FarmScene extends Phaser.Scene {
         plot.readyAt = saved.readyAt || 0;
         plot.witherAt = save.version >= 5 ? (saved.witherAt || 0) : 0;
         if (plot.state === 'ready' && plot.witherAt > 0) this.scheduleWithering(plot);
-        if (plot.state === 'growing') { const remaining=plot.readyAt ? plot.readyAt-Date.now() : (plot.watered ? 5000 : CROPS[plot.crop].growMs); if (remaining<=0) {plot.state='ready';plot.growth=100;plot.readyAt=0;plot.witherAt=Date.now()+Math.round(CROPS[plot.crop].growMs*1.2);this.scheduleWithering(plot);} else this.scheduleGrowth(plot,remaining); }
+        if (plot.state === 'growing') { const remaining=plot.readyAt ? plot.readyAt-Date.now() : (plot.watered ? 5000 : CROPS[plot.crop].growMs); if (remaining<=0) {plot.state='ready';plot.growth=100;plot.readyAt=0;plot.witherAt=Date.now()+Math.max(300000,CROPS[plot.crop].growMs*2);this.scheduleWithering(plot);} else this.scheduleGrowth(plot,remaining); }
         this.redrawPlot(plot);
       }
     } catch {
@@ -683,6 +693,7 @@ export class FarmScene extends Phaser.Scene {
       coins: this.coins,
       xp: this.xp,
       selectedCrop: this.selectedCrop,
+      decor: this.decor,
       inventory: {...this.inventory},
       feed: {...this.feed},
       plots: Array.from(this.plots.values()).map(plot => ({
