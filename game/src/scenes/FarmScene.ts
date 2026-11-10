@@ -311,7 +311,7 @@ export class FarmScene extends Phaser.Scene {
       // Legs sit behind the body so the animal reads as a single grounded character.
       const legs:Phaser.GameObjects.Graphics[]=[];
       const legXs=cow?[-13,-5,10,18]:[-7,5];
-      legXs.forEach((lx,legIndex)=>{
+      legXs.forEach((lx)=>{
         const leg=this.add.graphics();
         if(cow){
           leg.fillStyle(0xf2eee0,1);leg.fillRoundedRect(lx-3,-10,6,17,2);
