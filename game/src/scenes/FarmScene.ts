@@ -279,7 +279,7 @@ export class FarmScene extends Phaser.Scene {
     const home = this.toWorld(homePos.col, homePos.row);
     const barn = this.toWorld(barnPos.col, barnPos.row);
     this.drawBuilding(g, home.x, home.y - 12, 0xe7d4a0, 0xa84f3c, 'FARMHOUSE');
-    this.drawBuilding(g, barn.x, barn.y - 15, 0xc97855, 0x8e3e35, 'DAIRY BARN');
+    this.drawBarn(g,barn.x,barn.y-15);
     const coopPos=this.decor.coop!; const coop=this.toWorld(coopPos.col,coopPos.row);
     this.drawCoop(g,coop.x,coop.y-10);
     const siloPos=this.decor.silo!; const silo = this.toWorld(siloPos.col, siloPos.row);
@@ -422,6 +422,22 @@ export class FarmScene extends Phaser.Scene {
     });
   }
 
+  private drawBarn(g:Phaser.GameObjects.Graphics,x:number,y:number):void {
+    g.fillStyle(0x29482b,.25);g.fillEllipse(x+8,y+15,135,28);
+    g.fillStyle(0x9b7549,1);g.fillRoundedRect(x-49,y-2,100,12,3);
+    g.fillStyle(0xc97855,1);g.fillRect(x-39,y-47,78,48);
+    g.fillStyle(0xe49a6b,1);g.fillRect(x-35,y-43,70,4);
+    g.fillStyle(0x773c32,1);g.fillTriangle(x-54,y-43,x,y-91,x+54,y-43);
+    g.fillStyle(0x9b4439,1);g.fillPoints([{x:x-50,y:y-43},{x,y:y-86},{x:x+50,y:y-43},{x:x+35,y:y-35},{x,y:y-72},{x:x-35,y:y-35}],true);
+    g.fillStyle(0x713c32,1);g.fillRoundedRect(x-22,y-36,44,36,3);
+    g.lineStyle(3,0xe4c18b,1);g.strokeRect(x-22,y-36,44,36);g.beginPath();g.moveTo(x,y-35);g.lineTo(x,y);g.strokePath();
+    g.fillStyle(0x4d332b,1);g.fillRect(x-8,y-13,16,13);
+    g.fillStyle(0xf0d79b,1);g.fillRect(x-31,y-59,62,10);
+    g.fillStyle(0x6f3c31,1);g.fillTriangle(x-7,y-60,x,y-72,x+7,y-60);
+    g.fillStyle(0xb9dfe6,1);g.fillRect(x-8,y-55,16,5);
+    g.lineStyle(2,0x6f3b31,1);g.beginPath();g.moveTo(x-39,y-18);g.lineTo(x-28,y-18);g.moveTo(x+28,y-18);g.lineTo(x+39,y-18);g.strokePath();
+    this.sceneryLabels.push(this.add.text(x,y+20,'DAIRY BARN',{fontFamily:'Arial',fontSize:'8px',fontStyle:'bold',color:'#526c39'}).setOrigin(.5));
+  }
   private drawCoop(g:Phaser.GameObjects.Graphics,x:number,y:number):void {
     g.fillStyle(0x29482b,.25);g.fillEllipse(x+4,y+14,118,24);
     g.fillStyle(0x80603b,1);g.fillRoundedRect(x-45,y-3,90,12,3);
@@ -977,7 +993,7 @@ export class FarmScene extends Phaser.Scene {
       this.claimedQuests = Array.isArray(save.claimedQuests) ? save.claimedQuests.filter((id:string)=>(['first-harvest','busy-farmer','first-hen','first-cow','better-coop','bigger-silo'].includes(id) || this.randomQuests.some(q=>q.id===id))) : [];
       this.ordersCompleted = save.version >= 9 && save.ordersCompleted && typeof save.ordersCompleted === 'object' ? Object.fromEntries(Object.entries(save.ordersCompleted).map(([id,count])=>[id,Math.max(0,Math.floor(Number(count)||0))]).filter(([id])=>['egg-crate','milk-run','farm-breakfast'].includes(String(id)))) : {};
       this.xp = Math.max(0, Math.floor(save.xp));
-      if(save.decor && typeof save.decor==='object') for(const [id,pos] of Object.entries(save.decor as Record<string,{col:number;row:number}>)){if((id in this.decor || /^(appleTree|pearTree|cherryTree|flowerbed|fountain|scarecrow|bench)\\d+$/.test(id)) && Number.isInteger(pos.col)&&Number.isInteger(pos.row)&&pos.col>=0&&pos.col<COLS&&pos.row>=0&&pos.row<ROWS)this.decor[id]={col:pos.col,row:pos.row};}
+      if(save.decor && typeof save.decor==='object') for(const [id,pos] of Object.entries(save.decor as Record<string,{col:number;row:number}>)){if((id in this.decor || /^(appleTree|pearTree|cherryTree|flowerbed|fountain|scarecrow|bench|bakery|greenhouse|windmill)\\d*$/.test(id)) && Number.isInteger(pos.col)&&Number.isInteger(pos.row)&&pos.col>=0&&pos.col<COLS&&pos.row>=0&&pos.row<ROWS)this.decor[id]={col:pos.col,row:pos.row};}
       if (save.selectedCrop && save.selectedCrop in CROPS && Math.floor(this.xp / 100) + 1 >= CROPS[save.selectedCrop as CropId].unlockLevel) this.selectedCrop = save.selectedCrop as CropId;
       if (save.version >= 2 && save.inventory) this.inventory = {...this.inventory,...save.inventory};
       if (save.version >= 4 && save.feed) this.feed = {...this.feed,...save.feed};
@@ -1005,7 +1021,10 @@ export class FarmScene extends Phaser.Scene {
 
   private saveFarm(): void {
     const save: FarmSave = {
-      version: 10,
+      version: 11,
+      farmerName:this.farmerName,
+      farmName:this.farmName,
+      buildingLevels:{...this.buildingLevels},
       randomQuests: this.randomQuests,
       ordersCompleted: {...this.ordersCompleted},
       claimedQuests: [...this.claimedQuests],
