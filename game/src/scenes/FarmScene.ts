@@ -623,38 +623,31 @@ export class FarmScene extends Phaser.Scene {
   private pinchDistance = 0;
 
   private handleWorldTap(pointer: Phaser.Input.Pointer): void {
-    const world = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
-    if (this.activeTool === 'select') {
-      const fruitTreeHit=Object.keys(this.decor).find(id=>this.fruitKind(id)!==null&&(()=>{const p=this.toWorld(this.decor[id]!.col,this.decor[id]!.row);return Phaser.Math.Distance.Between(world.x,world.y-38,p.x,p.y-49)<42;})());
-      if(fruitTreeHit){this.harvestFruitTree(fruitTreeHit);return;}
-      const buildingHit = (['coop','barn','silo','bakery','greenhouse','windmill'] as const).find(id => {
-        const p=this.toWorld(this.decor[id]!.col,this.decor[id]!.row);
-        return Math.abs(world.x-p.x)<57 && Math.abs(world.y-(p.y-28))<62;
-      });
-      if(buildingHit){if(buildingHit==='coop'||buildingHit==='barn')this.openBuilding(buildingHit);else this.openGenericBuilding(buildingHit);return;}
-    }
-    if (this.activeTool === 'move') {
-      const hit=Object.keys(this.decor).find(id=>{
-        const p=this.toWorld(this.decor[id]!.col,this.decor[id]!.row);
-        return Phaser.Math.Distance.Between(world.x,world.y,p.x,p.y)<58;
-      });
-      this.movingDecor=hit||null;
-      if(hit)this.toast('Moving '+hit+'. Drag to a new tile.');
-      return;
+    const world=this.cameras.main.getWorldPoint(pointer.x,pointer.y);
+    if(this.activeTool==='move'){
+      const hit=Object.keys(this.decor).find(id=>{const p=this.toWorld(this.decor[id]!.col,this.decor[id]!.row);return Phaser.Math.Distance.Between(world.x,world.y,p.x,p.y)<58;});
+      this.movingDecor=hit||null;if(hit)this.toast('Moving '+hit+'. Drag to a new tile.');return;
     }
     const tile=this.toTile(world.x,world.y);
-    if(!tile)return;
-    const plot=this.plots.get(this.key(tile.col,tile.row));
-    if(!plot)return;
-    this.selected=plot;
-    if(this.activeTool==='select'&&(plot.state==='tilled'||plot.state==='grass'||plot.state==='withered')){this.openFieldSeedPicker();this.refreshSelection();this.drawSelection();return;}
-    if(this.activeTool==='plant'){
-      if(plot.state==='tilled'){this.sowSelectedPlot();return;}
-      if(plot.state==='grass'||plot.state==='withered'){this.toast('Plow this field first, then tap it to sow.');return;}
+    const plot=tile?this.plots.get(this.key(tile.col,tile.row)):undefined;
+    // Field interaction takes priority over nearby scenery hitboxes. This prevents
+    // buildings and orchard trees from swallowing taps on prepared soil.
+    if(plot&&(this.activeTool!=='select'||plot.state==='tilled'||plot.state==='grass'||plot.state==='withered')){
+      this.selected=plot;
+      if(this.activeTool==='select'){this.openFieldSeedPicker();this.refreshSelection();this.drawSelection();return;}
+      if(this.activeTool==='plant'){
+        if(plot.state==='tilled'){this.sowSelectedPlot();return;}
+        if(plot.state==='grass'||plot.state==='withered'){this.toast('Plow this field first, then tap it to sow.');return;}
+      }
+      this.applyTool(plot);this.refreshSelection();this.drawSelection();return;
     }
-    this.applyTool(plot);
-    this.refreshSelection();
-    this.drawSelection();
+    if(this.activeTool==='select'){
+      const fruitTreeHit=Object.keys(this.decor).find(id=>this.fruitKind(id)!==null&&(()=>{const p=this.toWorld(this.decor[id]!.col,this.decor[id]!.row);return Phaser.Math.Distance.Between(world.x,world.y-38,p.x,p.y-49)<42;})());
+      if(fruitTreeHit){this.harvestFruitTree(fruitTreeHit);return;}
+      const buildingHit=(['coop','barn','silo','bakery','greenhouse','windmill'] as const).find(id=>{const pos=this.decor[id];if(!pos)return false;const p=this.toWorld(pos.col,pos.row);return Math.abs(world.x-p.x)<57&&Math.abs(world.y-(p.y-28))<62;});
+      if(buildingHit){if(buildingHit==='coop'||buildingHit==='barn')this.openBuilding(buildingHit);else this.openGenericBuilding(buildingHit);return;}
+    }
+    if(plot){this.selected=plot;this.applyTool(plot);this.refreshSelection();this.drawSelection();}
   }
 
   private bindWorldInput(): void {
