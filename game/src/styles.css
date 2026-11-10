@@ -729,3 +729,70 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
  .market-buy{min-width:78px;padding:8px 7px;font-size:10px}
 }
 @media(prefers-reduced-motion:reduce){.market-tab,.market-item,.market-buy{transition:none!important}}
+
+
+/* Mobile playability: icon rail, compact controls, safe-area layout and finger-sized targets. */
+@media (max-width:700px){
+  html,body{overscroll-behavior:none;touch-action:pan-x pan-y}
+  body{min-height:100svh}
+  #app{padding:env(safe-area-inset-top) 5px env(safe-area-inset-bottom);height:100svh;height:100dvh;display:flex;flex-direction:column;gap:4px}
+  .topbar{grid-template-columns:minmax(0,1fr) auto;min-height:62px;padding:5px 7px;border-radius:0 0 14px 14px}
+  .farmer-hud .avatar{flex:0 0 34px}
+  .resources{grid-column:1/-1;grid-row:2;min-width:0}
+  .top-actions{flex-wrap:nowrap;max-width:46vw;overflow-x:auto;scrollbar-width:none}
+  .top-actions::-webkit-scrollbar{display:none}
+  .top-actions>button{flex:0 0 36px;width:36px;height:36px;min-width:36px;border-radius:11px}
+  .top-actions>#cloud-account{flex:0 0 auto;min-width:64px;height:34px}
+  .game-shell{position:relative;display:block;flex:1;min-height:0;height:auto;margin:0;padding:0;overflow:hidden}
+  .world-panel{position:absolute;inset:0;min-height:0!important;border-width:4px;border-radius:14px;touch-action:none}
+  #game.game-canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;overscroll-behavior:contain}
+  #game.game-canvas canvas{width:100%!important;height:100%!important;object-fit:fill;touch-action:none}
+  /* Left navigation stays visible but becomes a slim icon-only launcher. */
+  .left-nav{position:absolute;z-index:12;top:62px;left:5px;display:flex;flex-direction:column;gap:7px;padding:5px;border:1px solid #fff9;border-radius:15px;background:#fff0d8d9;box-shadow:0 3px 12px #253d2360;backdrop-filter:blur(6px)}
+  .left-nav button{position:relative;display:grid;place-items:center;width:42px;height:42px;min-width:42px;padding:0;border:2px solid #d6b778;border-radius:12px;background:linear-gradient(#fff9e8,#eddbb4);box-shadow:0 2px 0 #9a7548}
+  .left-nav button span{font-size:21px;line-height:1}
+  .left-nav button small{display:none!important}
+  .left-nav button .alert-dot{position:absolute;right:-4px;top:-5px;width:15px;height:15px;border-radius:50%;font-size:10px;line-height:15px}
+  .world-label{left:58px;top:8px;padding:5px 9px;font-size:9px}
+  .activity-drawer{z-index:20;left:55px;top:58px;bottom:118px;width:min(310px,calc(100% - 66px));max-height:none;overflow:auto;border-radius:15px}
+  .field-toolbar{z-index:10;left:5px;right:5px;bottom:max(5px,env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:stretch;gap:5px;min-height:0;padding:6px;border-radius:15px;background:linear-gradient(#fff8e9f2,#e8d09ef2);backdrop-filter:blur(7px);box-shadow:0 3px 0 #78552f,0 5px 14px #243d2460}
+  .dock-management{display:flex;width:100%;gap:5px}
+  .dock-button{flex:1 1 0;min-width:0;min-height:43px;padding:3px 1px;border-radius:10px}
+  .dock-button span{display:block;font-size:20px;line-height:1.1}
+  .dock-button small{display:block;font-size:8px;line-height:1.1;margin-top:2px}
+  .dock-divider{width:100%;height:1px;flex:0 0 1px}
+  .field-toolbar .tool-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));width:100%;gap:5px;margin:0}
+  .field-toolbar .tool{width:auto;min-width:0;min-height:48px;height:48px;padding:3px 0;border-radius:10px;touch-action:manipulation}
+  .field-toolbar .tool span{font-size:20px;line-height:1.1}
+  .field-toolbar .tool small{font-size:8px;line-height:1.1;margin-top:3px}
+  .world-hint{display:none}
+  .toast{bottom:125px;max-width:calc(100vw - 32px);text-align:center}
+  button,.dock-button,.tool{touch-action:manipulation}
+}
+@media(max-width:390px){
+  .left-nav{top:57px;left:3px;padding:4px;gap:5px}
+  .left-nav button{width:38px;height:40px;min-width:38px}
+  .left-nav button span{font-size:19px}
+  .world-label{left:52px}
+  .field-toolbar{left:3px;right:3px;padding:5px;gap:4px}
+  .dock-button{min-height:39px}
+  .dock-button span{font-size:18px}
+  .dock-button small{font-size:7px}
+  .field-toolbar .tool{height:45px;min-height:45px}
+  .field-toolbar .tool span{font-size:18px}
+  .field-toolbar .tool small{font-size:7px}
+}
+@media(orientation:landscape) and (max-height:520px) and (max-width:900px){
+  #app{padding:2px 4px}
+  .topbar{min-height:48px;grid-template-columns:auto 1fr auto;padding:3px 6px}
+  .resources{grid-column:2;grid-row:1}
+  .game-shell{min-height:0}
+  .left-nav{top:5px;flex-direction:row}
+  .field-toolbar{left:54px;right:5px;bottom:4px;flex-direction:row;align-items:center;gap:5px;padding:4px}
+  .dock-management{width:auto;flex:0 0 36%;}
+  .dock-button{min-height:38px}
+  .dock-button small{display:none}
+  .dock-divider{width:1px;height:38px;flex:0 0 1px}
+  .field-toolbar .tool-grid{flex:1}
+  .field-toolbar .tool{height:42px;min-height:42px}
+}
