@@ -166,3 +166,9 @@ body{background:linear-gradient(180deg,#a7ddf6 0,#d9f1f8 190px,#a9d579 191px,#77
 .crop-choice select{width:100%;max-width:100%;padding:10px 12px;border:1px solid #b8d49c;border-radius:9px;background:#fff;color:#264a25;font:inherit;font-weight:650;cursor:pointer}
 .crop-choice select:focus-visible{outline:3px solid #92c86d;outline-offset:2px}
 .crop-choice small{font-size:12px;color:#5e784d}
+
+
+/* Phase 2 animal building management */
+.animal-progress{display:grid;grid-template-columns:1fr auto;gap:6px 12px;align-items:center;padding:9px 12px;margin:7px 0;background:#f8f3e8;border:1px solid #eadfc8;border-radius:12px;color:#624c30;font-size:13px}
+.animal-progress strong{font-size:12px;color:#7c6b4c}.production-track{grid-column:1/-1;height:8px;overflow:hidden;background:#e6dfce;border-radius:99px}.production-track i{display:block;height:100%;background:linear-gradient(90deg,#85bd59,#d4b64e);border-radius:99px;transition:width .35s ease}.building-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}.building-actions .market-buy{flex:1;min-width:145px}
+@media(max-width:520px){.building-actions{flex-direction:column}.building-actions .market-buy{width:100%}}
