@@ -357,3 +357,52 @@ button,.tool,select{touch-action:manipulation}
 
 /* Live crop hover status */
 .crop-hover-tooltip{position:absolute;z-index:30;pointer-events:none;display:flex;flex-direction:column;gap:3px;min-width:128px;max-width:180px;padding:8px 11px;background:linear-gradient(145deg,#fff9df,#f0d99c);border:2px solid #9b713c;border-radius:10px;box-shadow:0 3px 0 #68482c,0 8px 18px #1d321d55;color:#4d3825;font-size:11px;line-height:1.25;white-space:nowrap}.crop-hover-tooltip strong{font-size:12px;color:#4c7135}.crop-hover-tooltip span{font-weight:700}
+
+/* Full-screen FarmVille-inspired game composition */
+@media(min-width:701px){
+ html,body{width:100%;height:100%;min-height:0;overflow:hidden}
+ #app{width:100%;height:100svh;max-width:none;margin:0;padding:8px 12px 10px;display:flex;flex-direction:column;overflow:hidden;background:#26452a}
+ .topbar{height:78px;min-height:78px;flex:0 0 78px;display:grid;grid-template-columns:minmax(300px,360px) minmax(300px,1fr) auto;align-items:center;gap:18px;padding:5px 12px;background:linear-gradient(180deg,#47351f,#251d15);border:3px solid #b58b4d;border-radius:20px;box-shadow:0 4px 0 #17130e,0 8px 20px #09190e80;color:#fff4d5}
+ .farmer-hud{height:62px;display:flex;align-items:center;gap:10px;padding:4px 10px;background:linear-gradient(140deg,#81552d,#3b281b);border:2px solid #d8b36e;border-radius:15px;box-shadow:inset 0 1px #fff7}
+ .farmer-hud .avatar{width:48px;height:48px;display:grid;place-items:center;border-radius:50%;background:radial-gradient(circle at 35% 25%,#ffe0a0,#c77a36 70%,#6d3d1d);border:2px solid #f4cf82;font-size:32px}
+ .farmer-meta{flex:1;min-width:0;display:grid;grid-template-columns:1fr auto;align-items:center;gap:2px 8px}
+ .farmer-title{display:flex;align-items:center;gap:6px;min-width:0}.farmer-title strong{font:800 17px 'Baloo 2',Nunito,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff8e8;text-shadow:0 2px #392719}.farmer-title button,.settings-mini{width:28px;height:28px;border:1px solid #e1bd79;border-radius:50%;background:linear-gradient(#fff1c6,#c99a4c);color:#4d3219;font-size:15px;cursor:pointer}
+ .farmer-meta .level{grid-column:1/-1;justify-self:start;padding:1px 8px;border-radius:8px;background:linear-gradient(#b45cff,#6b26c2);border:1px solid #e2b4ff;color:#fff;font-size:10px;font-weight:900}
+ .xp-line{height:7px;grid-column:1/-1;overflow:hidden;border:1px solid #b5d4ef;border-radius:8px;background:#153f6d}.xp-line i{display:block;width:0;height:100%;background:linear-gradient(90deg,#3b9cf2,#a3e7ff)}
+ .farmer-meta>small{grid-column:1/-1;text-align:right;font-size:9px;color:#f3dfb9;line-height:1}
+ .settings-mini{flex:0 0 28px}
+ .resources{display:flex;align-items:center;justify-content:center;gap:12px;min-width:0}
+ .resources .resource{min-width:140px;height:48px;display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:8px;padding:5px 9px;background:linear-gradient(#493b29,#211a13);border:2px solid #b98d4b;border-radius:28px;box-shadow:inset 0 1px #fff6,0 2px #120f0b}
+ .resources .resource small{display:none}.resources .resource strong{font:900 18px 'Baloo 2',Nunito,sans-serif;color:white;text-shadow:0 2px #382819}
+ .resource-icon{width:30px;height:30px;display:grid;place-items:center;border-radius:50%;font-size:21px}
+ .coin-resource .resource-icon{background:radial-gradient(#ffe68b,#e89b19);color:#fff}.xp-resource .resource-icon{background:radial-gradient(#f4baff,#8129d1)}
+ .resources .resource button{width:27px;height:27px;border:1px solid #d2efaa;border-radius:50%;background:linear-gradient(#a5e86b,#3b9e24);color:white;font-size:20px;font-weight:900;line-height:1;cursor:pointer}
+ .top-actions{display:flex;gap:8px}.top-actions button{width:47px;height:47px;border:2px solid #c49c5c;border-radius:50%;background:linear-gradient(#665035,#281e14);box-shadow:inset 0 1px #fff8,0 3px #15100b;color:white;font-size:23px;cursor:pointer}
+ .game-shell{position:relative;flex:1 1 auto;min-height:0;display:block;padding:9px 0 0}
+ .world-panel{position:absolute;inset:0;width:100%;height:100%;min-height:0;border:0;border-radius:0;background:linear-gradient(#497b37,#315a2d);overflow:hidden;box-shadow:none}
+ .game-canvas{position:absolute;inset:0;width:100%;height:100%;border:0;border-radius:0}
+ #game canvas{display:block;width:100%!important;height:100%!important}
+ .world-label{position:absolute;z-index:5;top:10px;left:82px;padding:7px 14px;border:2px solid #cba66a;border-radius:12px;background:#3b2b1ddd;color:#ffefc9;font:800 13px 'Baloo 2';box-shadow:0 3px #21180f}
+ .world-hint{display:none}
+ .left-nav{position:absolute;z-index:10;left:7px;top:20px;display:flex;flex-direction:column;gap:9px}
+ .left-nav button{position:relative;width:70px;height:76px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;border:3px solid #d5b47c;border-radius:17px;background:linear-gradient(145deg,#705236,#302116);box-shadow:0 4px #1b150e, inset 0 1px #fff8;color:#fff8e7;cursor:pointer}
+ .left-nav button span{font-size:30px;line-height:1.1;filter:drop-shadow(0 2px 1px #21170e)}.left-nav button small{font-size:11px;font-weight:900;text-shadow:0 1px #21170e}.left-nav button:hover{transform:translateX(3px);filter:brightness(1.12)}.alert-dot{position:absolute;right:-5px;top:-6px;width:22px;height:22px;display:grid;place-items:center;border-radius:50%;background:#ec3030;color:white;border:2px solid #ffdfac;font-size:12px}
+ .field-toolbar{position:absolute;z-index:9;left:8%;right:8%;bottom:8px;min-height:102px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:7px 14px;background:linear-gradient(180deg,#4b3926f5,#211a13f8);border:3px solid #c5a36c;border-radius:26px;box-shadow:0 5px 0 #17120d,0 9px 22px #15240f80,inset 0 1px #fff7}
+ .dock-management{display:flex;align-items:center;justify-content:space-around;gap:8px;flex:1.1;min-width:0}
+ .dock-button{position:relative;min-width:64px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:3px 6px;border:0;background:transparent;color:#fff5df;cursor:pointer;text-shadow:0 2px #18120c}
+ .dock-button span{font-size:37px;line-height:1.1;filter:drop-shadow(0 3px 2px #100d08)}.dock-button small{font-size:13px;font-weight:900}.dock-button b{position:absolute;top:0;right:0;min-width:17px;height:17px;padding:0 4px;border-radius:10px;background:#df3e2d;color:white;font-size:10px}
+ .dock-button:hover{transform:translateY(-4px);filter:brightness(1.15)}
+ .dock-divider{width:2px;height:70px;background:linear-gradient(transparent,#d2b57c,transparent);margin:0 4px}
+ .field-toolbar .tool-grid{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex:1;min-width:0;margin:0}
+ .field-toolbar .tool{width:86px;min-width:62px;height:84px;min-height:84px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:4px;border:2px solid #9d8056;border-radius:17px;background:linear-gradient(#55412b,#2d2117);box-shadow:0 3px #15100b,inset 0 1px #fff6;color:#fff5df}
+ .field-toolbar .tool span{font-size:35px;line-height:1.15}.field-toolbar .tool small{font-size:13px;font-weight:900}.field-toolbar .tool.active{background:linear-gradient(#2897f0,#0751b8);border:3px solid #ffdc4c;box-shadow:0 0 12px #ffd74e,0 3px #102b52;color:white}
+ .activity-drawer{position:absolute;z-index:15;left:86px;top:18px;bottom:125px;width:min(360px,40vw);overflow:auto;padding:12px;background:linear-gradient(145deg,#fff9e6,#ead5a8);border:4px solid #b58a4e;border-radius:18px;box-shadow:0 6px 0 #3a2818,0 12px 28px #101b0e88;display:none}
+ .activity-drawer.open{display:block}.activity-drawer header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid #d6bd8f;color:#65472a;font:900 17px 'Baloo 2'}.activity-drawer header button{width:30px;height:30px;border:0;border-radius:50%;background:#5a4027;color:#fff;font-size:22px;cursor:pointer}
+ .activity-drawer .rail-cards{display:grid;gap:8px}.activity-drawer .market-item{padding:8px;gap:8px;min-height:70px;border-radius:12px}.activity-drawer .market-art{width:40px;height:40px;flex-basis:40px;font-size:22px}.activity-drawer .market-copy strong{font-size:12px}.activity-drawer .market-copy small{font-size:10px}.activity-drawer .market-buy{font-size:10px;padding:7px}
+ .drawer-hidden{display:none!important}
+ .footer{display:none}
+}
+@media(max-width:700px){
+ #app{padding:5px;height:100svh}.topbar{display:grid;grid-template-columns:1fr auto;height:auto;min-height:68px;flex:0 0 auto;padding:5px 7px;gap:5px}.farmer-hud{display:flex;gap:5px;min-width:0}.farmer-hud .avatar{width:36px;height:36px;font-size:24px}.farmer-title strong{font-size:13px}.farmer-meta .level{font-size:8px}.farmer-meta>small{font-size:8px}.settings-mini{display:none}.resources{grid-column:1/-1;grid-row:2;display:flex;gap:5px}.resources .resource{min-width:0;flex:1;height:35px}.resources .resource strong{font-size:13px}.resource-icon{width:23px;height:23px;font-size:17px}.top-actions{gap:4px}.top-actions button{width:31px;height:31px;font-size:15px}.game-shell{display:block;flex:1;min-height:0;padding-top:5px}.world-panel{position:absolute;inset:0}.left-nav{top:8px;left:5px;gap:5px}.left-nav button{width:44px;height:48px;border-width:2px;border-radius:11px}.left-nav button span{font-size:19px}.left-nav button small{font-size:7px}.field-toolbar{left:3px;right:3px;bottom:5px;min-height:0;padding:5px;gap:5px;border-radius:16px;flex-direction:column}.dock-management{width:100%;gap:2px}.dock-button{min-width:0;flex:1;padding:1px}.dock-button span{font-size:22px}.dock-button small{font-size:8px}.dock-divider{width:100%;height:1px}.field-toolbar .tool-grid{width:100%;justify-content:space-around;gap:4px}.field-toolbar .tool{width:auto;min-width:0;flex:1;height:50px;min-height:50px;border-radius:10px}.field-toolbar .tool span{font-size:20px}.field-toolbar .tool small{font-size:8px}.activity-drawer{left:54px;top:8px;bottom:125px;width:min(300px,calc(100vw - 70px));padding:8px}.world-label{left:55px;top:7px;font-size:9px}.world-hint{display:none}
+}
+@media(max-width:390px){.top-actions button{width:27px;height:27px}.field-toolbar .tool span{font-size:17px}.field-toolbar .tool small{font-size:7px}.dock-button span{font-size:19px}}
