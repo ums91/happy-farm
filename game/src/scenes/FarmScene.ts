@@ -827,12 +827,6 @@ export class FarmScene extends Phaser.Scene {
     }).join('');
     host.innerHTML='<section class="inventory-section"><h3>🌱 Choose a seed · Field '+(this.selected? (this.selected.col+1)+', '+(this.selected.row+1):'')+' · '+selected+'</h3><p>Selecting a crop will sow this field immediately. The seed is taken from your bag, or purchased for '+CROPS[this.selectedCrop].cost+' coins if you have none.</p><div class="quest-list">'+rows+'</div></section>';
   }
-  private buyFieldSeed(seedId:string):void {
-    const id=seedId as CropId;
-    if(!CROPS[id]||Math.floor(this.xp/100)+1<CROPS[id].unlockLevel)return;
-    const cost=CROPS[id].cost;if(this.coins<cost){this.toast('Not enough coins to buy these seeds.');return;}
-    this.coins-=cost;this.inventory[id]++;this.selectedCrop=id;this.saveFarm();this.refreshHud();this.renderFieldSeedPicker();this.toast(CROPS[id].name+' seed added to your bag.');
-  }
   private sowSelectedPlot():void {
     const plot=this.selected;if(!plot)return;
     const crop=CROPS[this.selectedCrop];if(Math.floor(this.xp/100)+1<crop.unlockLevel){this.toast('Reach Level '+crop.unlockLevel+' to unlock '+crop.name+'.');return;}
