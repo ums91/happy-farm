@@ -2,13 +2,15 @@ import Phaser from 'phaser';
 
 type Tool = 'select' | 'plow' | 'plant' | 'water' | 'harvest';
 type PlotState = 'grass' | 'tilled' | 'growing' | 'ready';
-interface Plot { col: number; row: number; state: PlotState; watered: boolean; growth: number }
-interface FarmSave {
-  version: 1;
-  coins: number;
-  xp: number;
-  plots: Array<{ col: number; row: number; state: PlotState; watered: boolean; growth: number }>;
-}
+type CropId = 'wheat' | 'carrot' | 'corn' | 'strawberry';
+interface Plot { col: number; row: number; state: PlotState; watered: boolean; growth: number; crop: CropId; readyAt: number }
+interface FarmSave { version: 2; coins: number; xp: number; inventory: Record<CropId, number>; plots: Array<{ col:number; row:number; state:PlotState; watered:boolean; growth:number; crop?:CropId; readyAt?:number }> }
+const CROPS: Record<CropId,{name:string;emoji:string;cost:number;reward:number;xp:number;growMs:number;color:number}> = {
+ wheat:{name:'Wheat',emoji:'🌾',cost:5,reward:18,xp:5,growMs:15000,color:0xe4b83f},
+ carrot:{name:'Carrot',emoji:'🥕',cost:9,reward:31,xp:8,growMs:22000,color:0xef873e},
+ corn:{name:'Corn',emoji:'🌽',cost:14,reward:48,xp:12,growMs:30000,color:0xf2c94c},
+ strawberry:{name:'Strawberry',emoji:'🍓',cost:20,reward:70,xp:18,growMs:42000,color:0xd94f55}
+};
 
 const COLS = 13;
 const ROWS = 11;
@@ -27,6 +29,8 @@ export class FarmScene extends Phaser.Scene {
   private activeTool: Tool = 'select';
   private coins = 250;
   private xp = 0;
+  private inventory: Record<CropId,number> = {wheat:3,carrot:0,corn:0,strawberry:0};
+  private selectedCrop: CropId = 'wheat';
   private cameraDragging = false;
   private dragPoint = new Phaser.Math.Vector2();
   private readonly saveKey = 'happyFarmPhaserSaveV1';
@@ -43,6 +47,7 @@ export class FarmScene extends Phaser.Scene {
     this.drawScenery();
     this.bindWorldInput();
     this.bindToolbar();
+    this.bindMarket();
     this.refreshHud();
     this.refreshSelection();
     this.input.on('wheel', (_pointer: Phaser.Input.Pointer, _objects: unknown[], _dx: number, dy: number) => {
@@ -85,7 +90,7 @@ export class FarmScene extends Phaser.Scene {
     for (let row = 0; row < ROWS; row += 1) {
       for (let col = 0; col < COLS; col += 1) {
         const point = this.toWorld(col, row);
-        this.plots.set(this.key(col, row), { col, row, state: 'grass', watered: false, growth: 0 });
+        this.plots.set(this.key(col, row), { col, row, state: 'grass', watered: false, growth: 0, crop: 'wheat', readyAt: 0 });
         const shades = [0x9bcf69, 0xa5d875, 0x94c762, 0xaedb7d, 0x9fce70];
         this.diamond(this.plotGraphics, point.x, point.y, shades[(col * 7 + row * 11) % shades.length] ?? 0x9bcf69, 0x78ae54);
         if ((col * 3 + row * 5) % 13 === 0) this.drawGrassTuft(point.x, point.y);
@@ -269,13 +274,13 @@ export class FarmScene extends Phaser.Scene {
         if (plot.state === 'grass') plot.state = 'tilled';
         break;
       case 'plant':
-        if (plot.state === 'tilled' && this.coins >= 5) { plot.state = 'growing'; plot.growth = 0; this.coins -= 5; this.scheduleGrowth(plot, 15000); }
+        if (plot.state === 'tilled' && this.inventory[this.selectedCrop] > 0) { plot.state = 'growing'; plot.crop = this.selectedCrop; plot.growth = 0; this.inventory[this.selectedCrop]--; this.scheduleGrowth(plot, CROPS[this.selectedCrop].growMs); }
         break;
       case 'water':
-        if (plot.state === 'growing') { plot.watered = true; this.scheduleGrowth(plot, 5000); }
+        if (plot.state === 'growing' && !plot.watered) { plot.watered = true; this.scheduleGrowth(plot, Math.max(1500, Math.ceil((plot.readyAt - Date.now()) / 2))); }
         break;
       case 'harvest':
-        if (plot.state === 'ready') { plot.state = 'tilled'; plot.growth = 0; this.growthTimers.get(this.key(plot.col, plot.row))?.remove(false); this.growthTimers.delete(this.key(plot.col, plot.row)); this.coins += 18; this.xp += 5; }
+        if (plot.state === 'ready') { const crop=CROPS[plot.crop]; plot.state='tilled'; plot.growth=0; plot.readyAt=0; plot.watered=false; this.growthTimers.get(this.key(plot.col,plot.row))?.remove(false); this.growthTimers.delete(this.key(plot.col,plot.row)); this.coins+=crop.reward; this.xp+=crop.xp; this.toast(`${crop.emoji} ${crop.name} harvested · +${crop.reward} coins`); }
         break;
       case 'select':
         break;
@@ -287,10 +292,12 @@ export class FarmScene extends Phaser.Scene {
 
   private scheduleGrowth(plot: Plot, delay: number): void {
     const id = this.key(plot.col, plot.row);
+    plot.readyAt = Date.now() + delay;
     this.growthTimers.get(id)?.remove(false);
     this.growthTimers.set(id, this.time.delayedCall(delay, () => {
       plot.state = 'ready';
       plot.growth = 100;
+      plot.readyAt = 0;
       this.redrawPlot(plot);
       if (this.selected === plot) this.refreshSelection();
       this.saveFarm();
@@ -322,7 +329,7 @@ export class FarmScene extends Phaser.Scene {
     g.beginPath(); g.moveTo(x, y + 2); g.lineTo(x - 2, y - height); g.strokePath();
     g.beginPath(); g.moveTo(x - 1, y - height * 0.45); g.lineTo(x - 12, y - height * 0.7); g.strokePath();
     g.beginPath(); g.moveTo(x - 1, y - height * 0.65); g.lineTo(x + 11, y - height * 0.9); g.strokePath();
-    g.fillStyle(plot.state === 'ready' ? 0xe4b83f : 0x70a94f, 1);
+    g.fillStyle(plot.state === 'ready' ? CROPS[plot.crop].color : 0x70a94f, 1);
     g.fillCircle(x - 2, y - height, plot.state === 'ready' ? 5 : 3);
     if (plot.state === 'ready') {
       g.fillStyle(0xf6d86b, 1);
@@ -363,21 +370,42 @@ export class FarmScene extends Phaser.Scene {
   }
 
 
+  private bindMarket(): void {
+    document.getElementById('market-open')?.addEventListener('click',()=>this.openMarket());
+    document.getElementById('inventory-open')?.addEventListener('click',()=>this.openMarket());
+    document.querySelectorAll<HTMLElement>('[data-close-modal]').forEach(x=>x.addEventListener('click',()=>this.closeMarket()));
+    document.getElementById('market-modal')?.addEventListener('click',e=>{if(e.target===e.currentTarget)this.closeMarket();});
+    document.querySelectorAll<HTMLButtonElement>('[data-market-tab]').forEach(tab=>tab.addEventListener('click',()=>{document.querySelectorAll('[data-market-tab]').forEach(x=>x.classList.remove('active'));tab.classList.add('active');const cat=tab.dataset.marketTab||'seeds';const intro=document.getElementById('market-intro');if(intro)intro.textContent=cat==='seeds'?'Buy seeds, then choose Plant and tap a prepared field.':'Animal care and farm decorations are planned for a coming update.';this.renderMarket(cat);}));
+    document.addEventListener('keydown',e=>{if(e.key==='Escape')this.closeMarket();});
+  }
+  private openMarket(): void {document.getElementById('market-modal')?.classList.add('open');document.getElementById('market-modal')?.setAttribute('aria-hidden','false');this.renderMarket();}
+  private closeMarket(): void {document.getElementById('market-modal')?.classList.remove('open');document.getElementById('market-modal')?.setAttribute('aria-hidden','true');}
+  private renderMarket(category='seeds'): void {
+    const host=document.getElementById('market-items');if(!host)return;
+    if(category!=='seeds'){host.innerHTML='<article class="market-item"><div class="market-art">🚧</div><div class="market-copy"><strong>Coming soon</strong><small>This part of your farm is being built.</small></div></article>';return;}
+    host.innerHTML=(Object.entries(CROPS) as Array<[CropId,typeof CROPS[CropId]]>).map(([id,crop])=>`<article class="market-item"><div class="market-art">${crop.emoji}</div><div class="market-copy"><strong>${crop.name}</strong><small>${crop.growMs/1000}s · reward ${crop.reward} coins · bag: ${this.inventory[id]}</small></div><button class="market-buy" data-buy-seed="${id}" ${this.coins<crop.cost?'disabled':''}>🪙 ${crop.cost} · Buy</button></article>`).join('');
+    host.querySelectorAll<HTMLButtonElement>('[data-buy-seed]').forEach(btn=>btn.addEventListener('click',()=>{const id=btn.dataset.buySeed as CropId;const crop=CROPS[id];if(!crop||this.coins<crop.cost)return;this.coins-=crop.cost;this.inventory[id]++;this.selectedCrop=id;this.saveFarm();this.refreshHud();this.refreshSelection();this.toast(`${crop.emoji} ${crop.name} seeds added to your bag`);}));
+  }
+  private toast(message:string): void {const el=document.getElementById('game-toast');if(!el)return;el.textContent=message;el.classList.add('show');window.setTimeout(()=>el.classList.remove('show'),2200);}
+
   private loadFarm(): void {
     try {
       const raw = localStorage.getItem(this.saveKey);
       if (!raw) return;
-      const save = JSON.parse(raw) as FarmSave;
-      if (save.version !== 1 || !Array.isArray(save.plots)) return;
+      const save = JSON.parse(raw) as any;
+      if (![1,2].includes(save.version) || !Array.isArray(save.plots)) return;
       this.coins = Math.max(0, Math.floor(save.coins));
       this.xp = Math.max(0, Math.floor(save.xp));
+      if (save.version === 2 && save.inventory) this.inventory = {...this.inventory,...save.inventory};
       for (const saved of save.plots) {
         const plot = this.plots.get(this.key(saved.col, saved.row));
         if (!plot || !['grass', 'tilled', 'growing', 'ready'].includes(saved.state)) continue;
         plot.state = saved.state;
         plot.watered = Boolean(saved.watered);
         plot.growth = saved.growth === 100 ? 100 : 0;
-        if (plot.state === 'growing') this.scheduleGrowth(plot, plot.watered ? 5000 : 15000);
+        if (saved.crop && saved.crop in CROPS) plot.crop = saved.crop;
+        plot.readyAt = saved.readyAt || 0;
+        if (plot.state === 'growing') { const remaining=plot.readyAt ? plot.readyAt-Date.now() : (plot.watered ? 5000 : CROPS[plot.crop].growMs); if (remaining<=0) {plot.state='ready';plot.growth=100;plot.readyAt=0;} else this.scheduleGrowth(plot,remaining); }
         this.redrawPlot(plot);
       }
     } catch {
@@ -387,11 +415,12 @@ export class FarmScene extends Phaser.Scene {
 
   private saveFarm(): void {
     const save: FarmSave = {
-      version: 1,
+      version: 2,
       coins: this.coins,
       xp: this.xp,
+      inventory: {...this.inventory},
       plots: Array.from(this.plots.values()).map(plot => ({
-        col: plot.col, row: plot.row, state: plot.state, watered: plot.watered, growth: plot.growth,
+        col: plot.col, row: plot.row, state: plot.state, watered: plot.watered, growth: plot.growth, crop:plot.crop, readyAt:plot.readyAt,
       })),
     };
     try {
@@ -410,6 +439,10 @@ export class FarmScene extends Phaser.Scene {
     const fill = document.getElementById('progress-fill');
     if (progress) progress.textContent = `${this.xp % 100} / 100 XP`;
     if (fill) (fill as HTMLElement).style.width = `${this.xp % 100}%`;
+    const w=document.getElementById('wheat-count'); if(w) w.textContent=String(this.inventory.wheat);
+    const inv=document.getElementById('inventory-count'); if(inv) inv.textContent=String(Object.values(this.inventory).reduce((a,b)=>a+b,0));
+    const bal=document.getElementById('market-balance'); if(bal) bal.textContent=`${this.coins} coins`;
+    this.renderMarket();
   }
 
   private refreshSelection(): void {
@@ -420,7 +453,7 @@ export class FarmScene extends Phaser.Scene {
       return;
     }
     const names: Record<PlotState, string> = { grass: 'Open grassland', tilled: 'Freshly plowed soil', growing: 'Growing crop', ready: 'Ready to harvest' };
-    const actions: Record<Tool, string> = { select: 'Choose a tool to work this plot.', plow: 'Plow open grass to prepare the soil.', plant: 'Plant seeds in prepared soil; crops mature over time.', water: 'Water a growing crop to speed up its growth.', harvest: 'Harvest a mature crop.' };
+    const actions: Record<Tool, string> = { select: 'Choose a tool to work this plot.', plow: 'Plow open grass to prepare the soil.', plant: `Plant ${CROPS[this.selectedCrop].name} · ${this.inventory[this.selectedCrop]} seeds in your bag.`, water: 'Water once to cut remaining growth time in half.', harvest: 'Harvest your crop for coins and experience.' };
     host.innerHTML = `<span class="selection-kicker">LAND · ${this.selected.col + 1}, ${this.selected.row + 1}</span><strong>${names[this.selected.state]}</strong><p>${actions[this.activeTool]}</p>`;
   }
 }
