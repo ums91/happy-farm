@@ -531,3 +531,33 @@ button,.tool,select{touch-action:manipulation}
 
 /* Background music controls */
 .music-controls{display:flex;align-items:center;gap:6px;padding:5px 8px;border:1px solid #e5c98d;border-radius:18px;background:linear-gradient(#fffef8,#f4e6c5);color:#805b2f;font-size:10px;font-weight:900;white-space:nowrap}.music-controls button{border:0;border-radius:12px;padding:6px 9px;background:linear-gradient(#dff0c7,#b9df8b);color:#527d35;font-size:10px;font-weight:900;cursor:pointer}.music-controls button[aria-pressed="false"]{background:#eee3d0;color:#8b7658}.music-controls label{font-size:9px}.music-controls input{width:76px;accent-color:#79ad48;cursor:pointer}.music-controls output{min-width:28px;text-align:right;font-variant-numeric:tabular-nums}@media(max-width:900px){.music-controls{order:4;margin-left:auto}.top-actions{display:flex;align-items:center;gap:5px;flex-wrap:wrap}}@media(max-width:560px){.music-controls{gap:4px;padding:4px 6px}.music-controls input{width:55px}.music-controls label{display:none}.music-controls button{padding:5px 7px;font-size:9px}.music-controls output{font-size:9px}}
+
+
+/* Fix topbar control sizing: only direct action buttons use the circular icon style. */
+@media (min-width: 701px) {
+  .top-actions { display:flex; align-items:center; justify-content:flex-end; gap:8px; min-width:0; }
+  .top-actions > button { flex:0 0 47px; width:47px; height:47px; }
+  .top-actions > #cloud-account {
+    flex:0 0 auto;
+    width:auto;
+    min-width:92px;
+    height:42px;
+    padding:0 11px;
+    border-radius:12px;
+    white-space:nowrap;
+    font-size:12px;
+    line-height:1;
+  }
+  .music-controls { flex:0 0 auto; min-width:218px; justify-content:space-between; gap:8px; padding:6px 9px; }
+  .music-controls button { flex:0 0 auto; width:auto; min-width:74px; height:32px; padding:0 9px; white-space:nowrap; line-height:1; }
+  .music-controls label { flex:0 0 auto; }
+  .music-controls input { flex:1 1 72px; min-width:58px; width:72px; }
+  .music-controls output { flex:0 0 28px; }
+}
+@media (max-width: 700px) {
+  .top-actions { display:flex; align-items:center; justify-content:flex-end; gap:5px; min-width:0; }
+  .top-actions > button { flex:0 0 34px; width:34px; height:34px; }
+  .top-actions > #cloud-account { flex:0 0 auto; width:auto; min-width:72px; height:34px; padding:0 8px; border-radius:10px; white-space:nowrap; font-size:10px; }
+  .music-controls { flex:0 1 190px; min-width:0; gap:5px; }
+  .music-controls button { flex:0 0 auto; width:auto; min-width:58px; height:29px; padding:0 6px; white-space:nowrap; }
+}
