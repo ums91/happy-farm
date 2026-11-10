@@ -179,6 +179,36 @@ export class FarmScene extends Phaser.Scene {
     g.fillRoundedRect(silo.x + 18, silo.y - 49, 25, 55, 8);
     g.fillStyle(0xb8c4b3, 1);
     g.fillEllipse(silo.x + 30, silo.y - 49, 25, 11);
+    this.drawAnimalPen(g);
+  }
+
+  private drawAnimalPen(g: Phaser.GameObjects.Graphics): void {
+    const p = this.toWorld(2, 5);
+    const left = p.x - 42;
+    const top = p.y - 27;
+    g.fillStyle(0x9a7043, 1);
+    g.fillRoundedRect(left, top, 82, 43, 5);
+    g.lineStyle(4, 0xe0bd7d, 1);
+    g.strokeRect(left, top, 82, 43);
+    g.lineStyle(3, 0x8b6138, 1);
+    for (let i = 1; i < 5; i += 1) {
+      g.beginPath(); g.moveTo(left + i * 16, top); g.lineTo(left + i * 16, top + 43); g.strokePath();
+    }
+    // Friendly stylized cow and hen placeholders inside the paddock.
+    g.fillStyle(0xf8f4e8, 1);
+    g.fillEllipse(p.x - 13, p.y - 10, 27, 18);
+    g.fillStyle(0x55483d, 1);
+    g.fillEllipse(p.x - 19, p.y - 14, 9, 7);
+    g.fillEllipse(p.x - 5, p.y - 6, 8, 6);
+    g.fillEllipse(p.x - 2, p.y - 17, 13, 12);
+    g.fillStyle(0xe8b7a0, 1);
+    g.fillEllipse(p.x - 2, p.y - 13, 7, 5);
+    g.fillStyle(0xf4e5c8, 1);
+    g.fillEllipse(p.x + 20, p.y - 9, 12, 10);
+    g.fillStyle(0xd95f42, 1);
+    g.fillTriangle(p.x + 24, p.y - 14, p.x + 29, p.y - 14, p.x + 27, p.y - 19);
+    g.fillStyle(0x4c4034, 1);
+    g.fillCircle(p.x + 23, p.y - 11, 1.5);
   }
 
   private drawBuilding(g: Phaser.GameObjects.Graphics, x: number, y: number, wall: number, roof: number, label: string): void {
