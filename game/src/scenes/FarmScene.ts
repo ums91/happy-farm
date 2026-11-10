@@ -1,6 +1,5 @@
 import Phaser from 'phaser';
 import { initializeCloudSaves, queueCloudSave } from '../services/cloudSave';
-import { initializeCloudSaves, queueCloudSave } from '../services/cloudSave';
 
 type Tool = 'select' | 'plow' | 'plant' | 'water' | 'harvest' | 'move';
 type PlotState = 'grass' | 'tilled' | 'growing' | 'ready' | 'withered';
