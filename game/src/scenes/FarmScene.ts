@@ -486,7 +486,6 @@ export class FarmScene extends Phaser.Scene {
     const w=document.getElementById('wheat-count'); if(w) w.textContent=String(this.inventory.wheat);
     const inv=document.getElementById('inventory-count'); if(inv) inv.textContent=String(Object.values(this.inventory).reduce((a,b)=>a+b,0));
     const bal=document.getElementById('market-balance'); if(bal) bal.textContent=`${this.coins} coins`;
-    this.renderMarket();
   }
 
   private refreshSelection(): void {
