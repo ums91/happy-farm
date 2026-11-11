@@ -16,12 +16,12 @@ interface FarmSave { version: 16; farmExpansionLevel?:number; questRefreshAt?:nu
 const CROPS: Record<CropId,{name:string;emoji:string;cost:number;reward:number;xp:number;growMs:number;color:number;unlockLevel:number}> = {
  wheat:{name:'Wheat',emoji:'🌾',cost:5,reward:18,xp:5,growMs:2*60*1000,color:0xe4b83f,unlockLevel:1},
  carrot:{name:'Carrot',emoji:'🥕',cost:9,reward:31,xp:8,growMs:5*60*1000,color:0xef873e,unlockLevel:1},
- corn:{name:'Corn',emoji:'🌽',cost:14,reward:48,xp:12,growMs:10*60*1000,color:0xf2c94c,unlockLevel:2},
- strawberry:{name:'Strawberry',emoji:'🍓',cost:20,reward:70,xp:18,growMs:20*60*1000,color:0xd94f55,unlockLevel:3},
- tomato:{name:'Tomato',emoji:'🍅',cost:27,reward:91,xp:22,growMs:30*60*1000,color:0xe65c45,unlockLevel:4},
- pumpkin:{name:'Pumpkin',emoji:'🎃',cost:36,reward:125,xp:29,growMs:45*60*1000,color:0xe98d35,unlockLevel:5},
- blueberry:{name:'Blueberry',emoji:'🫐',cost:48,reward:165,xp:38,growMs:60*60*1000,color:0x6556a8,unlockLevel:7},
- watermelon:{name:'Watermelon',emoji:'🍉',cost:65,reward:220,xp:50,growMs:90*60*1000,color:0x65a94f,unlockLevel:9}
+ corn:{name:'Corn',emoji:'🌽',cost:14,reward:48,xp:12,growMs:10*60*1000,color:0xf2c94c,unlockLevel:7},
+ strawberry:{name:'Strawberry',emoji:'🍓',cost:20,reward:70,xp:18,growMs:20*60*1000,color:0xd94f55,unlockLevel:13},
+ tomato:{name:'Tomato',emoji:'🍅',cost:27,reward:91,xp:22,growMs:30*60*1000,color:0xe65c45,unlockLevel:19},
+ pumpkin:{name:'Pumpkin',emoji:'🎃',cost:36,reward:125,xp:29,growMs:45*60*1000,color:0xe98d35,unlockLevel:25},
+ blueberry:{name:'Blueberry',emoji:'🫐',cost:48,reward:165,xp:38,growMs:60*60*1000,color:0x6556a8,unlockLevel:31},
+ watermelon:{name:'Watermelon',emoji:'🍉',cost:65,reward:220,xp:50,growMs:90*60*1000,color:0x65a94f,unlockLevel:37}
 };
 
 const COLS = 13;
@@ -201,6 +201,9 @@ export class FarmScene extends Phaser.Scene {
   private get levelProgress():number { return this.xp-this.xpForLevel(this.farmerLevel); }
   private get xpNeededForNextLevel():number { return 100+(this.farmerLevel-1)*75; }
   private get farmSize():number{return FARM_SIZES[this.farmExpansionLevel]||FARM_SIZES[0];}
+  // Eight usable fields through Level 12; one more at 13, 16, 19, and every three levels thereafter.
+  private get plowLimit():number { return 8+Math.max(0,Math.floor((this.farmerLevel-10)/3)); }
+  private get establishedFieldCount():number { return [...this.plots.values()].filter(plot=>plot.state!=='grass').length; }
   private key(col: number, row: number): string { return col + ':' + row; }
 
   private toWorld(col: number, row: number): Phaser.Math.Vector2 {
@@ -864,6 +867,11 @@ export class FarmScene extends Phaser.Scene {
   private applyTool(plot: Plot): void {
     switch (this.activeTool) {
       case 'plow':
+        if (plot.state === 'grass' && this.establishedFieldCount >= this.plowLimit) {
+          const nextLevel=this.farmerLevel<13?13:13+3*(Math.floor((this.farmerLevel-13)/3)+1);
+          this.toast('Field limit reached ('+this.plowLimit+'). Next field unlocks at Level '+nextLevel+'.');
+          break;
+        }
         if (plot.state === 'grass' || plot.state === 'withered') { plot.state = 'tilled'; plot.witherAt = 0; plot.readyAt = 0; plot.growth = 0; }
         break;
       case 'plant':
