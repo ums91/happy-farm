@@ -626,10 +626,18 @@ export class FarmScene extends Phaser.Scene {
     if(this.activeTool==='move'){
       const tile=this.toTile(world.x,world.y),plot=tile?this.plots.get(this.key(tile.col,tile.row)):undefined;
       if(plot&&plot.state!=='grass'){
-        this.movingPlotKey=this.key(plot.col,plot.row);this.toast('Moving field. Drag it onto an empty grass tile.');return;
+        this.movingPlotKey=this.key(plot.col,plot.row);this.movingDecor=null;this.toast('Drag the field to an empty grass tile.');return;
       }
-      const hit=Object.keys(this.decor).find(id=>{const p=this.toWorld(this.decor[id]!.col,this.decor[id]!.row);return Phaser.Math.Distance.Between(world.x,world.y,p.x,p.y)<58;});
-      this.movingDecor=hit||null;if(hit)this.toast('Moving '+hit+'. Drag to an empty tile.');return;
+      const hit=Object.keys(this.decor).reverse().find(id=>{
+        const p=this.toWorld(this.decor[id]!.col,this.decor[id]!.row);
+        const dx=Math.abs(world.x-p.x),dy=Math.abs(world.y-p.y);
+        const isTree=id.startsWith('tree')||this.fruitKind(id)!==null;
+        const isBuilding=['farmhouse','barn','coop','pen','silo','bakery','greenhouse','windmill'].includes(id);
+        return isTree?(dx<48&&dy<92):isBuilding?(dx<68&&dy<100):(dx<42&&dy<52);
+      });
+      this.movingDecor=hit||null;this.movingPlotKey=null;
+      if(hit)this.toast('Drag '+hit+' to an empty tile.');
+      return;
     }
     const tile=this.toTile(world.x,world.y);
     const plot=tile?this.plots.get(this.key(tile.col,tile.row)):undefined;
@@ -653,11 +661,41 @@ export class FarmScene extends Phaser.Scene {
     if(plot){this.selected=plot;this.applyTool(plot);this.refreshSelection();this.drawSelection();}
   }
 
+  private moveActiveItem(pointer:Phaser.Input.Pointer):void {
+    const world=this.cameras.main.getWorldPoint(pointer.x,pointer.y),tile=this.toTile(world.x,world.y);
+    if(!tile)return;
+    if(this.movingDecor){
+      const current=this.decor[this.movingDecor];
+      if(current?.col===tile.col&&current?.row===tile.row)return;
+      if(this.canPlaceDecor(tile,this.movingDecor)){
+        this.decor[this.movingDecor]={col:tile.col,row:tile.row};
+        this.drawScenery();this.renderOwnedAnimals();this.renderFruitTreeBadges();
+      }else this.warnMoveBlocked('That tile is occupied. Choose an empty tile.');
+    }else if(this.movingPlotKey){
+      const source=this.plots.get(this.movingPlotKey),target=this.plots.get(this.key(tile.col,tile.row));
+      if(!source||!target||source===target)return;
+      if(this.canMovePlot(this.movingPlotKey,tile)){
+        const saved={state:target.state,watered:target.watered,growth:target.growth,crop:target.crop,readyAt:target.readyAt,witherAt:target.witherAt};
+        Object.assign(target,{state:source.state,watered:source.watered,growth:source.growth,crop:source.crop,readyAt:source.readyAt,witherAt:source.witherAt});
+        Object.assign(source,saved);this.redrawPlot(source);this.redrawPlot(target);this.selected=target;this.refreshSelection();this.drawSelection();
+      }else this.warnMoveBlocked('Fields can only be moved onto empty grass tiles.');
+    }
+  }
+
+  private finishMovingItem():void {
+    if(this.movingDecor||this.movingPlotKey){
+      this.saveFarm();this.toast('Farm layout saved.');
+      this.movingDecor=null;this.movingPlotKey=null;this.lastMoveWarning='';
+    }
+  }
+
   private bindWorldInput(): void {
     this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
       if(pointer.wasTouch){
         this.touchPositions.set(pointer.id,{x:pointer.x,y:pointer.y,startX:pointer.x,startY:pointer.y});
+        if(this.touchPositions.size===1&&this.activeTool==='move')this.handleWorldTap(pointer);
         if(this.touchPositions.size>=2){
+          this.movingDecor=null;this.movingPlotKey=null;
           this.touchGesture=true;
           const pts=Array.from(this.touchPositions.values());
           this.pinchDistance=Phaser.Math.Distance.Between(pts[0]!.x,pts[0]!.y,pts[1]!.x,pts[1]!.y);
@@ -677,6 +715,7 @@ export class FarmScene extends Phaser.Scene {
         touch.x=pointer.x;touch.y=pointer.y;
         const pts=Array.from(this.touchPositions.values());
         if(pts.length>=2){
+          this.movingDecor=null;this.movingPlotKey=null;
           const camera=this.cameras.main;
           const midpoint={x:(pts[0]!.x+pts[1]!.x)/2,y:(pts[0]!.y+pts[1]!.y)/2};
           const distance=Phaser.Math.Distance.Between(pts[0]!.x,pts[0]!.y,pts[1]!.x,pts[1]!.y);
@@ -688,7 +727,11 @@ export class FarmScene extends Phaser.Scene {
           }
           this.pinchDistance=distance;this.touchGesture=true;return;
         }
-        if(Math.hypot(pointer.x-touch.startX,pointer.y-touch.startY)>7){
+        const moved=Math.hypot(pointer.x-touch.startX,pointer.y-touch.startY)>7;
+        if(moved&&this.activeTool==='move'&&(this.movingDecor||this.movingPlotKey)){
+          this.touchGesture=true;this.moveActiveItem(pointer);return;
+        }
+        if(moved){
           this.cameraDragging=true;this.touchGesture=true;
         }
         if(this.cameraDragging){
@@ -698,17 +741,7 @@ export class FarmScene extends Phaser.Scene {
         return;
       }
       if((this.movingDecor||this.movingPlotKey)&&pointer.isDown){
-        const w=this.cameras.main.getWorldPoint(pointer.x,pointer.y),tile=this.toTile(w.x,w.y);
-        if(tile){
-          if(this.movingDecor){
-            if(this.canPlaceDecor(tile,this.movingDecor)){this.decor[this.movingDecor]={col:tile.col,row:tile.row};this.drawScenery();this.renderOwnedAnimals();this.renderFruitTreeBadges();}
-            else this.warnMoveBlocked('That tile is occupied. Choose an empty tile.');
-          } else if(this.movingPlotKey){
-            if(this.canMovePlot(this.movingPlotKey,tile)){const source=this.plots.get(this.movingPlotKey)!,target=this.plots.get(this.key(tile.col,tile.row))!;const saved={state:target.state,watered:target.watered,growth:target.growth,crop:target.crop,readyAt:target.readyAt,witherAt:target.witherAt};Object.assign(target,{state:source.state,watered:source.watered,growth:source.growth,crop:source.crop,readyAt:source.readyAt,witherAt:source.witherAt});Object.assign(source,saved);this.redrawPlot(source);this.redrawPlot(target);this.selected=target;this.refreshSelection();this.drawSelection();}
-            else this.warnMoveBlocked('Fields can only be moved onto empty grass tiles.');
-          }
-        }
-        return;
+        this.moveActiveItem(pointer);return;
       }
       if(this.cameraDragging&&pointer.isDown){
         this.cameras.main.scrollX-=(pointer.x-this.dragPoint.x)/this.cameras.main.zoom;
@@ -722,7 +755,8 @@ export class FarmScene extends Phaser.Scene {
         const wasTap=!this.touchGesture&&Math.hypot(pointer.x-touch.startX,pointer.y-touch.startY)<=10;
         this.touchPositions.delete(pointer.id);
         if(this.touchPositions.size===0){
-          if(wasTap)this.handleWorldTap(pointer);
+          if(wasTap&&this.activeTool!=='move')this.handleWorldTap(pointer);
+          this.finishMovingItem();
           this.touchGesture=false;this.pinchDistance=0;this.cameraDragging=false;
         } else {
           const pts=Array.from(this.touchPositions.values());
@@ -731,12 +765,12 @@ export class FarmScene extends Phaser.Scene {
         return;
       }
       this.cameraDragging=false;
-      if(this.movingDecor||this.movingPlotKey){this.saveFarm();this.toast('Farm layout saved.');this.movingDecor=null;this.movingPlotKey=null;this.lastMoveWarning='';}
+      this.finishMovingItem();
     });
     this.input.on('pointerupoutside',(pointer:Phaser.Input.Pointer)=>{
       if(pointer.wasTouch)this.touchPositions.delete(pointer.id);
       this.cameraDragging=false;
-      if(this.movingDecor||this.movingPlotKey){this.saveFarm();this.movingDecor=null;this.movingPlotKey=null;this.lastMoveWarning='';}
+      this.finishMovingItem();
       if(this.touchPositions.size===0){this.touchGesture=false;this.pinchDistance=0;}
     });
     this.input.mouse?.disableContextMenu();
@@ -1001,7 +1035,7 @@ export class FarmScene extends Phaser.Scene {
     document.getElementById('tool-sell')?.addEventListener('click',()=>{this.openMarket();document.querySelector<HTMLButtonElement>('[data-market-tab=sell]')?.click();});
     document.querySelectorAll<HTMLButtonElement>('[data-tool]').forEach(button => {
       button.addEventListener('click', () => {
-        this.activeTool = button.dataset.tool as Tool; this.movingDecor=null;
+        this.activeTool = button.dataset.tool as Tool; this.movingDecor=null; this.movingPlotKey=null;
         document.querySelectorAll('[data-tool]').forEach(el => el.classList.remove('active'));
         button.classList.add('active');
         if(this.activeTool==='plant'&&this.selected)this.openFieldSeedPicker();
