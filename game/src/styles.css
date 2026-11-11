@@ -920,3 +920,84 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
   .game-shell>.world-panel{order:0!important;flex:1 1 0!important;width:100%!important;height:0!important;min-height:0!important}
   .game-shell>.activity-drawer{top:8px!important;left:8px!important;right:8px!important;bottom:112px!important;width:auto!important;max-width:none!important;z-index:30!important}
 }
+
+
+/* Mobile gameplay stabilization: one viewport, one canvas, reliable overlays. */
+.drawer-hidden,.activity-drawer[hidden]{display:none!important}
+@media (max-width:700px){
+  html,body{width:100%!important;height:100%!important;min-height:0!important;overflow:hidden!important;overscroll-behavior:none!important}
+  body{position:fixed!important;inset:0!important}
+  #app{
+    width:100%!important;height:100vh!important;height:100dvh!important;min-height:0!important;
+    max-height:100dvh!important;max-width:none!important;margin:0!important;padding:env(safe-area-inset-top) 5px env(safe-area-inset-bottom)!important;
+    display:flex!important;flex-direction:column!important;gap:5px!important;overflow:hidden!important;
+  }
+  .topbar{
+    position:relative!important;z-index:12!important;flex:0 0 auto!important;
+    display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;
+    width:100%!important;height:auto!important;min-height:66px!important;max-height:112px!important;
+    padding:6px 8px!important;gap:5px!important;overflow:visible!important;
+  }
+  .farmer-hud{min-width:0!important;gap:5px!important}
+  .farmer-title{min-width:0!important}
+  .farmer-title strong{font-size:14px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+  .farmer-meta>small{font-size:9px!important}
+  .resources{grid-column:1/-1!important;grid-row:2!important;display:flex!important;justify-content:space-between!important;gap:4px!important;width:100%!important;margin:0!important}
+  .resources .resource{flex:1 1 0!important;min-width:0!important;justify-content:center!important;padding:3px 5px!important}
+  .resources .resource strong{font-size:11px!important}
+  .top-actions{display:flex!important;gap:4px!important;align-items:center!important}
+  .top-actions button{min-width:34px!important;width:34px!important;height:34px!important;padding:2px!important;font-size:17px!important;touch-action:manipulation!important}
+  #cloud-account{font-size:10px!important;min-width:66px!important;width:auto!important}
+  .game-shell{
+    position:relative!important;display:block!important;flex:1 1 0!important;flex-shrink:1!important;
+    width:100%!important;height:0!important;min-height:0!important;max-height:none!important;
+    margin:0!important;padding:0!important;overflow:hidden!important;
+  }
+  .game-shell>.left-nav{display:none!important}
+  .game-shell>.world-panel{
+    position:absolute!important;inset:0!important;display:block!important;
+    width:100%!important;height:100%!important;min-height:0!important;max-height:none!important;
+    margin:0!important;border-width:4px!important;border-radius:14px!important;overflow:hidden!important;
+  }
+  .game-shell>.world-panel>#game.game-canvas{
+    position:absolute!important;inset:0!important;width:100%!important;height:100%!important;
+    min-height:0!important;max-height:none!important;touch-action:none!important;
+  }
+  .game-shell>.world-panel>#game canvas{
+    display:block!important;width:100%!important;height:100%!important;
+    max-width:100%!important;max-height:100%!important;object-fit:fill!important;touch-action:none!important;
+  }
+  .game-shell>.world-panel>.field-toolbar{
+    position:absolute!important;z-index:15!important;left:5px!important;right:5px!important;
+    bottom:max(5px,env(safe-area-inset-bottom))!important;width:auto!important;max-width:none!important;
+    max-height:118px!important;min-height:0!important;padding:5px!important;
+    display:flex!important;flex-direction:column!important;gap:4px!important;
+    overflow:hidden!important;touch-action:pan-y!important;
+  }
+  .field-toolbar .dock-management{display:flex!important;width:100%!important;gap:3px!important}
+  .field-toolbar .dock-button{flex:1 1 0!important;min-width:0!important;min-height:34px!important;padding:2px!important}
+  .field-toolbar .dock-button span{font-size:19px!important}
+  .field-toolbar .dock-button small{display:block!important;font-size:8px!important}
+  .field-toolbar .dock-divider{display:none!important}
+  .field-toolbar .tool-grid{display:flex!important;width:100%!important;gap:4px!important}
+  .field-toolbar .tool{flex:1 1 0!important;width:auto!important;min-width:0!important;height:39px!important;min-height:39px!important;padding:2px!important}
+  .field-toolbar .tool span{font-size:18px!important}
+  .field-toolbar .tool small{font-size:8px!important}
+  .game-shell>.activity-drawer{
+    position:absolute!important;z-index:50!important;top:8px!important;left:8px!important;right:8px!important;
+    bottom:125px!important;width:auto!important;max-width:none!important;max-height:none!important;
+    overflow:auto!important;padding:10px!important;overscroll-behavior:contain!important;
+    -webkit-overflow-scrolling:touch!important;touch-action:pan-y!important;
+  }
+  .activity-drawer header{position:sticky!important;top:0!important;z-index:2!important;min-height:48px!important;gap:10px!important}
+  .activity-drawer header button{flex:0 0 44px!important;width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important;font-size:28px!important;touch-action:manipulation!important;pointer-events:auto!important}
+  .activity-drawer .rail-cards{grid-template-columns:minmax(0,1fr)!important}
+  .footer{display:none!important}
+  .toast{z-index:200!important;bottom:calc(12px + env(safe-area-inset-bottom))!important;max-width:calc(100vw - 24px)!important}
+}
+@media(max-width:390px){
+  .topbar{min-height:60px!important;padding:4px 6px!important}
+  .top-actions button{min-width:31px!important;width:31px!important;height:31px!important}
+  .game-shell>.world-panel>.field-toolbar{max-height:108px!important}
+  .field-toolbar .tool{height:35px!important;min-height:35px!important}
+}
