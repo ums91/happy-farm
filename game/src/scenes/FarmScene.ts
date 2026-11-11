@@ -733,6 +733,7 @@ export class FarmScene extends Phaser.Scene {
     const world=this.cameras.main.getWorldPoint(pointer.x,pointer.y),tile=this.toTile(world.x,world.y);
     if(!tile){this.movingPreviewTile=null;this.movingPreviewValid=false;this.drawPlacementOverlay();return;}
     this.movingPreviewTile=tile;
+    if(this.movingPlotKey===this.key(tile.col,tile.row)){this.movingPreviewValid=true;this.drawPlacementOverlay();return;}
     this.movingPreviewValid=this.movingDecor
       ? this.canPlaceDecor(tile,this.movingDecor)
       : this.canMovePlot(this.movingPlotKey!,tile);
@@ -846,7 +847,7 @@ export class FarmScene extends Phaser.Scene {
     this.input.on('pointerupoutside',(pointer:Phaser.Input.Pointer)=>{
       if(pointer.wasTouch)this.touchPositions.delete(pointer.id);
       this.cameraDragging=false;
-      this.finishMovingItem();
+      this.movingDecor=null;this.movingPlotKey=null;this.movingPreviewTile=null;this.movingPreviewValid=false;this.drawPlacementOverlay();
       if(this.touchPositions.size===0){this.touchGesture=false;this.pinchDistance=0;}
     });
     this.input.mouse?.disableContextMenu();
