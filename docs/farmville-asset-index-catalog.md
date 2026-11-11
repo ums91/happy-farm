@@ -63,3 +63,17 @@ The 32-character filename stem is an opaque CDN asset identifier; it does not re
 ## Source
 
 User-supplied Markdown excerpt of the `original-farmville.cdx.gz` index, provided 2026-11-11. The excerpt contains 132 asset records. No WARC binary or licensing documentation was included.
+
+
+## Matching archive collection located
+
+The related FarmVille preservation repository identifies the matching Internet Archive collection:
+
+- Collection: [original-farmville](https://archive.org/download/original-farmville/)
+- WARC base URL: `https://archive.org/download/original-farmville/`
+- The preservation project's `assets.py` lists four WARC parts named `urls-bluepload.unstable.life-farmvilleassets.txt-shallow-20201225-045045-5762m-00000.warc.gz` through `00003.warc.gz`, and extracts the `zynga1-a.akamaihd.net/farmville/assets/hashed/assets` path.
+- The preservation project's README describes the complete archive payload as approximately 17 GB and says the minimal release downloads/extracts the WARC files on first launch.
+
+Reference implementation: [Farm Village assets.py](https://github.com/AcidCaos/farmvillage/blob/main/assets.py). This is useful provenance and extraction documentation only; Happy Farm must not import its GPL code or treat its GPL license as a license for Zynga-originated assets.
+
+**Retrieval decision:** the archive is now locatable, but no 17 GB WARC bundle has been downloaded into Happy Farm. The index alone is enough to map the 132 records, but not to decode their payloads. Any future inspection should happen in a separate temporary research workspace, not in `game/public/assets`, and production reuse remains blocked until rights are cleared.
