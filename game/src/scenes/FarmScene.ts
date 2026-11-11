@@ -239,10 +239,6 @@ export class FarmScene extends Phaser.Scene {
   private drawWorld(): void {
     this.plotGraphics.clear();
     // The woodland concept replaces the old procedural meadow, pond, lane and tree-ring scenery.
-    for(let row=0;row<ROWS;row++)for(let col=0;col<COLS;col++)if(!this.plots.has(this.key(col,row)))this.plots.set(this.key(col,row),{col,row,state:'grass',watered:false,growth:0,crop:'wheat',readyAt:0,witherAt:0});
-    this.redrawFarmTiles();
-  }
-
   private drawForestBorder(): void {
     // Retained as an empty compatibility hook; the concept artwork now supplies the exterior.
   }
@@ -273,37 +269,6 @@ export class FarmScene extends Phaser.Scene {
       const plot=this.plots.get(this.key(col,row));if(plot&&plot.state!=='grass')this.redrawPlot(plot);
     }
     this.drawPath();this.drawFence();this.drawFlowerPatches();
-  }
-
-  private drawForestBorder(): void {
-    const forest=this.add.graphics();
-    // Deep woodland layers create a continuous, varied tree line rather than a flat hedge.
-    const trees:Array<[number,number,number]>=[];
-    for(let i=0;i<23;i++){
-      const x=-620+i*56;
-      trees.push([x,-78-(i%4)*16,27+(i%3)*5],[x+19,620+(i%5)*12,28+(i%4)*4]);
-    }
-    for(let i=0;i<17;i++){
-      const y=-10+i*39;
-      trees.push([-635-(i%3)*9,y,25+(i%4)*5],[635+(i%3)*9,y+8,26+(i%3)*5]);
-    }
-    trees.forEach(([x,y,r],i)=>{
-      forest.fillStyle(0x244b2c,0.38);forest.fillEllipse(x+5,y+14,r*2.25,r*.68);
-      forest.fillStyle(0x68452c,1);forest.fillRoundedRect(x-5,y-5,10,38,4);
-      forest.fillStyle([0x285b32,0x326b37,0x3d783b,0x28552e,0x477e3c][i%5]!,1);
-      forest.fillCircle(x,y-24,r);forest.fillCircle(x-r*.58,y-13,r*.73);forest.fillCircle(x+r*.57,y-15,r*.77);
-      forest.fillStyle([0x79a94e,0x8cba58,0x6fa34a][i%3]!,0.78);
-      forest.fillCircle(x-r*.3,y-36,r*.28);forest.fillCircle(x+r*.35,y-27,r*.23);forest.fillCircle(x+2,y-9,r*.16);
-      if(i%4===0){forest.fillStyle(0xe2a94f,1);forest.fillCircle(x-r*.28,y-17,3);forest.fillCircle(x+r*.3,y-34,3);}
-    });
-    // Low shrubs and flowering bushes soften the edge between woods and meadow.
-    for(let i=0;i<18;i++){
-      const x=-590+i*69,y=(i%2===0?500:40)+(i%3)*12;
-      forest.fillStyle(0x285a32,1);forest.fillEllipse(x,y+8,46,18);
-      forest.fillStyle(i%2?0x4b8b3d:0x609b45,1);forest.fillCircle(x-12,y,12);forest.fillCircle(x+2,y-5,15);forest.fillCircle(x+15,y+1,11);
-      forest.fillStyle(0xf0d16a,1);forest.fillCircle(x-7,y-3,2);forest.fillStyle(0xf2a7bd,1);forest.fillCircle(x+10,y-7,2);
-    }
-    forest.setDepth(-20);
   }
 
   private drawFence():void {
