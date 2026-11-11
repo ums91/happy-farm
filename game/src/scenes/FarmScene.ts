@@ -12,7 +12,7 @@ interface AnimalProduce { eggs: number; milk: number }
 type BuildingId = 'coop'|'barn'|'silo'|'bakery'|'greenhouse'|'windmill';
 type ProductId='flour'|'bread'|'pastry'|'grapes';
 interface ProductionJob { recipe:string; readyAt:number }
-interface FarmSave { version: 16; questRefreshAt?:number; questProgressBaseline?:Partial<Record<'harvests'|'hens'|'cows'|'eggs'|'milk',number>>; eventStartedAt?:number; eventStartHarvests?:number; eventClaimed?:boolean; claimedMilestones?:number[]; harvestedCrops?:Partial<Record<CropId,number>>; fruitInventory?:Record<'apples'|'pears'|'cherries',number>; fruitTreeReadyAt?:Record<string,number>; farmerName?:string; farmName?:string; buildingLevels?:Partial<Record<BuildingId,number>>; productionJobs?:Partial<Record<BuildingId,ProductionJob|null>>; crafted?:Partial<Record<ProductId,number>>; randomQuests?: Array<{id:string;title:string;description:string;target:number;coins:number;xp:number;icon:string;metric:'harvests'|'hens'|'cows'|'eggs'|'milk'}>; claimedQuests?: string[]; ordersCompleted?: Record<string,number>; animals: Animal[]; harvests: number; coins: number; xp: number; selectedCrop?: CropId; decor?: Record<string,{col:number;row:number}>; feed: { hen: number; cow: number }; buildings?: BuildingProgress; produce?: AnimalProduce; inventory: Record<CropId, number>; plots: Array<{ col:number; row:number; state:PlotState; watered:boolean; growth:number; crop?:CropId; readyAt?:number; witherAt?:number }> }
+interface FarmSave { version: 16; farmExpansionLevel?:number; questRefreshAt?:number; questProgressBaseline?:Partial<Record<'harvests'|'hens'|'cows'|'eggs'|'milk',number>>; eventStartedAt?:number; eventStartHarvests?:number; eventClaimed?:boolean; claimedMilestones?:number[]; harvestedCrops?:Partial<Record<CropId,number>>; fruitInventory?:Record<'apples'|'pears'|'cherries',number>; fruitTreeReadyAt?:Record<string,number>; farmerName?:string; farmName?:string; buildingLevels?:Partial<Record<BuildingId,number>>; productionJobs?:Partial<Record<BuildingId,ProductionJob|null>>; crafted?:Partial<Record<ProductId,number>>; randomQuests?: Array<{id:string;title:string;description:string;target:number;coins:number;xp:number;icon:string;metric:'harvests'|'hens'|'cows'|'eggs'|'milk'}>; claimedQuests?: string[]; ordersCompleted?: Record<string,number>; animals: Animal[]; harvests: number; coins: number; xp: number; selectedCrop?: CropId; decor?: Record<string,{col:number;row:number}>; feed: { hen: number; cow: number }; buildings?: BuildingProgress; produce?: AnimalProduce; inventory: Record<CropId, number>; plots: Array<{ col:number; row:number; state:PlotState; watered:boolean; growth:number; crop?:CropId; readyAt?:number; witherAt?:number }> }
 const CROPS: Record<CropId,{name:string;emoji:string;cost:number;reward:number;xp:number;growMs:number;color:number;unlockLevel:number}> = {
  wheat:{name:'Wheat',emoji:'🌾',cost:5,reward:18,xp:5,growMs:15000,color:0xe4b83f,unlockLevel:1},
  carrot:{name:'Carrot',emoji:'🥕',cost:9,reward:31,xp:8,growMs:22000,color:0xef873e,unlockLevel:1},
@@ -26,6 +26,9 @@ const CROPS: Record<CropId,{name:string;emoji:string;cost:number;reward:number;x
 
 const COLS = 13;
 const ROWS = 13;
+const FARM_SIZES = [7,9,11,13] as const;
+const FARM_EXPANSION_COSTS = [0,800,1800,3500] as const;
+const FARM_EXPANSION_LEVELS = [1,3,5,7] as const;
 const TILE_W = 76;
 const TILE_H = 38;
 const ORIGIN_X = 0;
@@ -60,7 +63,8 @@ export class FarmScene extends Phaser.Scene {
   private animalActors: Phaser.GameObjects.Container[] = [];
   private sceneryGraphics: Phaser.GameObjects.Graphics[] = [];
   private sceneryLabels: Phaser.GameObjects.Text[] = [];
-  private decor: Record<string,{col:number;row:number}> = {tree1:{col:1,row:1},tree2:{col:3,row:0},tree3:{col:5,row:1},tree4:{col:7,row:0},tree5:{col:10,row:1},tree6:{col:12,row:2},tree7:{col:0,row:7},tree8:{col:12,row:7},appleTree1:{col:1,row:10},appleTree2:{col:3,row:11},pearTree1:{col:10,row:10},cherryTree1:{col:11,row:11},farmhouse:{col:5,row:2},barn:{col:9,row:3},silo:{col:11,row:3},pen:{col:2,row:5},coop:{col:4,row:5}};
+  private farmExpansionLevel=0;
+  private decor: Record<string,{col:number;row:number}> = {tree1:{col:0,row:0},tree2:{col:3,row:0},tree3:{col:6,row:0},tree4:{col:0,row:3},tree5:{col:6,row:3},tree6:{col:0,row:6},tree7:{col:3,row:6},tree8:{col:6,row:6},appleTree1:{col:1,row:1},appleTree2:{col:5,row:1},pearTree1:{col:1,row:5},cherryTree1:{col:5,row:5},farmhouse:{col:3,row:1},barn:{col:5,row:3},silo:{col:1,row:3},pen:{col:2,row:5},coop:{col:4,row:5}};
   private fruitInventory:Record<'apples'|'pears'|'cherries',number>={apples:0,pears:0,cherries:0};
   private harvestedCrops:Record<CropId,number>={wheat:0,carrot:0,corn:0,strawberry:0,tomato:0,pumpkin:0,blueberry:0,watermelon:0};
   private fruitTreeReadyAt:Record<string,number>={};
@@ -93,12 +97,15 @@ export class FarmScene extends Phaser.Scene {
     this.overlay = this.add.graphics();
     this.placementOverlay = this.add.graphics().setDepth(25000);
     this.drawWorld();
+    this.load.on('progress',(value:number)=>window.dispatchEvent(new CustomEvent('happyfarm:loading',{detail:{progress:value}})));
     this.load.image('animal-cow', `${import.meta.env.BASE_URL}assets/animals/cow.png`);
     this.load.image('animal-hen', `${import.meta.env.BASE_URL}assets/animals/hen.png`);
     this.load.image('animal-chick', `${import.meta.env.BASE_URL}assets/animals/chick.png`);
-    this.load.once(Phaser.Loader.Events.COMPLETE, () => this.renderOwnedAnimals());
+    this.load.once(Phaser.Loader.Events.COMPLETE, () => {this.renderOwnedAnimals();window.dispatchEvent(new Event('happyfarm:ready'));});
     this.load.start();
     this.loadFarm();
+    this.redrawFarmTiles();
+    this.fitFarmToViewport();
     this.ensureQuestAndEventCycles();
     this.drawScenery();
     this.initializeFruitTrees();
@@ -173,6 +180,7 @@ export class FarmScene extends Phaser.Scene {
     camera.centerOn(0, 245);
   }
 
+  private get farmSize():number{return FARM_SIZES[this.farmExpansionLevel]||FARM_SIZES[0];}
   private key(col: number, row: number): string { return col + ':' + row; }
 
   private toWorld(col: number, row: number): Phaser.Math.Vector2 {
@@ -186,7 +194,7 @@ export class FarmScene extends Phaser.Scene {
     const b = py / (TILE_H / 2);
     const col = Math.round((a + b) / 2);
     const row = Math.round((b - a) / 2);
-    if (col < 0 || row < 0 || col >= COLS || row >= ROWS) return null;
+    if (col < 0 || row < 0 || col >= this.farmSize || row >= this.farmSize) return null;
     return { col, row };
   }
 
@@ -204,49 +212,35 @@ export class FarmScene extends Phaser.Scene {
   }
 
   private drawWorld(): void {
+    this.plotGraphics.clear();this.drawForestBorder();
+    const meadow=this.add.graphics().setDepth(-10);
+    meadow.fillStyle(0x477f3e,1);meadow.fillEllipse(0,245,1120,590);
+    meadow.fillStyle(0x75b84d,1);meadow.fillEllipse(0,240,1040,520);
+    meadow.fillStyle(0xb2dc79,0.22);meadow.fillEllipse(-120,110,420,150);meadow.fillEllipse(210,340,420,130);
+    for(let i=0;i<110;i++){const x=((i*137)%1040)-520,y=((i*83)%500)-5;meadow.fillStyle(i%4===0?0xe1ee9c:0x356f37,i%4===0?0.18:0.1);meadow.fillEllipse(x,y,16+(i%5)*5,5+(i%3)*2);}
+    // Pond, stepping stones, rocks and wildflower clusters dress the valley beyond the fence.
+    meadow.fillStyle(0x355f39,0.22);meadow.fillEllipse(355,230,184,92);
+    meadow.fillStyle(0x6eaeae,1);meadow.fillEllipse(350,218,166,75);
+    meadow.fillStyle(0x9bd8cf,0.8);meadow.fillEllipse(326,204,76,23);
+    meadow.lineStyle(3,0x4b8748,0.9);meadow.strokeEllipse(350,218,174,82);
+    meadow.fillStyle(0x9a8052,1);[[-75,315],[-48,327],[-18,336],[16,343]].forEach(([x,y])=>meadow.fillEllipse(x!,y!,25,12));
+    [[260,300],[285,314],[405,286],[430,270],[-360,260],[-330,278]].forEach(([x,y],i)=>{meadow.fillStyle(i%2?0x8a9a74:0x9b9a7d,1);meadow.fillEllipse(x!,y!,22+(i%3)*5,13+(i%2)*4);meadow.fillStyle(0xc7c7a4,0.7);meadow.fillEllipse(x!-4,y!-3,9,4);});
+    [[280,160],[430,190],[300,330],[455,340],[-390,160],[-420,360]].forEach(([x,y],i)=>{meadow.fillStyle(0x356d37,1);meadow.fillEllipse(x!,y!+5,26,9);meadow.fillStyle([0xf5a8c5,0xffe18a,0xffffff,0xd8a8ee][i%4]!,1);meadow.fillCircle(x!,y!,5);meadow.fillCircle(x!-5,y!+2,3);meadow.fillCircle(x!+5,y!+2,3);meadow.fillStyle(0xf4c94e,1);meadow.fillCircle(x!,y!+1,2);});
+    for(let row=0;row<ROWS;row++)for(let col=0;col<COLS;col++)if(!this.plots.has(this.key(col,row)))this.plots.set(this.key(col,row),{col,row,state:'grass',watered:false,growth:0,crop:'wheat',readyAt:0,witherAt:0});
+    this.redrawFarmTiles();
+  }
+
+  private redrawFarmTiles():void {
     this.plotGraphics.clear();
-    this.drawForestBorder();
-    // A soft meadow base extends beyond the cultivated diamond field.
-    const meadow = this.add.graphics();
-    meadow.fillStyle(0x5d9d48, 1);
-    meadow.fillEllipse(0, 246, 1080, 470);
-    meadow.fillStyle(0x8bc85d, 1);
-    meadow.fillEllipse(0, 235, 1040, 440);
-    meadow.fillStyle(0xb2dc79, 0.24);
-    meadow.fillEllipse(-90, 125, 430, 150);
-    meadow.fillEllipse(245, 320, 370, 120);
-    // Dappled meadow texture, kept outside the crop interaction layer.
-    for (let i = 0; i < 90; i += 1) {
-      const x = ((i * 137) % 990) - 495;
-      const y = ((i * 83) % 420) + 22;
-      meadow.fillStyle(i % 3 === 0 ? 0xd7ec9a : 0x477e3d, i % 3 === 0 ? 0.16 : 0.09);
-      meadow.fillEllipse(x, y, 18 + (i % 4) * 5, 5 + (i % 3) * 2);
+    for(let row=0;row<this.farmSize;row++)for(let col=0;col<this.farmSize;col++){
+      const point=this.toWorld(col,row),shades=[0x9bcf69,0xa5d875,0x94c762,0xaedb7d,0x9fce70],shade=shades[(col*7+row*11)%shades.length]??0x9bcf69;
+      this.diamond(this.plotGraphics,point.x,point.y,shade,0x78ae54);
+      this.plotGraphics.lineStyle(1,0xd8ef9e,0.28);this.plotGraphics.beginPath();this.plotGraphics.moveTo(point.x-27,point.y-1);this.plotGraphics.lineTo(point.x,point.y-17);this.plotGraphics.lineTo(point.x+24,point.y-1);this.plotGraphics.strokePath();
+      if((col*3+row*5)%13===0)this.drawGrassTuft(point.x,point.y);
+      if((col*11+row*7)%31===0){this.plotGraphics.fillStyle(0x5c9846,0.9);this.plotGraphics.fillEllipse(point.x+13,point.y+3,5,3);this.plotGraphics.fillEllipse(point.x+17,point.y,4,3);}
+      const plot=this.plots.get(this.key(col,row));if(plot&&plot.state!=='grass')this.redrawPlot(plot);
     }
-    for (let row = 0; row < ROWS; row += 1) {
-      for (let col = 0; col < COLS; col += 1) {
-        const point = this.toWorld(col, row);
-        this.plots.set(this.key(col, row), { col, row, state: 'grass', watered: false, growth: 0, crop: 'wheat', readyAt: 0, witherAt: 0 });
-        const shades = [0x9bcf69, 0xa5d875, 0x94c762, 0xaedb7d, 0x9fce70];
-        const shade = shades[(col * 7 + row * 11) % shades.length] ?? 0x9bcf69;
-        this.diamond(this.plotGraphics, point.x, point.y, shade, 0x78ae54);
-        // Soft tile glint and occasional clover give the field a hand-painted feel.
-        this.plotGraphics.lineStyle(1, 0xd8ef9e, 0.28);
-        this.plotGraphics.beginPath();
-        this.plotGraphics.moveTo(point.x - 27, point.y - 1);
-        this.plotGraphics.lineTo(point.x, point.y - 17);
-        this.plotGraphics.lineTo(point.x + 24, point.y - 1);
-        this.plotGraphics.strokePath();
-        if ((col * 3 + row * 5) % 13 === 0) this.drawGrassTuft(point.x, point.y);
-        if ((col * 11 + row * 7) % 31 === 0) {
-          this.plotGraphics.fillStyle(0x5c9846, 0.9);
-          this.plotGraphics.fillEllipse(point.x + 13, point.y + 3, 5, 3);
-          this.plotGraphics.fillEllipse(point.x + 17, point.y, 4, 3);
-        }
-      }
-    }
-    this.drawPath();
-    this.drawFence();
-    this.drawFlowerPatches();
+    this.drawPath();this.drawFence();this.drawFlowerPatches();
   }
 
   private drawForestBorder(): void {
@@ -265,37 +259,19 @@ export class FarmScene extends Phaser.Scene {
     forest.setDepth(-20);
   }
 
-  private drawFence(): void {
-    const g = this.plotGraphics;
-    const fencePoints = [this.toWorld(0, 0), this.toWorld(4, 0), this.toWorld(8, 0), this.toWorld(12, 0)];
-    g.lineStyle(5, 0x8a6038, 1);
-    fencePoints.forEach((p, i) => {
-      if (i < fencePoints.length - 1) {
-        const next = fencePoints[i + 1]!;
-        g.beginPath(); g.moveTo(p.x, p.y - 9); g.lineTo(next.x, next.y - 9); g.strokePath();
-      }
-      g.fillStyle(0xb9854b, 1);
-      g.fillRoundedRect(p.x - 3, p.y - 19, 6, 22, 2);
-      g.fillStyle(0xe2bd7b, 1);
-      g.fillRoundedRect(p.x - 4, p.y - 20, 8, 4, 2);
-    });
+  private drawFence():void {
+    const g=this.plotGraphics,size=this.farmSize-1;
+    const corners=[this.toWorld(0,0),this.toWorld(size,0),this.toWorld(size,size),this.toWorld(0,size),this.toWorld(0,0)];
+    g.lineStyle(6,0x825a34,1);g.beginPath();g.moveTo(corners[0]!.x,corners[0]!.y-7);corners.slice(1).forEach(p=>g.lineTo(p.x,p.y-7));g.strokePath();
+    for(let edge=0;edge<4;edge++){const p=corners[edge]!;g.fillStyle(0xb9854b,1);g.fillRoundedRect(p.x-4,p.y-19,8,23,2);g.fillStyle(0xe2bd7b,1);g.fillRoundedRect(p.x-5,p.y-20,10,4,2);const q=corners[edge+1]!;for(let n=1;n<size;n++){const x=Phaser.Math.Linear(p.x,q.x,n/size),y=Phaser.Math.Linear(p.y,q.y,n/size);g.fillStyle(0xb9854b,1);g.fillRoundedRect(x-2.5,y-16,5,19,2);g.fillStyle(0xe2bd7b,1);g.fillRoundedRect(x-3.5,y-17,7,3,2);}}
+    const gateX=(corners[2]!.x+corners[3]!.x)/2,gateY=(corners[2]!.y+corners[3]!.y)/2;
+    g.lineStyle(5,0x76502f,1);g.beginPath();g.moveTo(gateX-24,gateY-8);g.lineTo(gateX-24,gateY-27);g.moveTo(gateX+24,gateY-8);g.lineTo(gateX+24,gateY-27);g.moveTo(gateX-24,gateY-24);g.lineTo(gateX+24,gateY-24);g.strokePath();
   }
 
-  private drawFlowerPatches(): void {
-    const g = this.add.graphics();
-    const flowers = [[2,4],[4,6],[7,4],[10,6],[1,9],[6,10],[11,9],[8,2]];
-    flowers.forEach(([col,row], index) => {
-      const p = this.toWorld(col!, row!);
-      const colors = [0xffe58a,0xffa8a8,0xffffff,0xd8a8ee];
-      g.fillStyle(0x4d923e, 1);
-      g.fillEllipse(p.x, p.y + 3, 8, 4);
-      g.fillStyle(colors[index % colors.length]!, 1);
-      g.fillCircle(p.x, p.y - 2, 3);
-      g.fillCircle(p.x - 3, p.y, 2);
-      g.fillCircle(p.x + 3, p.y, 2);
-      g.fillStyle(0xf4c84f, 1);
-      g.fillCircle(p.x, p.y, 1.5);
-    });
+  private drawFlowerPatches():void {
+    const g=this.plotGraphics,size=this.farmSize;
+    const flowers=[[1,Math.min(3,size-1)],[Math.min(size-2,5),1],[Math.min(size-2,5),Math.min(size-2,5)],[Math.max(0,size-2),Math.floor(size/2)]];
+    flowers.forEach(([col,row],index)=>{const p=this.toWorld(col!,row!),colors=[0xffe58a,0xffa8a8,0xffffff,0xd8a8ee];g.fillStyle(0x4d923e,1);g.fillEllipse(p.x,p.y+3,8,4);g.fillStyle(colors[index%colors.length]!,1);g.fillCircle(p.x,p.y-2,3);g.fillCircle(p.x-3,p.y,2);g.fillCircle(p.x+3,p.y,2);g.fillStyle(0xf4c84f,1);g.fillCircle(p.x,p.y,1.5);});
   }
 
   private drawGrassTuft(x: number, y: number): void {
@@ -308,19 +284,11 @@ export class FarmScene extends Phaser.Scene {
     this.plotGraphics.strokePath();
   }
 
-  private drawPath(): void {
-    const g = this.plotGraphics;
-    const points = [this.toWorld(0, 8), this.toWorld(3, 8), this.toWorld(5, 7), this.toWorld(8, 7), this.toWorld(11, 8), this.toWorld(12, 8)];
-    g.lineStyle(25, 0x9b784b, 1);
-    g.beginPath();
-    g.moveTo(points[0]!.x, points[0]!.y);
-    points.slice(1).forEach(p => g.lineTo(p.x, p.y));
-    g.strokePath();
-    g.lineStyle(17, 0xc5a16a, 1);
-    g.beginPath();
-    g.moveTo(points[0]!.x, points[0]!.y);
-    points.slice(1).forEach(p => g.lineTo(p.x, p.y));
-    g.strokePath();
+  private drawPath():void {
+    const g=this.plotGraphics,size=this.farmSize-1;
+    const points=[this.toWorld(0,Math.min(size,4)),this.toWorld(Math.min(2,size),Math.min(size,4)),this.toWorld(Math.min(3,size),Math.min(3,size)),this.toWorld(size,Math.min(4,size))];
+    g.lineStyle(24,0x9b784b,1);g.beginPath();g.moveTo(points[0]!.x,points[0]!.y);points.slice(1).forEach(p=>g.lineTo(p.x,p.y));g.strokePath();
+    g.lineStyle(16,0xc5a16a,1);g.beginPath();g.moveTo(points[0]!.x,points[0]!.y);points.slice(1).forEach(p=>g.lineTo(p.x,p.y));g.strokePath();
   }
 
   private fruitKind(id:string):'apples'|'pears'|'cherries'|null {
@@ -1443,6 +1411,7 @@ export class FarmScene extends Phaser.Scene {
         this.decor={...this.decor,...restored};
       }
       if (save.selectedCrop && save.selectedCrop in CROPS && Math.floor(this.xp / 100) + 1 >= CROPS[save.selectedCrop as CropId].unlockLevel) this.selectedCrop = save.selectedCrop as CropId;
+      this.farmExpansionLevel=Number.isInteger(save.farmExpansionLevel)?Phaser.Math.Clamp(save.farmExpansionLevel,0,3):3; // Legacy farms retain their previously unlocked land.
       if (save.version >= 2 && save.inventory) this.inventory = {...this.inventory,...save.inventory};
       if (save.version >= 4 && save.feed) this.feed = {...this.feed,...save.feed};
        if (save.version >= 6 && save.buildings) this.buildings = {...this.buildings,...save.buildings,warehouseLevel:save.buildings.warehouseLevel||1};
@@ -1475,6 +1444,7 @@ export class FarmScene extends Phaser.Scene {
   private saveFarm(): void {
     const save: FarmSave = {
       version: 16,
+      farmExpansionLevel:this.farmExpansionLevel,
       harvestedCrops:{...this.harvestedCrops},
       fruitInventory:{...this.fruitInventory},
       fruitTreeReadyAt:{...this.fruitTreeReadyAt},
