@@ -265,7 +265,7 @@ export class FarmScene extends Phaser.Scene {
       if((col*11+row*7)%31===0){this.plotGraphics.fillStyle(0x5c9846,0.9);this.plotGraphics.fillEllipse(point.x+13,point.y+3,5,3);this.plotGraphics.fillEllipse(point.x+17,point.y,4,3);}
       const plot=this.plots.get(this.key(col,row));if(plot&&plot.state!=='grass')this.redrawPlot(plot);
     }
-    this.drawPath();this.drawFlowerPatches();
+    this.drawFlowerPatches();
   }
 
   private drawFlowerPatches():void {
@@ -284,12 +284,6 @@ export class FarmScene extends Phaser.Scene {
     this.plotGraphics.strokePath();
   }
 
-  private drawPath():void {
-    const g=this.plotGraphics,size=this.farmSize-1;
-    const points=[this.toWorld(0,Math.min(size,4)),this.toWorld(Math.min(2,size),Math.min(size,4)),this.toWorld(Math.min(3,size),Math.min(3,size)),this.toWorld(size,Math.min(4,size))];
-    g.lineStyle(24,0x9b784b,1);g.beginPath();g.moveTo(points[0]!.x,points[0]!.y);points.slice(1).forEach(p=>g.lineTo(p.x,p.y));g.strokePath();
-    g.lineStyle(16,0xc5a16a,1);g.beginPath();g.moveTo(points[0]!.x,points[0]!.y);points.slice(1).forEach(p=>g.lineTo(p.x,p.y));g.strokePath();
-  }
 
   private fruitKind(id:string):'apples'|'pears'|'cherries'|null {
     if(id.startsWith('appleTree'))return 'apples';
