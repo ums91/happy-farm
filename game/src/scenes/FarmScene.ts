@@ -489,12 +489,8 @@ export class FarmScene extends Phaser.Scene {
     const farmhouse=this.decor.farmhouse||{col:3,row:1};
     const henHome=this.decor.coop||{col:Math.min(COLS-1,farmhouse.col+2),row:farmhouse.row+1};
     const cowHome=this.decor.barn||{col:Math.min(COLS-1,farmhouse.col+3),row:Math.min(ROWS-1,farmhouse.row+3)};
-    const henPos=this.toWorld(henHome.col,henHome.row);
-    const cowPos=this.toWorld(cowHome.col,cowHome.row);
-    const kindIndexes:Record<AnimalId,number>={hen:0,cow:0};
     this.animals.forEach((animal,index)=>{
       const cow=animal.id==='cow';
-      const kindIndex=kindIndexes[animal.id]++;
       const home=cow?cowHome:henHome;
       const homeTile=this.nearestAnimalCell(home);
       if(!homeTile){this.toast('No clear grass tile available for an animal. Move a building or field first.');return;}
