@@ -12,7 +12,7 @@ interface AnimalProduce { eggs: number; milk: number }
 type BuildingId = 'coop'|'barn'|'silo'|'bakery'|'greenhouse'|'windmill'|'stable'|'well'|'workshop'|'waterTower';
 type ProductId='flour'|'bread'|'pastry'|'grapes';
 interface ProductionJob { recipe:string; readyAt:number }
-interface FarmSave { version: 16; farmExpansionLevel?:number; questRefreshAt?:number; questProgressBaseline?:Partial<Record<'harvests'|'hens'|'cows'|'eggs'|'milk',number>>; eventStartedAt?:number; eventStartHarvests?:number; eventClaimed?:boolean; claimedMilestones?:number[]; harvestedCrops?:Partial<Record<CropId,number>>; fruitInventory?:Record<'apples'|'pears'|'cherries',number>; fruitTreeReadyAt?:Record<string,number>; farmerName?:string; farmName?:string; buildingLevels?:Partial<Record<BuildingId,number>>; productionJobs?:Partial<Record<BuildingId,ProductionJob|null>>; crafted?:Partial<Record<ProductId,number>>; randomQuests?: Array<{id:string;title:string;description:string;target:number;coins:number;xp:number;icon:string;metric:'harvests'|'hens'|'cows'|'eggs'|'milk'}>; claimedQuests?: string[]; ordersCompleted?: Record<string,number>; animals: Animal[]; harvests: number; coins: number; xp: number; selectedCrop?: CropId; decor?: Record<string,{col:number;row:number}>; feed: { hen: number; cow: number }; buildings?: BuildingProgress; produce?: AnimalProduce; inventory: Record<CropId, number>; plots: Array<{ col:number; row:number; state:PlotState; watered:boolean; growth:number; crop?:CropId; readyAt?:number; witherAt?:number }> }
+interface FarmSave { version: 16; farmExpansionLevel?:number; questRefreshAt?:number; questProgressBaseline?:Partial<Record<'harvests'|'hens'|'cows'|'eggs'|'milk',number>>; eventStartedAt?:number; eventStartHarvests?:number; eventClaimed?:boolean; claimedMilestones?:number[]; harvestedCrops?:Partial<Record<CropId,number>>; fruitInventory?:Record<'apples'|'pears'|'cherries'|'oranges',number>; fruitTreeReadyAt?:Record<string,number>; farmerName?:string; farmName?:string; buildingLevels?:Partial<Record<BuildingId,number>>; productionJobs?:Partial<Record<BuildingId,ProductionJob|null>>; crafted?:Partial<Record<ProductId,number>>; randomQuests?: Array<{id:string;title:string;description:string;target:number;coins:number;xp:number;icon:string;metric:'harvests'|'hens'|'cows'|'eggs'|'milk'}>; claimedQuests?: string[]; ordersCompleted?: Record<string,number>; animals: Animal[]; harvests: number; coins: number; xp: number; selectedCrop?: CropId; decor?: Record<string,{col:number;row:number}>; feed: { hen: number; cow: number }; buildings?: BuildingProgress; produce?: AnimalProduce; inventory: Record<CropId, number>; plots: Array<{ col:number; row:number; state:PlotState; watered:boolean; growth:number; crop?:CropId; readyAt?:number; witherAt?:number }> }
 const CROPS: Record<CropId,{name:string;emoji:string;cost:number;reward:number;xp:number;growMs:number;color:number;unlockLevel:number}> = {
  wheat:{name:'Wheat',emoji:'🌾',cost:5,reward:18,xp:5,growMs:2*60*1000,color:0xe4b83f,unlockLevel:1},
  carrot:{name:'Carrot',emoji:'🥕',cost:9,reward:31,xp:8,growMs:5*60*1000,color:0xef873e,unlockLevel:1},
@@ -29,6 +29,8 @@ const ROWS = 13;
 const FARM_SIZES = [7,9,11,13] as const;
 const FARM_EXPANSION_COSTS = [0,800,1800,3500] as const;
 const FARM_EXPANSION_LEVELS = [1,3,5,7] as const;
+const DECOR_ASSETS = ["apple_barrels_crate","apple_barrels_crate_sheet2","apple_barrels_variant","apple_tree","apple_tree_sheet1","apple_tree_variant","apple_tree_variant2","apple_tree_variant_sheet2","bird_bath","bird_bath_sheet1","bird_bath_stone","bird_bath_stone_sheet2","bird_bath_variant","birdhouse_post","birdhouse_post_sheet1","birdhouse_post_variant","birdhouse_post_variant2","campfire_circle","campfire_stumps","campfire_stumps_sheet2","campfire_variant","cushioned_swing","double_lantern_post","evergreen_tree","evergreen_tree_sheet1","evergreen_tree_variant","evergreen_tree_variant_sheet2","farm_direction_sign","farm_signpost","farm_signpost_sheet1","festival_bunting","festival_bunting_sheet2","firewood_stack","flower_arch_bench","flower_arch_bench_sheet1","flower_arch_bench_variant","flower_archway","flower_archway_sheet2","flower_cart","flower_cart_sheet2","flower_cart_variant","flower_fountain","flower_gate_arch","flower_gate_arch_sheet1","flower_gate_arch_sheet3","flower_market_cart","hollow_log_planter_sheet1","lamp_post_flower","large_stone_fountain","large_stone_fountain_sheet2","lavender_bush","lavender_bush_sheet2","lily_pond","lily_pond_reeds","lily_pond_sheet2","mossy_rock_cluster","mossy_rock_cluster_sheet2","mossy_rock_variant","mossy_rocks","mossy_rocks_sheet1","mossy_rocks_variant2","orange_blossom_tree","orange_blossom_tree_sheet2","orange_fruit_tree","orange_fruit_tree_sheet2","orange_tree_variant2","ornate_lamp_post","ornate_lamp_post_sheet2","park_bench_variant","pear_tree","picket_fence_flower","picnic_table","picnic_table_sheet2","picnic_table_variant","picnic_table_variant2","pine_tree_variant","pink_blossom_tree","pink_blossom_tree_sheet1","pink_blossom_tree_variant","pink_blossom_tree_variant2","pink_blossom_tree_variant_sheet2","pink_flower_bush","pink_flower_bush_sheet2","pink_flower_bush_variant","pink_flower_hedge","pink_flower_hedge_sheet1","purple_flower_bush","purple_flower_bush_sheet2","purple_flower_hedge","purple_flower_hedge_sheet1","purple_flower_pot","red_hand_pump","red_roof_gazebo","red_roof_well","red_roof_well_sheet1","red_roof_well_variant","red_roof_well_variant2","red_roof_well_variant_sheet2","rock_cluster","rock_cluster_sheet2","rock_flowerbed","rooster_signpost","rooster_signpost_sheet2","rope_fence","rose_bush","rose_bush_sheet2","round_flowerbed","scarecrow","scarecrow_variant","small_green_tree","stepping_stone_path","stepping_stone_path_sheet2","stone_birdbath","stone_lamp_wall","stone_wall","stone_wall_lamp","stone_wall_sheet1","stone_well_variant","string_lights","string_lights_sheet2","sunflower_cart","sunflower_cart_sheet2","sunflower_cart_variant","sunflower_cart_variant_sheet4","tiered_fountain_variant","tiered_stone_fountain","tiered_stone_fountain_sheet1","waterfall_pond","waterfall_pond_sheet2","white_blossom_tree","white_picket_fence","white_picket_fence_flowers","white_picket_fence_flowers_sheet2","white_picket_fence_sheet1","white_picket_fence_sheet4","wisteria_garden_arch","wisteria_swing","wisteria_swing_bench","wisteria_swing_sheet2","wisteria_tree","wisteria_trellis","wooden_bridge","wooden_farm_gate","wooden_fence","wooden_fence_sheet1","wooden_park_bench","wooden_park_bench_sheet2","wooden_windmill","wooden_windmill_sheet1","wooden_windmill_variant","wooden_windmill_variant2","yellow_flower_bush","yellow_flower_bush_sheet2","yellow_flower_hedge","yellow_flower_hedge_sheet1"] as const;
+
 const TILE_W = 76;
 const TILE_H = 38;
 const ORIGIN_X = 0;
@@ -40,6 +42,7 @@ export class FarmScene extends Phaser.Scene {
   private tomatoSprites = new Map<string, Phaser.GameObjects.Image>();
   private cropSprites = new Map<string, Phaser.GameObjects.Image>();
   private buildingAssetSprites = new Map<string, Phaser.GameObjects.Image>();
+  private decorAssetSprites = new Map<string, Phaser.GameObjects.Image>();
   private windmillRotorSprites = new Map<string, Phaser.GameObjects.Image>();
   private growthTimers = new Map<string, Phaser.Time.TimerEvent>();
   private plotGraphics!: Phaser.GameObjects.Graphics;
@@ -73,7 +76,7 @@ export class FarmScene extends Phaser.Scene {
   private displayedLevel=1;
   private farmhouseVisualLevel=1;
   private decor: Record<string,{col:number;row:number}> = {farmhouse:{col:3,row:1}};
-  private fruitInventory:Record<'apples'|'pears'|'cherries',number>={apples:0,pears:0,cherries:0};
+  private fruitInventory:Record<'apples'|'pears'|'cherries'|'oranges',number>={apples:0,pears:0,cherries:0,oranges:0};
   private harvestedCrops:Record<CropId,number>={wheat:0,carrot:0,corn:0,strawberry:0,tomato:0,pumpkin:0,blueberry:0,watermelon:0};
   private fruitTreeReadyAt:Record<string,number>={};
   private fruitTreeBadges:Record<string,Phaser.GameObjects.Text>={};
@@ -111,6 +114,7 @@ export class FarmScene extends Phaser.Scene {
     this.load.image('enchanted-woodland', `${import.meta.env.BASE_URL}assets/environment/Lush%20Forest%20Farm%20Border%20Scene.png`);
     this.load.image('windmill-body', `${import.meta.env.BASE_URL}assets/buildings/windmill/windmill-body.png`);
     this.load.image('windmill-rotor', `${import.meta.env.BASE_URL}assets/buildings/windmill/windmill-rotor.png`);
+    DECOR_ASSETS.forEach(asset=>this.load.image('decor-'+asset,`${import.meta.env.BASE_URL}assets/decor/${asset}.png`));
     this.load.spritesheet('animal-cow', `${import.meta.env.BASE_URL}assets/animals/cow.png`, { frameWidth: 384, frameHeight: 256 });
     this.load.spritesheet('animal-hen', `${import.meta.env.BASE_URL}assets/animals/hen.png`, { frameWidth: 48, frameHeight: 48 });
     this.load.spritesheet('animal-chick', `${import.meta.env.BASE_URL}assets/animals/chick.png`, { frameWidth: 44, frameHeight: 40 });
@@ -290,14 +294,19 @@ export class FarmScene extends Phaser.Scene {
   }
 
 
-  private fruitKind(id:string):'apples'|'pears'|'cherries'|null {
-    if(id.startsWith('appleTree'))return 'apples';
-    if(id.startsWith('pearTree'))return 'pears';
-    if(id.startsWith('cherryTree'))return 'cherries';
+  private fruitKind(id:string):'apples'|'pears'|'cherries'|'oranges'|null {
+    const asset=this.decorAssetForId(id)||'';
+    if(id.startsWith('appleTree')||asset.startsWith('apple_tree'))return 'apples';
+    if(id.startsWith('pearTree')||asset==='pear_tree')return 'pears';
+    if(id.startsWith('cherryTree')||asset.startsWith('pink_blossom_tree'))return 'cherries';
+    if(asset.startsWith('orange_fruit_tree')||asset.startsWith('orange_tree')||id.startsWith('decor_orange_fruit_tree')||id.startsWith('decor_orange_tree'))return 'oranges';
     return null;
   }
-  private fruitConfig(kind:'apples'|'pears'|'cherries'):{emoji:string;name:string;interval:number} {
-    return kind==='apples'?{emoji:'🍎',name:'Apple',interval:4*60*60*1000}:kind==='pears'?{emoji:'🍐',name:'Pear',interval:6*60*60*1000}:{emoji:'🍒',name:'Cherry',interval:3*60*60*1000};
+  private fruitConfig(kind:'apples'|'pears'|'cherries'|'oranges'):{emoji:string;name:string;interval:number} {
+    if(kind==='apples')return {emoji:'🍎',name:'Apple',interval:4*60*60*1000};
+    if(kind==='pears')return {emoji:'🍐',name:'Pear',interval:6*60*60*1000};
+    if(kind==='oranges')return {emoji:'🍊',name:'Orange',interval:5*60*60*1000};
+    return {emoji:'🍒',name:'Cherry',interval:3*60*60*1000};
   }
   private initializeFruitTrees():void {
     const now=Date.now();
@@ -331,62 +340,58 @@ export class FarmScene extends Phaser.Scene {
     const readyAt=this.fruitTreeReadyAt[id]||0;const cfg=this.fruitConfig(kind);
     if(Date.now()<readyAt){const remaining=readyAt-Date.now();const mins=Math.floor(remaining/60000),secs=Math.ceil((remaining%60000)/1000);this.toast(cfg.name+' tree is growing fruit · '+mins+':'+String(secs).padStart(2,'0')+' remaining.');return;}
     this.fruitInventory[kind]+=1;this.fruitTreeReadyAt[id]=Date.now()+cfg.interval;
-    const reward=kind==='apples'?32:kind==='pears'?36:42;
+    const reward=kind==='apples'?32:kind==='pears'?36:kind==='oranges'?38:42;
     const treePos=this.toWorld(this.decor[id]!.col,this.decor[id]!.row);
     this.showHarvestReward(treePos.x,treePos.y-72,reward);
     this.saveFarm();this.refreshHud();this.updateFruitTrees();
     this.toast('Harvested 1 '+cfg.name+' · sell value '+reward+' coins · next fruit in '+Math.round(cfg.interval/60000)+' minutes.');
   }
 
+  private decorAssetForId(id:string):string|null {
+    if(['farmhouse','barn','coop','silo','bakery','greenhouse','windmill','stable','well','workshop','waterTower'].includes(id))return null;
+    if(id.startsWith('appleTree'))return 'apple_tree';
+    if(id.startsWith('pearTree'))return 'pear_tree';
+    if(id.startsWith('cherryTree'))return 'pink_blossom_tree';
+    if(id.startsWith('flowerbed'))return 'round_flowerbed';
+    if(id.startsWith('fountain'))return 'tiered_stone_fountain';
+    if(id.startsWith('scarecrow'))return 'scarecrow';
+    if(id.startsWith('bench'))return 'wooden_park_bench';
+    if(id.startsWith('tree'))return 'evergreen_tree';
+    if(id.startsWith('decor_'))return id.slice(6);
+    return null;
+  }
+
+  private renderDecorAssets():void {
+    this.decorAssetSprites.forEach(sprite=>sprite.destroy());
+    this.decorAssetSprites.clear();
+    Object.entries(this.decor).forEach(([id,pos])=>{
+      const asset=this.decorAssetForId(id),texture=asset?'decor-'+asset:'';
+      if(!asset||!this.textures.exists(texture))return;
+      const p=this.toWorld(pos.col,pos.row);
+      const source=this.textures.get(texture).getSourceImage() as HTMLImageElement;
+      const slug=asset;
+      let maxW=112,maxH=104;
+      if(/tree|pine|evergreen|blossom/.test(slug)){maxW=126;maxH=158;}
+      else if(/gazebo|arch|swing|windmill|fountain|well|pond|waterfall|bridge|cart|market/.test(slug)){maxW=146;maxH=138;}
+      else if(/hedge|bush|flower|fence|path|rock|stone|firewood|hay/.test(slug)){maxW=116;maxH=82;}
+      const scale=Math.min(maxW/source.width,maxH/source.height);
+      const sprite=this.add.image(p.x,p.y+4,texture).setOrigin(0.5,1).setScale(scale).setDepth(p.y+45);
+      this.decorAssetSprites.set(id,sprite);
+    });
+  }
+
   private drawScenery(): void {
     this.sceneryGraphics.forEach(x=>x.destroy()); this.sceneryGraphics=[];
     this.sceneryLabels.forEach(x=>x.destroy()); this.sceneryLabels=[];
-    const g = this.add.graphics(); this.sceneryGraphics.push(g);
-    // Layered orchard trees: trunk, canopy shadow, clustered leaves and sunlit highlights.
-    Object.keys(this.decor).filter(id=>id.startsWith('tree')||id.startsWith('appleTree')||id.startsWith('pearTree')||id.startsWith('cherryTree')).forEach((id, i) => {
-      const pos=this.decor[id]!; const p = this.toWorld(pos.col, pos.row);
-      const palette = [0x356f36, 0x477f3b, 0x568d43, 0x3d7838];
-      const canopyY = p.y - 49;
-      // Soft cast shadow, branching trunk and layered foliage give the tree a fuller silhouette.
-      g.fillStyle(0x294c2a, 0.22); g.fillEllipse(p.x + 7, p.y + 5, 76, 20);
-      g.fillStyle(0x5a3b27, 1);
-      g.fillPoints([{x:p.x-7,y:p.y-5},{x:p.x-5,y:p.y-39},{x:p.x-14,y:p.y-54},{x:p.x-10,y:p.y-57},{x:p.x,y:p.y-43},{x:p.x+9,y:p.y-58},{x:p.x+13,y:p.y-54},{x:p.x+5,y:p.y-34},{x:p.x+8,y:p.y-4}], true);
-      g.lineStyle(2,0x9b7046,0.8);g.beginPath();g.moveTo(p.x-2,p.y-9);g.lineTo(p.x-3,p.y-38);g.lineTo(p.x-11,p.y-51);g.moveTo(p.x+2,p.y-34);g.lineTo(p.x+10,p.y-53);g.strokePath();
-      const leaf = palette[i % palette.length]!;
-      g.fillStyle(0x244f2b,0.48);
-      g.fillEllipse(p.x,canopyY+8,77,52);
-      g.fillStyle(leaf,1);
-      [[0,0,24],[-24,8,19],[24,8,20],[-14,-17,19],[14,-20,20],[-34,-7,13],[34,-5,14],[0,18,20]].forEach(([dx,dy,r])=>g.fillCircle(p.x+dx!,canopyY+dy!,r!));
-      g.fillStyle(0x75a94f,0.82);
-      [[-17,-18,7],[8,-25,8],[25,-4,6],[-30,4,6],[1,9,7]].forEach(([dx,dy,r])=>g.fillCircle(p.x+dx!,canopyY+dy!,r!));
-      g.fillStyle(0x2c6233,0.58);
-      [[-13,2],[7,-8],[22,13],[-27,-7],[0,-31]].forEach(([dx,dy])=>g.fillCircle(p.x+dx!,canopyY+dy!,3));
-      if (i % 3 === 0) { g.fillStyle(0xe9a34b,1); [[-19,2],[18,12],[5,-19]].forEach(([dx,dy])=>g.fillCircle(p.x+dx!,canopyY+dy!,3)); }
-      if(id.startsWith('appleTree')){g.fillStyle(0xc83e37,1);[[-18,-5],[15,4],[2,-22],[25,-16]].forEach(([dx,dy])=>g.fillCircle(p.x+dx!,canopyY+dy!,4));}
-      if(id.startsWith('pearTree')){g.fillStyle(0xc9cf4e,1);[[-17,-4],[15,3],[2,-22],[25,-16]].forEach(([dx,dy])=>g.fillEllipse(p.x+dx!,canopyY+dy!,7,9));}
-      if(id.startsWith('cherryTree')){g.fillStyle(0xb72e45,1);[[-18,-5],[15,4],[2,-22],[25,-16]].forEach(([dx,dy])=>g.fillCircle(p.x+dx!,canopyY+dy!,3));}
+    const g=this.add.graphics();this.sceneryGraphics.push(g);
+    // Subtle farm-edge flowers remain part of the ground scenery.
+    [[-330,145],[-300,165],[315,135],[345,158],[-360,320],[365,330]].forEach(([x,y],i)=>{
+      g.fillStyle(0x4d873f,0.85);g.fillEllipse(x!,y!+4,17,7);
+      const color=[0xf5a8c5,0xffe18a,0xffffff][i%3]!;
+      g.fillStyle(color,1);g.fillCircle(x!,y!,4);g.fillCircle(x!-4,y!+2,3);g.fillCircle(x!+4,y!+2,3);
+      g.fillStyle(0xf4c94e,1);g.fillCircle(x!,y!+2,2);
     });
-    // Animals roam freely around their coop and cow shed; no enclosure fences.
-    // Flowering borders near the path.
-    [[-330, 145], [-300, 165], [315, 135], [345, 158], [-360, 320], [365, 330]].forEach(([x, y], i) => {
-      g.fillStyle(0x4d873f, 0.85);
-      g.fillEllipse(x!, y! + 4, 17, 7);
-      const color = [0xf5a8c5, 0xffe18a, 0xffffff][i % 3]!;
-      g.fillStyle(color, 1);
-      g.fillCircle(x!, y!, 4);
-      g.fillCircle(x! - 4, y! + 2, 3);
-      g.fillCircle(x! + 4, y! + 2, 3);
-      g.fillStyle(0xf4c94e, 1);
-      g.fillCircle(x!, y! + 2, 2);
-    });
-    Object.entries(this.decor).forEach(([id,pos])=>{
-      const p=this.toWorld(pos.col,pos.row);
-      if(id.startsWith('flowerbed')){g.fillStyle(0x6b8f42,1);g.fillEllipse(p.x,p.y+3,35,11);[0xffa4bd,0xffe17b,0xffffff,0xc7a4ee].forEach((c,i)=>{g.fillStyle(c,1);g.fillCircle(p.x-12+i*8,p.y-5-(i%2)*3,4);});}
-      if(id.startsWith('fountain')){g.fillStyle(0x8b9b9a,1);g.fillEllipse(p.x,p.y,35,12);g.fillStyle(0xc5d9d4,1);g.fillEllipse(p.x,p.y-5,26,9);g.fillStyle(0x7fc9e5,0.9);g.fillEllipse(p.x,p.y-9,15,6);g.fillStyle(0xb8e8f4,1);g.fillCircle(p.x,p.y-17,3);}
-      if(id.startsWith('scarecrow')){g.lineStyle(4,0x80552f,1);g.beginPath();g.moveTo(p.x,p.y);g.lineTo(p.x,p.y-38);g.moveTo(p.x-16,p.y-28);g.lineTo(p.x+16,p.y-28);g.strokePath();g.fillStyle(0xd7a45b,1);g.fillCircle(p.x,p.y-43,8);g.fillStyle(0x9b4939,1);g.fillTriangle(p.x-12,p.y-45,p.x+12,p.y-45,p.x,p.y-58);g.fillStyle(0x6b9c48,1);g.fillRect(p.x-11,p.y-35,22,14);}
-      if(id.startsWith('bench')){g.fillStyle(0x79502f,1);g.fillRoundedRect(p.x-19,p.y-13,38,7,2);g.fillRoundedRect(p.x-19,p.y-23,38,6,2);g.fillRect(p.x-15,p.y-7,4,12);g.fillRect(p.x+11,p.y-7,4,12);}
-    });
-    // Building PNGs are the authoritative building visuals; draw them above the ground scenery.
+    this.renderDecorAssets();
     this.renderBuildingAssets();
   }
 
@@ -1300,12 +1305,12 @@ export class FarmScene extends Phaser.Scene {
   private renderBuildingPanel(id:'coop'|'barn'):void{const kind:AnimalId=id==='coop'?'hen':'cow';const level=id==='coop'?this.buildings.coopLevel:this.buildings.barnLevel;const capacity=this.buildingCapacity(kind);const storage=this.productionCapacity(kind);const field=kind==='hen'?'eggs':'milk';const owned=this.animals.filter(a=>a.id===kind);const ready=owned.filter(a=>a.readyAt>0&&a.readyAt<=Date.now()).length;const producing=owned.filter(a=>a.readyAt>Date.now()).length;const idle=owned.length-ready-producing;const cycle=kind==='hen'?45000:60000;const progress=owned.map((a,i)=>{const remaining=Math.max(0,a.readyAt-Date.now());const pct=a.readyAt===0?0:a.readyAt<=Date.now()?100:Math.max(0,Math.min(100,(1-remaining/cycle)*100));return '<div class="animal-progress"><span>'+(kind==='hen'?'🐔 Hen ':'🐄 Cow ')+(i+1)+(a.assigned===false?' · Resting':'')+'</span><strong>'+(a.assigned===false?'Not assigned':a.readyAt===0?'Needs feed':remaining===0?'Ready':Math.ceil(remaining/1000)+'s')+'</strong><div class="production-track"><i style="width:'+pct+'%"></i></div><button class="market-buy" data-animal-toggle="'+this.animals.indexOf(a)+'">'+(a.assigned===false?'Assign to production':'Unassign')+'</button></div>';}).join('');const cost=level*250;const host=document.getElementById('market-items');if(!host)return;host.innerHTML='<section class="inventory-section"><h3>'+(kind==='hen'?'🥚 Egg production':'🥛 Milk production')+'</h3><div class="inventory-grid"><article class="market-item"><div class="market-art">'+(kind==='hen'?'🥚':'🥛')+'</div><div class="market-copy"><strong>'+owned.length+' / '+capacity+' animals housed</strong><small>'+ready+' ready · '+producing+' producing · '+idle+' need feed</small></div></article><article class="market-item"><div class="market-art">📦</div><div class="market-copy"><strong>Produce storage</strong><small>'+this.produce[field]+' / '+storage+' '+field+' stored</small></div></article></div>'+ (progress||'<p>No animals housed yet. Visit the Market to buy one.</p>')+'</section><section class="inventory-section"><h3>🥣 Feed & collection</h3><p>Feed in storage: '+this.feed[kind]+' · '+(kind==='hen'?'45':'60')+' seconds per production cycle.</p><div class="building-actions"><button class="market-buy" data-building-action="collect" '+(ready===0||this.produce[field]>=storage?'disabled':'')+'>Collect '+(kind==='hen'?'eggs':'milk')+'</button><button class="market-buy" data-building-action="feed" '+(idle===0||this.feed[kind]===0?'disabled':'')+'>Feed idle animals</button></div></section><section class="inventory-section"><h3>🏗️ Building upgrade · Level '+level+'</h3><p class="market-intro">Next level: '+(capacity+2)+' animal spaces and '+(storage+5)+' produce storage. Each upgrade adds 2 housing spaces and 5 storage spaces.</p><button class="market-buy" id="upgrade-building" '+(this.coins<cost||level>=5?'disabled':'')+'>'+(level>=5?'Maximum level reached':'🪙 '+cost+' · Upgrade building')+'</button></section>';host.querySelector<HTMLButtonElement>('#upgrade-building')?.addEventListener('click',()=>{if(level>=5||this.coins<cost)return;this.coins-=cost;if(id==='coop')this.buildings.coopLevel++;else this.buildings.barnLevel++;this.drawScenery();this.renderOwnedAnimals();this.saveFarm();this.refreshHud();this.renderBuildingPanel(id);this.toast('Building upgraded! Housing and storage increased.');});}
   private sellInventoryItem(key:string):void {
     const crop=key.startsWith('crop:')?key.slice(5) as CropId:null;
-    const fruit=key.startsWith('fruit:')?key.slice(6) as 'apples'|'pears'|'cherries':null;
+    const fruit=key.startsWith('fruit:')?key.slice(6) as 'apples'|'pears'|'cherries'|'oranges':null;
     const product=key.startsWith('product:')?key.slice(8) as ProductId:null;
     const animal=key==='eggs'||key==='milk'?key:null;
     let quantity=0,price=0,label='';
     if(crop&&crop in CROPS){quantity=this.harvestedCrops[crop];price=CROPS[crop].reward;label=CROPS[crop].name;if(quantity)this.harvestedCrops[crop]=0;}
-    else if(fruit&&fruit in this.fruitInventory){quantity=this.fruitInventory[fruit];price=fruit==='apples'?32:fruit==='pears'?36:42;label=fruit[0]!.toUpperCase()+fruit.slice(1);if(quantity)this.fruitInventory[fruit]=0;}
+    else if(fruit&&fruit in this.fruitInventory){quantity=this.fruitInventory[fruit];price=fruit==='apples'?32:fruit==='pears'?36:fruit==='oranges'?38:42;label=fruit[0]!.toUpperCase()+fruit.slice(1);if(quantity)this.fruitInventory[fruit]=0;}
     else if(animal){quantity=this.produce[animal];price=animal==='eggs'?12:28;label=animal;if(quantity)this.produce[animal]=0;}
     else if(product&&product in this.crafted){quantity=this.crafted[product];price=({flour:24,bread:58,pastry:86,grapes:36} as Record<ProductId,number>)[product];label=this.productName(product);if(quantity)this.crafted[product]=0;}
     if(!quantity){this.toast('Nothing available to sell.');return;}
@@ -1407,7 +1412,7 @@ export class FarmScene extends Phaser.Scene {
 
   private renderInventory(): void {
     const host=document.getElementById('market-items'); if(!host) return;
-    const fruitCards='<article class="market-item"><div class="market-art">🍎</div><div class="market-copy"><strong>Apples</strong><small>Harvested from apple trees</small></div><span class="inventory-quantity">× '+this.fruitInventory.apples+'</span></article><article class="market-item"><div class="market-art">🍐</div><div class="market-copy"><strong>Pears</strong><small>Harvested from pear trees</small></div><span class="inventory-quantity">× '+this.fruitInventory.pears+'</span></article><article class="market-item"><div class="market-art">🍒</div><div class="market-copy"><strong>Cherries</strong><small>Harvested from cherry trees</small></div><span class="inventory-quantity">× '+this.fruitInventory.cherries+'</span></article>';
+    const fruitCards='<article class="market-item"><div class="market-art">🍎</div><div class="market-copy"><strong>Apples</strong><small>Harvested from apple trees</small></div><span class="inventory-quantity">× '+this.fruitInventory.apples+'</span></article><article class="market-item"><div class="market-art">🍐</div><div class="market-copy"><strong>Pears</strong><small>Harvested from pear trees</small></div><span class="inventory-quantity">× '+this.fruitInventory.pears+'</span></article><article class="market-item"><div class="market-art">🍒</div><div class="market-copy"><strong>Cherries</strong><small>Harvested from blossom trees</small></div><span class="inventory-quantity">× '+this.fruitInventory.cherries+'</span></article><article class="market-item"><div class="market-art">🍊</div><div class="market-copy"><strong>Oranges</strong><small>Harvested from orange trees</small></div><span class="inventory-quantity">× '+this.fruitInventory.oranges+'</span></article>';
     const seedCards=(Object.entries(CROPS) as Array<[CropId,typeof CROPS[CropId]]>).map(([id,crop])=>'<article class="market-item"><div class="market-art">'+crop.emoji+'</div><div class="market-copy"><strong>'+crop.name+' Seeds</strong><small>Ready to plant in a plowed field</small></div><span class="inventory-quantity">× '+this.inventory[id]+'</span></article>').join('');
     const hens=this.animals.filter(a=>a.id==='hen'); const cows=this.animals.filter(a=>a.id==='cow');
     const animalCard=(emoji:string,name:string,items:Animal[])=>'<article class="market-item"><div class="market-art">'+emoji+'</div><div class="market-copy"><strong>'+name+'</strong><small>'+(items.length?items.filter(a=>a.readyAt>0&&a.readyAt<=Date.now()).length+' product(s) ready · '+items.filter(a=>a.readyAt>Date.now()).length+' producing':'None owned')+'</small></div><span class="inventory-quantity">× '+items.length+'</span></article>';
@@ -1421,7 +1426,7 @@ export class FarmScene extends Phaser.Scene {
     const host=document.getElementById('market-items');if(!host)return;
     if(category==='sell'){
       const row=(emoji:string,name:string,qty:number,unit:number,key:string)=>'<article class="market-item"><div class="market-art">'+emoji+'</div><div class="market-copy"><strong>'+name+'</strong><small>In storage: '+qty+' · '+unit+' coins each</small></div><button class="market-buy" data-sell-item="'+key+'" '+(qty<=0?'disabled':'')+'>Sell all · '+(qty*unit)+' 🪙</button></article>';
-      host.innerHTML='<section class="inventory-section"><h3>🌾 Harvested crops</h3><div class="inventory-grid">'+(Object.entries(CROPS) as Array<[CropId,typeof CROPS[CropId]]>).map(([id,c])=>row(c.emoji,c.name,this.harvestedCrops[id],c.reward,'crop:'+id)).join('')+'</div></section><section class="inventory-section"><h3>🍎 Orchard fruit</h3><div class="inventory-grid">'+row('🍎','Apples',this.fruitInventory.apples,32,'fruit:apples')+row('🍐','Pears',this.fruitInventory.pears,36,'fruit:pears')+row('🍒','Cherries',this.fruitInventory.cherries,42,'fruit:cherries')+'</div></section><section class="inventory-section"><h3>🥚 Animal produce</h3><div class="inventory-grid">'+row('🥚','Eggs',this.produce.eggs,12,'eggs')+row('🥛','Milk',this.produce.milk,28,'milk')+'</div></section><section class="inventory-section"><h3>🏭 Crafted goods</h3><div class="inventory-grid">'+row('🌾','Flour',this.crafted.flour,24,'product:flour')+row('🍞','Bread',this.crafted.bread,58,'product:bread')+row('🥐','Pastries',this.crafted.pastry,86,'product:pastry')+row('🍇','Grapes',this.crafted.grapes,36,'product:grapes')+'</div></section>';
+      host.innerHTML='<section class="inventory-section"><h3>🌾 Harvested crops</h3><div class="inventory-grid">'+(Object.entries(CROPS) as Array<[CropId,typeof CROPS[CropId]]>).map(([id,c])=>row(c.emoji,c.name,this.harvestedCrops[id],c.reward,'crop:'+id)).join('')+'</div></section><section class="inventory-section"><h3>🍎 Orchard fruit</h3><div class="inventory-grid">'+row('🍎','Apples',this.fruitInventory.apples,32,'fruit:apples')+row('🍐','Pears',this.fruitInventory.pears,36,'fruit:pears')+row('🍒','Cherries',this.fruitInventory.cherries,42,'fruit:cherries')+row('🍊','Oranges',this.fruitInventory.oranges,38,'fruit:oranges')+'</div></section><section class="inventory-section"><h3>🥚 Animal produce</h3><div class="inventory-grid">'+row('🥚','Eggs',this.produce.eggs,12,'eggs')+row('🥛','Milk',this.produce.milk,28,'milk')+'</div></section><section class="inventory-section"><h3>🏭 Crafted goods</h3><div class="inventory-grid">'+row('🌾','Flour',this.crafted.flour,24,'product:flour')+row('🍞','Bread',this.crafted.bread,58,'product:bread')+row('🥐','Pastries',this.crafted.pastry,86,'product:pastry')+row('🍇','Grapes',this.crafted.grapes,36,'product:grapes')+'</div></section>';
       return;
     }
     if(category==='feed'){host.innerHTML='<article class="market-item"><div class="market-art">🌾</div><div class="market-copy"><strong>Hen feed</strong><small>Feed one hen · starts a 45-second egg cycle · in storage: '+this.feed.hen+'</small></div><button class="market-buy" data-buy-feed="hen" '+(this.coins<12?'disabled':'')+'>🪙 12 · Buy</button></article><article class="market-item"><div class="market-art">🌿</div><div class="market-copy"><strong>Cow feed</strong><small>Feed one cow · starts a 60-second milk cycle · in storage: '+this.feed.cow+'</small></div><button class="market-buy" data-buy-feed="cow" '+(this.coins<18?'disabled':'')+'>🪙 18 · Buy</button></article>';host.querySelectorAll<HTMLButtonElement>('[data-buy-feed]').forEach(btn=>btn.addEventListener('click',()=>{const id=btn.dataset.buyFeed as AnimalId;const price=id==='hen'?12:18;if(this.coins<price)return;this.coins-=price;this.feed[id]++;this.saveFarm();this.refreshHud();this.renderMarket('feed');this.toast((id==='hen'?'Hen':'Cow')+' feed added to storage.');}));return;} if(category==='animals'){const hens=this.animals.filter(a=>a.id==='hen').length,cows=this.animals.filter(a=>a.id==='cow').length;host.innerHTML='<article class="market-item"><div class="market-art">🐔</div><div class="market-copy"><strong>Happy Hen</strong><small>Lays an egg after feeding · chicken run: '+hens+'/'+this.buildingCapacity('hen')+'</small></div><button class="market-buy" data-buy-animal="hen" '+(this.coins<75||hens>=this.buildingCapacity('hen')?'disabled':'')+'>🪙 75 · Buy</button></article><article class="market-item"><div class="market-art">🐄</div><div class="market-copy"><strong>Daisy Cow</strong><small>Produces milk after feeding · cow pasture: '+cows+'/'+this.buildingCapacity('cow')+'</small></div><button class="market-buy" data-buy-animal="cow" '+(this.coins<160||cows>=this.buildingCapacity('cow')?'disabled':'')+'>🪙 160 · Buy</button></article>';host.querySelectorAll<HTMLButtonElement>('[data-buy-animal]').forEach(btn=>btn.addEventListener('click',()=>{const id=btn.dataset.buyAnimal as AnimalId;const cost=id==='hen'?75:160;if(this.coins<cost||this.animals.filter(a=>a.id===id).length>=this.buildingCapacity(id))return;this.coins-=cost;this.animals.push({id,readyAt:0});this.renderOwnedAnimals();this.saveFarm();this.refreshHud();this.toast('A new animal joined your farm!');this.renderMarket('animals');}));return;} if(category==='buildings'){
@@ -1441,14 +1446,18 @@ export class FarmScene extends Phaser.Scene {
       });
       host.querySelectorAll<HTMLButtonElement>('[data-building-buy]').forEach(btn=>btn.addEventListener('click',()=>{const id=btn.dataset.buildingBuy as BuildingId;const item=options.find(x=>x.id===id);if(!item||level<item.unlock||this.buildingLevels[id]>=5)return;const cost=this.buildingLevels[id]>0?this.buildingLevels[id]*350:item.cost;if(this.coins<cost)return;const placement=!this.decor[id]?this.findFreeDecorTile(false):null;if(!this.decor[id]&&!placement){this.toast('Your farm is full. Move or clear an object before building.');return;}this.coins-=cost;this.buildingLevels[id]=Math.max(1,this.buildingLevels[id]+1);if(placement)this.decor[id]=placement;if(id==='coop')this.buildings.coopLevel=this.buildingLevels.coop;if(id==='barn')this.buildings.barnLevel=this.buildingLevels.barn;if(id==='silo')this.buildings.warehouseLevel=this.buildingLevels.silo;this.drawScenery();this.saveFarm();this.refreshHud();this.renderMarket('buildings');this.toast(item.name+' upgraded to Level '+this.buildingLevels[id]+'.');}));return;
     }if(category==='decor'){
-      const items=[{id:'appleTree',name:'Apple Tree',emoji:'🍎',cost:220,desc:'An orchard tree with ripe red apples.'},{id:'pearTree',name:'Pear Tree',emoji:'🍐',cost:230,desc:'A leafy tree with golden pears.'},{id:'cherryTree',name:'Cherry Tree',emoji:'🍒',cost:260,desc:'A fruit tree with ruby-red cherries.'},{id:'flowerbed',name:'Flower Bed',emoji:'🌷',cost:85,desc:'A colourful patch of seasonal flowers.'},{id:'fountain',name:'Stone Fountain',emoji:'⛲',cost:360,desc:'A water feature for your homestead.'},{id:'scarecrow',name:'Scarecrow',emoji:'🧑‍🌾',cost:160,desc:'A cheerful guardian for your crops.'},{id:'bench',name:'Garden Bench',emoji:'🪑',cost:140,desc:'A cosy resting spot beside the path.'}];
-      host.innerHTML=items.map(item=>'<article class="market-item"><div class="market-art">'+item.emoji+'</div><div class="market-copy"><strong>'+item.name+'</strong><small>'+item.desc+'</small></div><button class="market-buy" data-buy-decor="'+item.id+'" '+(this.coins<item.cost?'disabled':'')+'>🪙 '+item.cost+' · Buy</button></article>').join('');
+      const legacyMap:Record<string,string>={apple_tree:'appleTree',pear_tree:'pearTree',pink_blossom_tree:'cherryTree',round_flowerbed:'flowerbed',tiered_stone_fountain:'fountain',scarecrow:'scarecrow',wooden_park_bench:'bench'};
+      const decorMeta=(asset:string)=>{const tree=/tree/.test(asset);const small=/bush|hedge|flowerbed|flower_pot|rock|fence|path|stump|firewood|hay/.test(asset);const grand=/gazebo|arch|swing|windmill|fountain|well|pond|waterfall|bridge|cart|market|campfire/.test(asset);const unlock=grand?14:tree?6:small?3:asset.includes('bench')||asset.includes('bird')||asset.includes('lamp')||asset.includes('sign')?7:10;const base=grand?1650:tree?620:small?150:asset.includes('bench')||asset.includes('bird')||asset.includes('lamp')||asset.includes('sign')?520:850;const variant=asset.includes('variant')||asset.includes('sheet')?1.12:1;return {unlock,cost:Math.round(base*variant/10)*10};};
+      const items=DECOR_ASSETS.map(asset=>{const legacyId=legacyMap[asset];const meta=decorMeta(asset);const title=asset.split('_').map(w=>w[0]?.toUpperCase()+w.slice(1)).join(' ').replace(/ Sheet\\d+/i,' Variant');const emoji=/apple/.test(asset)?'🍎':/pear/.test(asset)?'🍐':/orange/.test(asset)?'🍊':/tree|pine/.test(asset)?'🌳':/fountain|pond|waterfall|bird_bath|well/.test(asset)?'⛲':/flower|bush|hedge|rose|lavender/.test(asset)?'🌸':/bench|swing/.test(asset)?'🪑':/lamp|light/.test(asset)?'🏮':/fence|gate|wall/.test(asset)?'🪵':'🌿';return {id:legacyId||'decor_'+asset,asset,name:title,emoji,cost:legacyId==='appleTree'?220:legacyId==='pearTree'?230:legacyId==='cherryTree'?260:legacyId==='flowerbed'?85:legacyId==='fountain'?360:legacyId==='scarecrow'?160:legacyId==='bench'?140:meta.cost,unlock:legacyId?({appleTree:6,pearTree:7,cherryTree:8,flowerbed:2,fountain:10,scarecrow:5,bench:4} as Record<string,number>)[legacyId]||meta.unlock:meta.unlock,desc:'Decorate your homestead with this handcrafted farm item.'};});
+      host.innerHTML=items.map(item=>{const locked=this.farmerLevel<item.unlock;const owned=Object.keys(this.decor).some(k=>k===item.id||k.startsWith(item.id));return '<article class="market-item"><div class="market-art">'+item.emoji+'</div><div class="market-copy"><strong>'+item.name+'</strong><small>'+item.desc+' · Unlocks at Level '+item.unlock+(owned?' · Already placed':'')+'</small></div><button class="market-buy" data-buy-decor="'+item.id+'" '+(locked||this.coins<item.cost?'disabled':'')+'>'+(locked?'🔒 Level '+item.unlock:'🪙 '+item.cost+' · Buy')+'</button></article>';}).join('');
       host.querySelectorAll<HTMLButtonElement>('[data-buy-decor]').forEach(btn=>btn.addEventListener('click',()=>{
-        const item=items.find(x=>x.id===btn.dataset.buyDecor);if(!item||this.coins<item.cost)return;
+        const item=items.find(x=>x.id===btn.dataset.buyDecor);if(!item||this.farmerLevel<item.unlock||this.coins<item.cost)return;
         const spot=this.findFreeDecorTile(true);
         if(!spot){this.toast('Your farm is full. Move or clear an object before buying more decorations.');return;}
         this.coins-=item.cost;const count=Object.keys(this.decor).filter(k=>k.startsWith(item.id)).length;
-        this.decor[item.id+(count+1)]=spot;this.drawScenery();if(item.id==='appleTree'||item.id==='pearTree'||item.id==='cherryTree'){this.initializeFruitTrees();this.renderFruitTreeBadges();}this.saveFarm();this.refreshHud();this.renderMarket('decor');this.toast(item.name+' added to your farm!');
+        const placedId=item.id+(count+1);this.decor[placedId]=spot;this.drawScenery();
+        if(this.fruitKind(placedId)){this.initializeFruitTrees();this.renderFruitTreeBadges();}
+        this.saveFarm();this.refreshHud();this.renderMarket('decor');this.toast(item.name+' added to your farm!');
       }));return;
     }
     const level=this.farmerLevel;host.innerHTML=(Object.entries(CROPS) as Array<[CropId,typeof CROPS[CropId]]>).map(([id,crop])=>{const locked=level<crop.unlockLevel;return `<article class="market-item ${locked?'crop-locked':''}"><div class="market-art">${crop.emoji}</div><div class="market-copy"><strong>${crop.name}</strong><small>${locked?'Unlocks at level '+crop.unlockLevel:Math.round(crop.growMs/1000)+'s grow · '+Math.round(Math.max(300000,crop.growMs*2)/1000)+'s harvest window'} · reward ${crop.reward} coins · +${crop.xp} XP · bag: ${this.inventory[id]}</small></div><button class="market-buy" data-buy-seed="${id}" ${locked||this.coins<crop.cost?'disabled':''}>${locked?'🔒 Level '+crop.unlockLevel:'🪙 '+crop.cost+' · Buy'}</button></article>`;}).join('');
