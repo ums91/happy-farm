@@ -1459,7 +1459,7 @@ export class FarmScene extends Phaser.Scene {
   private closeMarket(): void {this.activeBuilding=null;document.getElementById('market-modal')?.classList.remove('open','field-seed-mode');const panel=document.querySelector<HTMLElement>('#market-modal .market-window');if(panel){panel.style.left='';panel.style.top='';}document.getElementById('market-modal')?.setAttribute('aria-hidden','true');document.getElementById('market-modal')?.querySelector('.market-tabs')?.classList.remove('inventory-hidden');}
   private marketArtImage(path:string,alt:string,fallback:string):string {
     const src=import.meta.env.BASE_URL+'assets/'+path;
-    return '<div class="market-art"><img class="market-thumb" src="'+src+'" alt="'+alt+'" loading="lazy" onerror="this.style.display=\'none\';this.parentElement!.textContent=\''+fallback+'\';"></div>';
+    return '<div class="market-art"><img class="market-thumb" src="'+src+'" alt="'+alt+'" loading="lazy" onerror="this.style.display=\'none\';this.parentElement.textContent=\''+fallback+'\';"></div>';
   }
 
   private renderMarket(category='seeds'): void {
