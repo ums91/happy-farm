@@ -663,28 +663,6 @@ export class FarmScene extends Phaser.Scene {
     }
   }
 
-  private drawAdditionalBuildings(g:Phaser.GameObjects.Graphics):void {
-    (['bakery','greenhouse','windmill'] as BuildingId[]).forEach((id)=>{
-      if(this.buildingLevels[id]<=0||!this.decor[id])return;
-      const p=this.toWorld(this.decor[id]!.col,this.decor[id]!.row);
-      if(id==='bakery'){
-        this.drawBuilding(g,p.x,p.y-10,0xe9c99a,0x9e4c38,'VILLAGE BAKERY');
-        g.fillStyle(0x5d3a2b,1);g.fillRoundedRect(p.x-13,p.y-23,26,20,4);g.fillStyle(0xe9a45b,1);g.fillEllipse(p.x,p.y-13,17,11);g.fillStyle(0xffdf9c,1);g.fillEllipse(p.x,p.y-15,10,5);
-      }else if(id==='greenhouse'){
-        g.fillStyle(0x426f3d,.2);g.fillEllipse(p.x+5,p.y+9,105,24);
-        g.fillStyle(0x8b6841,1);g.fillRect(p.x-43,p.y-5,86,12);
-        g.fillStyle(0x9bd5c0,.78);g.fillPoints([{x:p.x-42,y:p.y-5},{x:p.x-30,y:p.y-48},{x:p.x+30,y:p.y-48},{x:p.x+42,y:p.y-5}],true);
-        g.lineStyle(4,0x6e9d65,1);g.strokePoints([{x:p.x-42,y:p.y-5},{x:p.x-30,y:p.y-48},{x:p.x+30,y:p.y-48},{x:p.x+42,y:p.y-5}],true);
-        g.lineStyle(2,0xe9fff0,.9);g.beginPath();g.moveTo(p.x,p.y-47);g.lineTo(p.x,p.y+5);g.moveTo(p.x-27,p.y-29);g.lineTo(p.x+27,p.y-29);g.strokePath();
-        g.fillStyle(0x4c873e,1);[-20,-7,8,21].forEach(dx=>{g.fillRect(p.x+dx,p.y-15,3,15);g.fillCircle(p.x+dx,p.y-19,6);});
-        this.sceneryLabels.push(this.add.text(p.x,p.y+17,'GREENHOUSE',{fontFamily:'Arial',fontSize:'8px',fontStyle:'bold',color:'#526c39'}).setOrigin(.5));
-      }else{
-        this.drawBuilding(g,p.x,p.y-12,0xe2d5ad,0x9a5a3e,'WINDMILL');
-        g.lineStyle(5,0xf1e6c9,1);g.beginPath();g.moveTo(p.x,p.y-61);g.lineTo(p.x-29,p.y-94);g.moveTo(p.x,p.y-61);g.lineTo(p.x+29,p.y-94);g.moveTo(p.x,p.y-61);g.lineTo(p.x-29,p.y-28);g.moveTo(p.x,p.y-61);g.lineTo(p.x+29,p.y-28);g.strokePath();
-        g.fillStyle(0x8b5135,1);g.fillCircle(p.x,p.y-61,7);
-      }
-    });
-  }
   private drawBuilding(g: Phaser.GameObjects.Graphics, x: number, y: number, wall: number, roof: number, label: string): void {
     // Grounding, masonry foundation and a shaded side wall.
     g.fillStyle(0x29482b,0.24);g.fillEllipse(x+7,y+16,124,32);
