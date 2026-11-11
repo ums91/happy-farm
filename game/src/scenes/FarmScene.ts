@@ -407,7 +407,7 @@ export class FarmScene extends Phaser.Scene {
     this.sceneryLabels.forEach(x=>x.destroy()); this.sceneryLabels=[];
     const g = this.add.graphics(); this.sceneryGraphics.push(g);
     // Layered orchard trees: trunk, canopy shadow, clustered leaves and sunlit highlights.
-    (['tree1','tree2','tree3','tree4','tree5','tree6','tree7','tree8',...Object.keys(this.decor).filter(id=>id.startsWith('appleTree')||id.startsWith('pearTree')||id.startsWith('cherryTree'))]).forEach((id, i) => {
+    Object.keys(this.decor).filter(id=>id.startsWith('tree')||id.startsWith('appleTree')||id.startsWith('pearTree')||id.startsWith('cherryTree')).forEach((id, i) => {
       const pos=this.decor[id]!; const p = this.toWorld(pos.col, pos.row);
       const palette = [0x356f36, 0x477f3b, 0x568d43, 0x3d7838];
       const canopyY = p.y - 49;
@@ -431,14 +431,12 @@ export class FarmScene extends Phaser.Scene {
       if(id.startsWith('cherryTree')){g.fillStyle(0xb72e45,1);[[-18,-5],[15,4],[2,-22],[25,-16]].forEach(([dx,dy])=>g.fillCircle(p.x+dx!,canopyY+dy!,3));}
     });
     // Small garden beds and stepping stones around the homestead.
-    const homePos=this.decor.farmhouse!; const barnPos=this.decor.barn!;
-    const home = this.toWorld(homePos.col, homePos.row);
-    const barn = this.toWorld(barnPos.col, barnPos.row);
-    this.drawBuilding(g, home.x, home.y - 12, 0xe7d4a0, 0xa84f3c, 'FARMHOUSE');
-    const coopPos=this.decor.coop!; const coop=this.toWorld(coopPos.col,coopPos.row);
-    this.drawCowPaddock(g,barn.x,barn.y-10);
-    this.drawChickenRun(g,coop.x,coop.y-8);
-    const siloPos=this.decor.silo!; const silo = this.toWorld(siloPos.col, siloPos.row);
+    const homePos=this.decor.farmhouse;
+    if(homePos){const home=this.toWorld(homePos.col,homePos.row);this.drawBuilding(g,home.x,home.y-12,0xe7d4a0,0xa84f3c,'FARMHOUSE');}
+    const barnPos=this.decor.barn;if(barnPos){const barn=this.toWorld(barnPos.col,barnPos.row);this.drawCowPaddock(g,barn.x,barn.y-10);}
+    const coopPos=this.decor.coop;if(coopPos){const coop=this.toWorld(coopPos.col,coopPos.row);this.drawChickenRun(g,coop.x,coop.y-8);}
+    const siloPos=this.decor.silo;const silo=siloPos?this.toWorld(siloPos.col,siloPos.row):null;
+    if(silo){
     g.fillStyle(0x426f3d, 0.22);
     g.fillEllipse(silo.x + 31, silo.y + 5, 52, 15);
     const siloLevel=this.buildings.warehouseLevel;
@@ -454,6 +452,7 @@ export class FarmScene extends Phaser.Scene {
     g.fillStyle(0x9f4937,1);g.fillRoundedRect(silo.x+25,silo.y-7,13,13,2);g.fillStyle(0xead7a8,1);g.fillCircle(silo.x+35,silo.y-1,1.5);
     if(siloLevel>=3){g.fillStyle(0x6f9c4c,1);g.fillEllipse(silo.x+10,silo.y-2,12,5);g.fillEllipse(silo.x+53,silo.y-2,12,5);}
     if(siloLevel>=5){g.fillStyle(0xe3c17c,1);g.fillRect(silo.x+12,silo.y-57,38,3);}
+    }
     this.drawAdditionalBuildings(g);
     // Flowering borders near the path.
     [[-330, 145], [-300, 165], [315, 135], [345, 158], [-360, 320], [365, 330]].forEach(([x, y], i) => {
