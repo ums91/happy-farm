@@ -37,6 +37,7 @@ export class FarmScene extends Phaser.Scene {
   private growthTimers = new Map<string, Phaser.Time.TimerEvent>();
   private plotGraphics!: Phaser.GameObjects.Graphics;
   private overlay!: Phaser.GameObjects.Graphics;
+  private placementOverlay!: Phaser.GameObjects.Graphics;
   private selected: Plot | null = null;
   private cropHoverTooltip: HTMLDivElement|null = null;
   private hoveredCropPlot: Plot|null = null;
@@ -66,6 +67,8 @@ export class FarmScene extends Phaser.Scene {
   private fruitTreeBadges:Record<string,Phaser.GameObjects.Text>={};
   private movingDecor: string | null = null;
   private movingPlotKey: string | null = null;
+  private movingPreviewTile: {col:number;row:number}|null = null;
+  private movingPreviewValid = false;
   private lastMoveWarning='';
   private harvests = 0;
   private claimedQuests: string[] = [];
@@ -89,6 +92,7 @@ export class FarmScene extends Phaser.Scene {
     this.scale.on('resize', () => this.fitFarmToViewport());
     this.plotGraphics = this.add.graphics();
     this.overlay = this.add.graphics();
+    this.placementOverlay = this.add.graphics().setDepth(25000);
     this.drawWorld();
     this.load.image('animal-cow', `${import.meta.env.BASE_URL}assets/animals/cow.png`);
     this.load.image('animal-hen', `${import.meta.env.BASE_URL}assets/animals/hen.png`);
@@ -627,10 +631,6 @@ export class FarmScene extends Phaser.Scene {
   private handleWorldTap(pointer: Phaser.Input.Pointer): void {
     const world=this.cameras.main.getWorldPoint(pointer.x,pointer.y);
     if(this.activeTool==='move'){
-      const tile=this.toTile(world.x,world.y),plot=tile?this.plots.get(this.key(tile.col,tile.row)):undefined;
-      if(plot&&plot.state!=='grass'){
-        this.movingPlotKey=this.key(plot.col,plot.row);this.movingDecor=null;this.toast('Drag the field to an empty grass tile.');return;
-      }
       const hit=Object.keys(this.decor).reverse().find(id=>{
         const p=this.toWorld(this.decor[id]!.col,this.decor[id]!.row);
         const dx=Math.abs(world.x-p.x),dy=Math.abs(world.y-p.y);
@@ -638,58 +638,131 @@ export class FarmScene extends Phaser.Scene {
         const isBuilding=['farmhouse','barn','coop','pen','silo','bakery','greenhouse','windmill'].includes(id);
         return isTree?(dx<48&&dy<92):isBuilding?(dx<68&&dy<100):(dx<42&&dy<52);
       });
-      this.movingDecor=hit||null;this.movingPlotKey=null;
-      if(hit)this.toast('Drag '+hit+' to an empty tile.');
+      if(hit){
+        this.movingDecor=hit;this.movingPlotKey=null;
+        const pos=this.decor[hit]!;this.movingPreviewTile={col:pos.col,row:pos.row};
+        this.movingPreviewValid=true;this.drawPlacementOverlay();
+        this.toast('Drag '+hit+' to a green grid cell.');return;
+      }
+      const tile=this.toTile(world.x,world.y),plot=tile?this.plots.get(this.key(tile.col,tile.row)):undefined;
+      if(plot&&plot.state!=='grass'){
+        this.movingPlotKey=this.key(plot.col,plot.row);this.movingDecor=null;
+        this.movingPreviewTile={col:plot.col,row:plot.row};this.movingPreviewValid=true;
+        this.drawPlacementOverlay();this.toast('Drag the field to a green grid cell.');return;
+      }
       return;
+    }
+    // Prioritise orchard trees over the underlying grass/field tile.
+    if(this.activeTool==='select'){
+      const fruitTreeHit=Object.keys(this.decor).find(id=>this.fruitKind(id)!==null&&(()=>{
+        const p=this.toWorld(this.decor[id]!.col,this.decor[id]!.row);
+        return Phaser.Math.Distance.Between(world.x,world.y-38,p.x,p.y-49)<48;
+      })());
+      if(fruitTreeHit){this.harvestFruitTree(fruitTreeHit);return;}
+      const buildingHit=(['coop','barn','silo','bakery','greenhouse','windmill'] as const).find(id=>{
+        const pos=this.decor[id];if(!pos)return false;const p=this.toWorld(pos.col,pos.row);
+        return Math.abs(world.x-p.x)<57&&Math.abs(world.y-(p.y-28))<62;
+      });
+      if(buildingHit){if(buildingHit==='coop'||buildingHit==='barn')this.openBuilding(buildingHit);else this.openGenericBuilding(buildingHit);return;}
     }
     const tile=this.toTile(world.x,world.y);
     const plot=tile?this.plots.get(this.key(tile.col,tile.row)):undefined;
-    // Field interaction takes priority over nearby scenery hitboxes. This prevents
-    // buildings and orchard trees from swallowing taps on prepared soil.
-    if(plot&&(this.activeTool!=='select'||plot.state==='tilled'||plot.state==='grass'||plot.state==='withered')){
+    if(plot){
       this.selected=plot;
-      if(this.activeTool==='select'){this.openFieldSeedPicker();this.refreshSelection();this.drawSelection();return;}
+      if(this.activeTool==='select'){
+        if(plot.state==='tilled')this.openFieldSeedPicker();
+        this.refreshSelection();this.drawSelection();return;
+      }
       if(this.activeTool==='plant'){
         if(plot.state==='tilled'){this.sowSelectedPlot();return;}
         if(plot.state==='grass'||plot.state==='withered'){this.toast('Plow this field first, then tap it to sow.');return;}
       }
       this.applyTool(plot);this.refreshSelection();this.drawSelection();return;
     }
-    if(this.activeTool==='select'){
-      const fruitTreeHit=Object.keys(this.decor).find(id=>this.fruitKind(id)!==null&&(()=>{const p=this.toWorld(this.decor[id]!.col,this.decor[id]!.row);return Phaser.Math.Distance.Between(world.x,world.y-38,p.x,p.y-49)<42;})());
-      if(fruitTreeHit){this.harvestFruitTree(fruitTreeHit);return;}
-      const buildingHit=(['coop','barn','silo','bakery','greenhouse','windmill'] as const).find(id=>{const pos=this.decor[id];if(!pos)return false;const p=this.toWorld(pos.col,pos.row);return Math.abs(world.x-p.x)<57&&Math.abs(world.y-(p.y-28))<62;});
-      if(buildingHit){if(buildingHit==='coop'||buildingHit==='barn')this.openBuilding(buildingHit);else this.openGenericBuilding(buildingHit);return;}
+  }
+
+  private placementFootprint(id:string):Array<{dc:number;dr:number}> {
+    // Every currently placeable farm asset occupies one isometric cell.
+    // Keeping this central makes larger multi-cell footprints straightforward to add later.
+    return [{dc:0,dr:0}];
+  }
+
+  private placementCells(tile:{col:number;row:number},id:string):Array<{col:number;row:number}> {
+    return this.placementFootprint(id).map(offset=>({col:tile.col+offset.dc,row:tile.row+offset.dr}));
+  }
+
+  private canPlaceDecor(tile:{col:number;row:number},movingId:string):boolean {
+    const cells=this.placementCells(tile,movingId);
+    return cells.every(cell=>{
+      const target=this.plots.get(this.key(cell.col,cell.row));
+      if(!target||target.state!=='grass')return false;
+      return !Object.entries(this.decor).some(([id,pos])=>id!==movingId&&pos.col===cell.col&&pos.row===cell.row);
+    });
+  }
+
+  private canMovePlot(sourceKey:string,tile:{col:number;row:number}):boolean {
+    const source=this.plots.get(sourceKey),target=this.plots.get(this.key(tile.col,tile.row));
+    if(!source||!target||source===target||target.state!=='grass')return false;
+    return !Object.values(this.decor).some(pos=>pos.col===tile.col&&pos.row===tile.row);
+  }
+
+  private drawPlacementOverlay():void {
+    const g=this.placementOverlay;if(!g)return;g.clear();
+    if(this.activeTool!=='move'){return;}
+    // Show the isometric cell grid only while editing the farm.
+    for(let row=0;row<ROWS;row++)for(let col=0;col<COLS;col++){
+      const p=this.toWorld(col,row);
+      g.lineStyle(1,0xf2ffe5,0.42);
+      g.beginPath();g.moveTo(p.x,p.y-TILE_H/2);g.lineTo(p.x+TILE_W/2,p.y);
+      g.lineTo(p.x,p.y+TILE_H/2);g.lineTo(p.x-TILE_W/2,p.y);g.closePath();g.strokePath();
     }
-    if(plot){this.selected=plot;this.applyTool(plot);this.refreshSelection();this.drawSelection();}
+    if(!this.movingPreviewTile)return;
+    const cells=this.movingDecor?this.placementCells(this.movingPreviewTile,this.movingDecor):[this.movingPreviewTile];
+    const valid=this.movingPreviewValid;
+    cells.forEach(cell=>{
+      const p=this.toWorld(cell.col,cell.row);
+      g.fillStyle(valid?0x36e66b:0xf04444,valid?0.38:0.42);
+      g.lineStyle(3,valid?0x8dffad:0xff8b8b,0.98);
+      g.beginPath();g.moveTo(p.x,p.y-TILE_H/2);g.lineTo(p.x+TILE_W/2,p.y);
+      g.lineTo(p.x,p.y+TILE_H/2);g.lineTo(p.x-TILE_W/2,p.y);g.closePath();g.fillPath();g.strokePath();
+    });
   }
 
   private moveActiveItem(pointer:Phaser.Input.Pointer):void {
+    if(!this.movingDecor&&!this.movingPlotKey)return;
     const world=this.cameras.main.getWorldPoint(pointer.x,pointer.y),tile=this.toTile(world.x,world.y);
-    if(!tile)return;
-    if(this.movingDecor){
-      const current=this.decor[this.movingDecor];
-      if(current?.col===tile.col&&current?.row===tile.row)return;
-      if(this.canPlaceDecor(tile,this.movingDecor)){
-        this.decor[this.movingDecor]={col:tile.col,row:tile.row};
-        this.drawScenery();this.renderOwnedAnimals();this.renderFruitTreeBadges();
-      }else this.warnMoveBlocked('That tile is occupied. Choose an empty tile.');
-    }else if(this.movingPlotKey){
-      const source=this.plots.get(this.movingPlotKey),target=this.plots.get(this.key(tile.col,tile.row));
-      if(!source||!target||source===target)return;
-      if(this.canMovePlot(this.movingPlotKey,tile)){
-        const saved={state:target.state,watered:target.watered,growth:target.growth,crop:target.crop,readyAt:target.readyAt,witherAt:target.witherAt};
-        Object.assign(target,{state:source.state,watered:source.watered,growth:source.growth,crop:source.crop,readyAt:source.readyAt,witherAt:source.witherAt});
-        Object.assign(source,saved);this.redrawPlot(source);this.redrawPlot(target);this.movingPlotKey=this.key(tile.col,tile.row);this.selected=target;this.refreshSelection();this.drawSelection();
-      }else this.warnMoveBlocked('Fields can only be moved onto empty grass tiles.');
-    }
+    if(!tile){this.movingPreviewTile=null;this.movingPreviewValid=false;this.drawPlacementOverlay();return;}
+    this.movingPreviewTile=tile;
+    this.movingPreviewValid=this.movingDecor
+      ? this.canPlaceDecor(tile,this.movingDecor)
+      : this.canMovePlot(this.movingPlotKey!,tile);
+    this.drawPlacementOverlay();
   }
 
   private finishMovingItem():void {
     if(this.movingDecor||this.movingPlotKey){
-      this.saveFarm();this.toast('Farm layout saved.');
-      this.movingDecor=null;this.movingPlotKey=null;this.lastMoveWarning='';
+      const tile=this.movingPreviewTile;
+      if(tile&&this.movingPreviewValid){
+        if(this.movingDecor){
+          const current=this.decor[this.movingDecor];
+          if(current&&(current.col!==tile.col||current.row!==tile.row)){
+            this.decor[this.movingDecor]={col:tile.col,row:tile.row};
+            this.drawScenery();this.renderOwnedAnimals();this.renderFruitTreeBadges();
+            this.saveFarm();this.toast('Farm layout saved.');
+          }
+        }else if(this.movingPlotKey){
+          const source=this.plots.get(this.movingPlotKey),target=this.plots.get(this.key(tile.col,tile.row));
+          if(source&&target&&source!==target){
+            const saved={state:target.state,watered:target.watered,growth:target.growth,crop:target.crop,readyAt:target.readyAt,witherAt:target.witherAt};
+            Object.assign(target,{state:source.state,watered:source.watered,growth:source.growth,crop:source.crop,readyAt:source.readyAt,witherAt:source.witherAt});
+            Object.assign(source,saved);this.redrawPlot(source);this.redrawPlot(target);
+            this.selected=target;this.refreshSelection();this.drawSelection();this.saveFarm();this.toast('Field moved.');
+          }
+        }
+      }else this.toast('Invalid position. Item returned to its original cell.');
     }
+    this.movingDecor=null;this.movingPlotKey=null;this.movingPreviewTile=null;this.movingPreviewValid=false;
+    this.lastMoveWarning='';this.drawPlacementOverlay();
   }
 
   private bindWorldInput(): void {
@@ -780,7 +853,6 @@ export class FarmScene extends Phaser.Scene {
   }
 
 
-  private warnMoveBlocked(message:string):void {if(this.lastMoveWarning===message)return;this.lastMoveWarning=message;this.toast(message);}
   private findFreeDecorTile(preferLowerFarm=true):{col:number;row:number}|null {
     const occupied=new Set(Object.values(this.decor).map(pos=>this.key(pos.col,pos.row)));
     const rows=preferLowerFarm
@@ -1038,7 +1110,7 @@ export class FarmScene extends Phaser.Scene {
     document.getElementById('tool-sell')?.addEventListener('click',()=>{this.openMarket();document.querySelector<HTMLButtonElement>('[data-market-tab=sell]')?.click();});
     document.querySelectorAll<HTMLButtonElement>('[data-tool]').forEach(button => {
       button.addEventListener('click', () => {
-        this.activeTool = button.dataset.tool as Tool; this.movingDecor=null; this.movingPlotKey=null;
+        this.activeTool = button.dataset.tool as Tool; this.movingDecor=null; this.movingPlotKey=null;this.movingPreviewTile=null;this.movingPreviewValid=false;this.drawPlacementOverlay();
         document.querySelectorAll('[data-tool]').forEach(el => el.classList.remove('active'));
         button.classList.add('active');
         if(this.activeTool==='plant'&&this.selected)this.openFieldSeedPicker();
