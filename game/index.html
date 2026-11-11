@@ -11,6 +11,19 @@
   </head>
   <body>
     <div id="app">
+      <div class="loading-screen" id="loading-screen" role="status" aria-live="polite">
+        <div class="loading-scene">
+          <div class="loading-sun"></div>
+          <div class="loading-logo">🌻</div>
+          <p class="loading-eyebrow">WELCOME TO</p>
+          <h1>Happy Farm</h1>
+          <p class="loading-tagline">A little world of your own</p>
+          <div class="loading-landscape" aria-hidden="true"><span>🌳</span><span>🏡</span><span>🐄</span><span>🌲</span></div>
+          <div class="loading-progress"><i id="loading-progress-fill"></i></div>
+          <p class="loading-status" id="loading-status">Preparing your farm… <strong id="loading-percent">0%</strong></p>
+          <small>GROW · HARVEST · MAKE IT YOURS</small>
+        </div>
+      </div>
       <header class="topbar">
         <section class="farmer-hud">
           <div class="avatar">👨🏻‍🌾</div>
