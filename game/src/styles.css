@@ -1001,3 +1001,5 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
   .game-shell>.world-panel>.field-toolbar{max-height:108px!important}
   .field-toolbar .tool{height:35px!important;min-height:35px!important}
 }
+
+/* Deployment trigger: publish the consolidated mobile gameplay fixes. */
