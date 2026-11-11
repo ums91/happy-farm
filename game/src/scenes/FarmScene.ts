@@ -658,7 +658,9 @@ export class FarmScene extends Phaser.Scene {
       const texture = `building-${asset.folder}-${level}`;
       if (!this.textures.exists(texture)) continue;
       const p = this.toWorld(pos.col, pos.row);
-      const sprite = this.add.image(p.x, p.y - 38, texture).setDisplaySize(132, 124).setDepth(p.y + 30);
+      const source = this.textures.get(texture).getSourceImage() as HTMLImageElement;
+      const scale = Math.min(132 / source.width, 124 / source.height);
+      const sprite = this.add.image(p.x, p.y + 24, texture).setOrigin(0.5, 1).setScale(scale).setDepth(p.y + 30);
       this.buildingAssetSprites.set(id, sprite);
     }
   }
