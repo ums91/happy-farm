@@ -65,6 +65,7 @@ export class FarmScene extends Phaser.Scene {
   private crafted: Record<ProductId,number>={flour:0,bread:0,pastry:0,grapes:0};
   private animalActors: Phaser.GameObjects.Container[] = [];
   private animalSprites = new Map<Phaser.GameObjects.Container, Phaser.GameObjects.Sprite>();
+  private animalReservedCells=new Set<string>();
   private sceneryGraphics: Phaser.GameObjects.Graphics[] = [];
   private sceneryLabels: Phaser.GameObjects.Text[] = [];
   private farmExpansionLevel=0;
@@ -482,7 +483,7 @@ export class FarmScene extends Phaser.Scene {
   }
 
   private renderOwnedAnimals(): void {
-    this.animalActors.forEach(actor=>{this.tweens.killTweensOf(actor);const sprite=this.animalSprites.get(actor);if(sprite)this.tweens.killTweensOf(sprite);actor.destroy();});this.animalActors=[];this.animalSprites.clear();
+    this.animalActors.forEach(actor=>{this.tweens.killTweensOf(actor);const sprite=this.animalSprites.get(actor);if(sprite)this.tweens.killTweensOf(sprite);actor.destroy();});this.animalActors=[];this.animalSprites.clear();this.animalReservedCells.clear();
     // Resolve animal home anchors defensively: older saves may contain animals before
     // their matching building decor has been restored or placed.
     const farmhouse=this.decor.farmhouse||{col:3,row:1};
@@ -494,19 +495,13 @@ export class FarmScene extends Phaser.Scene {
     this.animals.forEach((animal,index)=>{
       const cow=animal.id==='cow';
       const kindIndex=kindIndexes[animal.id]++;
-      const center=cow?cowPos:henPos;
-      // Give each animal a free-roaming area roughly two tiles out from its home.
+      const home=cow?cowHome:henHome;
+      const homeTile=this.nearestAnimalCell(home);
+      if(!homeTile){this.toast('No clear grass tile available for an animal. Move a building or field first.');return;}
+      const center=this.toWorld(homeTile.col,homeTile.row);
       const bounds={width:TILE_W*4,height:TILE_H*4};
-      const cols=cow?3:4;
-      const spacingX=Math.min(cow?25:14,(bounds.width-32)/(cols-1));
-      const spacingY=cow?19:15;
-      const col=kindIndex%cols,row=Math.floor(kindIndex/cols);
-      const capacity=this.buildingCapacity(animal.id);
-      const rowWidth=Math.min(cols,capacity);
-      const totalRows=Math.ceil(capacity/cols);
-      const startX=center.x-(rowWidth-1)*spacingX/2+col*spacingX;
-      const startY=center.y-(totalRows-1)*spacingY/2+row*spacingY;
-      const actor=this.add.container(startX,startY);actor.setDepth(startY+index);
+      const actor=this.add.container(center.x,center.y);actor.setDepth(center.y+index);
+      this.animalReservedCells.add(this.animalCellKey(homeTile));
       const scale=cow?0.74:0.58;
       actor.setScale(scale);
       actor.add(this.add.ellipse(0,6,cow?32:22,7,0x263e25,0.18));
@@ -552,21 +547,36 @@ export class FarmScene extends Phaser.Scene {
 
   private wanderAnimal(actor:Phaser.GameObjects.Container,cx:number,cy:number,limitX:number,limitY:number,cow:boolean):void{
     if(!actor.active)return;
-    const sprite=this.animalSprites.get(actor);
-    const targetX=Phaser.Math.Clamp(cx+Phaser.Math.Between(-Math.max(5,limitX-8),Math.max(5,limitX-8)),cx-limitX,cx+limitX);
-    const targetY=Phaser.Math.Clamp(cy+Phaser.Math.Between(-Math.max(4,limitY-5),Math.max(4,limitY-5)),cy-limitY,cy+limitY);
+    const sprite=this.animalSprites.get(actor),baseScale=cow?0.74:0.58;
+    const current=this.toTile(actor.x,actor.y);
+    if(!current)return;
+    let destination:{col:number;row:number}|null=null;
+    for(let attempt=0;attempt<28;attempt++){
+      const candidate={col:current.col+Phaser.Math.Between(-2,2),row:current.row+Phaser.Math.Between(-2,2)};
+      if(candidate.col===current.col&&candidate.row===current.row)continue;
+      if(this.animalCellBlocked(candidate,actor))continue;
+      const point=this.toWorld(candidate.col,candidate.row);
+      if(this.animalRouteIsClear({x:actor.x,y:actor.y},point,actor)){destination=candidate;break;}
+    }
+    if(!destination){
+      const spriteNow=this.animalSprites.get(actor);if(spriteNow)this.animateAnimalIdle(actor,spriteNow,cow);
+      this.time.delayedCall(Phaser.Math.Between(1200,2200),()=>this.wanderAnimal(actor,cx,cy,limitX,limitY,cow));
+      return;
+    }
+    const dest=this.toWorld(destination.col,destination.row),key=this.animalCellKey(destination);
+    this.animalReservedCells.add(key);
     const duration=Phaser.Math.Between(cow?2800:1700,cow?4600:3000);
-    const baseScale=cow?0.74:0.58;
     if(sprite){
       this.tweens.killTweensOf(sprite);sprite.setAngle(0);
       sprite.play(sprite.texture.key==='animal-chick'?'chick-walk':(cow?'cow-walk':'hen-walk'),true);
       this.tweens.add({targets:sprite,y:-5,angle:cow?-2:2,duration:260,yoyo:true,repeat:-1,ease:'Sine.inOut'});
     }
-    this.tweens.add({targets:actor,x:targetX,y:targetY,duration,ease:'Sine.inOut',
-      onStart:()=>actor.setScale((targetX<actor.x?-1:1)*baseScale,baseScale),
+    this.tweens.add({targets:actor,x:dest.x,y:dest.y,duration,ease:'Sine.inOut',
+      onStart:()=>actor.setScale((dest.x<actor.x?-1:1)*baseScale,baseScale),
       onUpdate:()=>actor.setDepth(actor.y+this.animalActors.indexOf(actor)),
       onComplete:()=>{
         if(!actor.active)return;
+        this.animalReservedCells.delete(this.animalCellKey(current));
         actor.setScale(baseScale,baseScale);
         if(sprite){
           this.tweens.killTweensOf(sprite);sprite.setAngle(0).setY(-2);
@@ -576,9 +586,7 @@ export class FarmScene extends Phaser.Scene {
             this.animateAnimalIdle(actor,sprite,cow);
             this.time.delayedCall(Phaser.Math.Between(900,1900),()=>this.wanderAnimal(actor,cx,cy,limitX,limitY,cow));
           });
-        }else{
-          this.time.delayedCall(Phaser.Math.Between(1200,2200),()=>this.wanderAnimal(actor,cx,cy,limitX,limitY,cow));
-        }
+        }else this.time.delayedCall(1200,()=>this.wanderAnimal(actor,cx,cy,limitX,limitY,cow));
       }
     });
   }
@@ -679,14 +687,53 @@ export class FarmScene extends Phaser.Scene {
     }
   }
 
-  private placementFootprint(_id:string):Array<{dc:number;dr:number}> {
-    // Every currently placeable farm asset occupies one isometric cell.
-    // Keeping this central makes larger multi-cell footprints straightforward to add later.
+  private placementFootprint(id:string):Array<{dc:number;dr:number}> {
+    const buildings=['farmhouse','barn','coop','silo','bakery','greenhouse','windmill','stable','well','workshop','waterTower'];
+    if(buildings.includes(id))return [{dc:0,dr:0},{dc:1,dr:0},{dc:0,dr:1},{dc:1,dr:1}];
     return [{dc:0,dr:0}];
   }
 
   private placementCells(tile:{col:number;row:number},id:string):Array<{col:number;row:number}> {
     return this.placementFootprint(id).map(offset=>({col:tile.col+offset.dc,row:tile.row+offset.dr}));
+  }
+
+  private decorOccupiesCell(col:number,row:number,exceptId?:string):boolean {
+    return Object.entries(this.decor).some(([id,pos])=>id!==exceptId&&this.placementCells(pos,id).some(cell=>cell.col===col&&cell.row===row));
+  }
+
+  private animalCellKey(tile:{col:number;row:number}):string{return this.key(tile.col,tile.row);}
+
+  private animalCellBlocked(tile:{col:number;row:number},actor?:Phaser.GameObjects.Container):boolean {
+    if(tile.col<0||tile.row<0||tile.col>=this.farmSize||tile.row>=this.farmSize)return true;
+    const plot=this.plots.get(this.key(tile.col,tile.row));
+    if(!plot||plot.state!=='grass'||this.decorOccupiesCell(tile.col,tile.row))return true;
+    const key=this.animalCellKey(tile);
+    if(this.animalReservedCells.has(key))return true;
+    return this.animalActors.some(other=>other!==actor&&other.active&&(()=>{const t=this.toTile(other.x,other.y);return !!t&&t.col===tile.col&&t.row===tile.row;})());
+  }
+
+  private nearestAnimalCell(home:{col:number;row:number}):{col:number;row:number}|null {
+    for(let radius=0;radius<=5;radius++){
+      for(let dr=-radius;dr<=radius;dr++)for(let dc=-radius;dc<=radius;dc++){
+        if(Math.max(Math.abs(dc),Math.abs(dr))!==radius)continue;
+        const tile={col:home.col+dc,row:home.row+dr};
+        if(!this.animalCellBlocked(tile))return tile;
+      }
+    }
+    return null;
+  }
+
+  private animalRouteIsClear(from:{x:number;y:number},to:{x:number;y:number},actor:Phaser.GameObjects.Container):boolean {
+    const distance=Phaser.Math.Distance.Between(from.x,from.y,to.x,to.y);
+    const steps=Math.max(2,Math.ceil(distance/12));
+    const checked=new Set<string>();
+    for(let i=1;i<=steps;i++){
+      const t=i/steps,worldX=Phaser.Math.Linear(from.x,to.x,t),worldY=Phaser.Math.Linear(from.y,to.y,t);
+      const tile=this.toTile(worldX,worldY);if(!tile) return false;
+      const key=this.animalCellKey(tile);if(checked.has(key))continue;checked.add(key);
+      if(this.animalCellBlocked(tile,actor))return false;
+    }
+    return true;
   }
 
   private canPlaceDecor(tile:{col:number;row:number},movingId:string):boolean {
@@ -695,14 +742,14 @@ export class FarmScene extends Phaser.Scene {
       if(cell.col<0||cell.row<0||cell.col>=this.farmSize||cell.row>=this.farmSize)return false;
       const target=this.plots.get(this.key(cell.col,cell.row));
       if(!target||target.state!=='grass')return false;
-      return !Object.entries(this.decor).some(([id,pos])=>id!==movingId&&pos.col===cell.col&&pos.row===cell.row);
+      return !this.decorOccupiesCell(cell.col,cell.row,movingId);
     });
   }
 
   private canMovePlot(sourceKey:string,tile:{col:number;row:number}):boolean {
     const source=this.plots.get(sourceKey),target=this.plots.get(this.key(tile.col,tile.row));
     if(!source||!target||source===target||target.state!=='grass'||tile.col>=this.farmSize||tile.row>=this.farmSize)return false;
-    return !Object.values(this.decor).some(pos=>pos.col===tile.col&&pos.row===tile.row);
+    return !this.decorOccupiesCell(tile.col,tile.row);
   }
 
   private drawPlacementOverlay():void {
