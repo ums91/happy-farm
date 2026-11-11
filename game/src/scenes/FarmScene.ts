@@ -431,29 +431,8 @@ export class FarmScene extends Phaser.Scene {
       if(id.startsWith('cherryTree')){g.fillStyle(0xb72e45,1);[[-18,-5],[15,4],[2,-22],[25,-16]].forEach(([dx,dy])=>g.fillCircle(p.x+dx!,canopyY+dy!,3));}
     });
     // Small garden beds and stepping stones around the homestead.
-    const homePos=this.decor.farmhouse;
-    if(homePos){const home=this.toWorld(homePos.col,homePos.row);this.drawBuilding(g,home.x,home.y-12,0xe7d4a0,0xa84f3c,'FARMHOUSE');}
     const barnPos=this.decor.barn;if(barnPos){const barn=this.toWorld(barnPos.col,barnPos.row);this.drawCowPaddock(g,barn.x,barn.y-10);}
     const coopPos=this.decor.coop;if(coopPos){const coop=this.toWorld(coopPos.col,coopPos.row);this.drawChickenRun(g,coop.x,coop.y-8);}
-    const siloPos=this.decor.silo;const silo=siloPos?this.toWorld(siloPos.col,siloPos.row):null;
-    if(silo){
-    g.fillStyle(0x426f3d, 0.22);
-    g.fillEllipse(silo.x + 31, silo.y + 5, 52, 15);
-    const siloLevel=this.buildings.warehouseLevel;
-    g.fillStyle(0xc9d4c5, 1);
-    g.fillRoundedRect(silo.x + 17, silo.y - 52, 29, 59, 9);
-    g.fillStyle(0xe8eee1, 1);
-    g.fillRoundedRect(silo.x + 21, silo.y - 48, 20, 51, 7);
-    g.fillStyle(0xa8b7a2, 1);
-    g.fillEllipse(silo.x + 31, silo.y - 52, 29, 12);
-    g.fillStyle(0x8b4939, 1);
-    g.fillTriangle(silo.x + 15, silo.y - 48, silo.x + 31, silo.y - 64, silo.x + 47, silo.y - 48);
-    g.lineStyle(2,0x879887,.9);g.beginPath();g.moveTo(silo.x+19,silo.y-31);g.lineTo(silo.x+44,silo.y-31);g.moveTo(silo.x+19,silo.y-15);g.lineTo(silo.x+44,silo.y-15);g.strokePath();
-    g.fillStyle(0x9f4937,1);g.fillRoundedRect(silo.x+25,silo.y-7,13,13,2);g.fillStyle(0xead7a8,1);g.fillCircle(silo.x+35,silo.y-1,1.5);
-    if(siloLevel>=3){g.fillStyle(0x6f9c4c,1);g.fillEllipse(silo.x+10,silo.y-2,12,5);g.fillEllipse(silo.x+53,silo.y-2,12,5);}
-    if(siloLevel>=5){g.fillStyle(0xe3c17c,1);g.fillRect(silo.x+12,silo.y-57,38,3);}
-    }
-    this.drawAdditionalBuildings(g);
     // Flowering borders near the path.
     [[-330, 145], [-300, 165], [315, 135], [345, 158], [-360, 320], [365, 330]].forEach(([x, y], i) => {
       g.fillStyle(0x4d873f, 0.85);
@@ -473,6 +452,8 @@ export class FarmScene extends Phaser.Scene {
       if(id.startsWith('scarecrow')){g.lineStyle(4,0x80552f,1);g.beginPath();g.moveTo(p.x,p.y);g.lineTo(p.x,p.y-38);g.moveTo(p.x-16,p.y-28);g.lineTo(p.x+16,p.y-28);g.strokePath();g.fillStyle(0xd7a45b,1);g.fillCircle(p.x,p.y-43,8);g.fillStyle(0x9b4939,1);g.fillTriangle(p.x-12,p.y-45,p.x+12,p.y-45,p.x,p.y-58);g.fillStyle(0x6b9c48,1);g.fillRect(p.x-11,p.y-35,22,14);}
       if(id.startsWith('bench')){g.fillStyle(0x79502f,1);g.fillRoundedRect(p.x-19,p.y-13,38,7,2);g.fillRoundedRect(p.x-19,p.y-23,38,6,2);g.fillRect(p.x-15,p.y-7,4,12);g.fillRect(p.x+11,p.y-7,4,12);}
     });
+    // Building PNGs are the authoritative building visuals; draw them above the ground scenery.
+    this.renderBuildingAssets();
   }
 
   private paddockSize(kind:AnimalId):{width:number;height:number}{
@@ -652,7 +633,6 @@ export class FarmScene extends Phaser.Scene {
     this.tweens.add({targets:actor,scaleY:baseScale*0.94,duration:220,yoyo:true,repeat:2,ease:'Sine.inOut',
       onComplete:()=>{if(!actor.active)return;actor.setScale(actor.scaleX<0?-baseScale:baseScale,baseScale);const feed=this.add.text(actor.x,actor.y-25,'🌿',{fontSize:'13px'}).setOrigin(.5).setDepth(actor.depth+10);this.tweens.add({targets:feed,y:feed.y-15,alpha:0,duration:850,onComplete:()=>feed.destroy()});}
     });
-    this.renderBuildingAssets();
   }
 
   private renderBuildingAssets(): void {
@@ -666,9 +646,9 @@ export class FarmScene extends Phaser.Scene {
       bakery: { folder: 'village-bakery', level: this.buildingLevels.bakery || 1 },
       greenhouse: { folder: 'greenhouse', level: this.buildingLevels.greenhouse || 1 },
       windmill: { folder: 'windmill', level: this.buildingLevels.windmill || 1 },
-      workshop: { folder: 'workshop', level: this.buildingLevels.bakery || 1 },
-      stable: { folder: 'stable', level: 1 },
-      well: { folder: 'well', level: 1 },
+      workshop: { folder: 'workshop', level: this.buildingLevels.workshop || 1 },
+      stable: { folder: 'stable', level: this.buildingLevels.stable || 1 },
+      well: { folder: 'well', level: this.buildingLevels.well || 1 },
       waterTower: { folder: 'water-tower', level: this.buildingLevels.waterTower || 1 }
     };
     for (const [id, asset] of Object.entries(assets)) {
