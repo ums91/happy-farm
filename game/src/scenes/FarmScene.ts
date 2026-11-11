@@ -39,6 +39,7 @@ export class FarmScene extends Phaser.Scene {
   private plotOverlays = new Map<string, Phaser.GameObjects.Graphics>();
   private tomatoSprites = new Map<string, Phaser.GameObjects.Image>();
   private cropSprites = new Map<string, Phaser.GameObjects.Image>();
+  private buildingAssetSprites = new Map<string, Phaser.GameObjects.Image>();
   private growthTimers = new Map<string, Phaser.Time.TimerEvent>();
   private plotGraphics!: Phaser.GameObjects.Graphics;
   private overlay!: Phaser.GameObjects.Graphics;
@@ -107,10 +108,15 @@ export class FarmScene extends Phaser.Scene {
     for (let stage = 1; stage <= 5; stage += 1) {
       this.load.image(`crop-tomato-${stage}`, `${import.meta.env.BASE_URL}assets/crops/tomato/tomato-stage-${stage}-${['seeds','sprout','young','flowering','ripe'][stage - 1]}.png`);
     }
+    for (const building of ['farmhouse','windmill','greenhouse','village-bakery','chicken-coop','cow-shed','barn','silo','well','workshop','stable','water-tower'] as const) {
+      for (let level = 1; level <= 6; level += 1) {
+        this.load.image(`building-${building}-${level}`, `${import.meta.env.BASE_URL}assets/buildings/${building}/${building}-level-${level}.png`);
+      }
+    }
     for (const crop of ['wheat','carrot','corn','strawberry','pumpkin'] as const) {
       this.load.spritesheet(`crop-${crop}`, `${import.meta.env.BASE_URL}assets/crops/${crop}/${crop}-growth.png`, { frameWidth: 160, frameHeight: 160 });
     }
-    this.load.once(Phaser.Loader.Events.COMPLETE, () => {this.createAnimalAnimations();this.redrawFarmTiles();this.renderOwnedAnimals();window.dispatchEvent(new Event('happyfarm:ready'));});
+    this.load.once(Phaser.Loader.Events.COMPLETE, () => {this.createAnimalAnimations();this.redrawFarmTiles();this.drawScenery();this.renderOwnedAnimals();window.dispatchEvent(new Event('happyfarm:ready'));});
     this.load.start();
     this.loadFarm();
     this.redrawFarmTiles();
@@ -641,6 +647,35 @@ export class FarmScene extends Phaser.Scene {
     this.tweens.add({targets:actor,scaleY:baseScale*0.94,duration:220,yoyo:true,repeat:2,ease:'Sine.inOut',
       onComplete:()=>{if(!actor.active)return;actor.setScale(actor.scaleX<0?-baseScale:baseScale,baseScale);const feed=this.add.text(actor.x,actor.y-25,'🌿',{fontSize:'13px'}).setOrigin(.5).setDepth(actor.depth+10);this.tweens.add({targets:feed,y:feed.y-15,alpha:0,duration:850,onComplete:()=>feed.destroy()});}
     });
+    this.renderBuildingAssets();
+  }
+
+  private renderBuildingAssets(): void {
+    this.buildingAssetSprites.forEach(sprite => sprite.destroy());
+    this.buildingAssetSprites.clear();
+    const assets: Record<string, { folder: string; level: number }> = {
+      farmhouse: { folder: 'farmhouse', level: 1 },
+      barn: { folder: 'barn', level: this.buildings.barnLevel },
+      coop: { folder: 'chicken-coop', level: this.buildings.coopLevel },
+      silo: { folder: 'silo', level: this.buildings.warehouseLevel },
+      bakery: { folder: 'village-bakery', level: this.buildingLevels.bakery || 1 },
+      greenhouse: { folder: 'greenhouse', level: this.buildingLevels.greenhouse || 1 },
+      windmill: { folder: 'windmill', level: this.buildingLevels.windmill || 1 },
+      workshop: { folder: 'workshop', level: this.buildingLevels.bakery || 1 },
+      stable: { folder: 'stable', level: 1 },
+      well: { folder: 'well', level: 1 },
+      waterTower: { folder: 'water-tower', level: 1 }
+    };
+    for (const [id, asset] of Object.entries(assets)) {
+      const pos = this.decor[id];
+      if (!pos) continue;
+      const level = Phaser.Math.Clamp(Math.floor(asset.level), 1, 6);
+      const texture = `building-${asset.folder}-${level}`;
+      if (!this.textures.exists(texture)) continue;
+      const p = this.toWorld(pos.col, pos.row);
+      const sprite = this.add.image(p.x, p.y - 38, texture).setDisplaySize(132, 124).setDepth(p.y + 30);
+      this.buildingAssetSprites.set(id, sprite);
+    }
   }
 
   private drawAdditionalBuildings(g:Phaser.GameObjects.Graphics):void {
