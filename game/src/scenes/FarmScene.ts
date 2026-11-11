@@ -507,7 +507,7 @@ export class FarmScene extends Phaser.Scene {
         sprite.setDepth(2);
         actor.add(sprite);
         this.animalSprites.set(actor,sprite);
-        this.animateAnimalIdle(actor,sprite,cow);
+        this.animateAnimalIdle(actor,sprite);
       }else{
         // Keep the original vector animal as a graceful fallback while artwork loads.
         const body=this.add.graphics();
@@ -532,13 +532,13 @@ export class FarmScene extends Phaser.Scene {
       chick.add(this.add.ellipse(0,4,15,4,0x263e25,0.18));
       const chickSprite=this.add.sprite(0,-1,'animal-chick').setDisplaySize(18,16.4);chick.add(chickSprite);this.animalSprites.set(chick,chickSprite);
       this.animalActors.push(chick);
-      chickSprite.play('chick-idle');this.animateAnimalIdle(chick,chickSprite,false,250);
+      chickSprite.play('chick-idle');this.animateAnimalIdle(chick,chickSprite);
       this.wanderAnimal(chick,chickPos.x,chickPos.y,TILE_W*2-15,TILE_H*2-15,false);
     }
   }
 
   // FarmVille-style resting is genuinely still: hold a single idle frame so no legs cycle.
-  private animateAnimalIdle(actor:Phaser.GameObjects.Container,sprite:Phaser.GameObjects.Sprite,cow:boolean):void{
+  private animateAnimalIdle(actor:Phaser.GameObjects.Container,sprite:Phaser.GameObjects.Sprite):void{
     if(!actor.active||!sprite.active)return;
     this.tweens.killTweensOf(sprite);
     sprite.anims.stop();
@@ -584,7 +584,7 @@ export class FarmScene extends Phaser.Scene {
           sprite.play(cow?'cow-eat':(sprite.texture.key==='animal-chick'?'chick-peck':'hen-peck'),true);
           this.time.delayedCall(Phaser.Math.Between(cow?2200:1000,cow?4200:1900),()=>{
             if(!actor.active||!sprite.active)return;
-            this.animateAnimalIdle(actor,sprite,cow);
+            this.animateAnimalIdle(actor,sprite);
             this.time.delayedCall(Phaser.Math.Between(2600,6200),()=>this.wanderAnimal(actor,cx,cy,limitX,limitY,cow));
           });
         }else this.time.delayedCall(3000,()=>this.wanderAnimal(actor,cx,cy,limitX,limitY,cow));
