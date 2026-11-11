@@ -894,3 +894,20 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
   .game-shell>.left-nav{flex-basis:33px!important;height:33px!important;min-height:33px!important}
   .game-shell>.left-nav button{flex-basis:27px!important;width:27px!important;min-width:27px!important;height:27px!important;min-height:27px!important}
 }
+
+
+/* Mobile play-first layout: remove the redundant side launcher entirely. */
+@media(max-width:700px){
+  #app{display:flex!important;flex-direction:column!important;gap:4px!important;height:100dvh!important;min-height:0!important;overflow:hidden!important}
+  .topbar{flex:0 0 auto!important;max-height:100px!important}
+  .game-shell{position:relative!important;display:block!important;flex:1 1 0!important;width:100%!important;height:auto!important;min-height:0!important;margin:0!important;padding:0!important;overflow:hidden!important}
+  .game-shell>.left-nav{display:none!important}
+  .game-shell>.world-panel{position:absolute!important;inset:0!important;display:block!important;width:100%!important;height:100%!important;min-height:0!important;max-height:none!important;margin:0!important;overflow:hidden!important}
+  .game-shell>.world-panel>#game{position:absolute!important;inset:0!important;width:100%!important;height:100%!important}
+  .game-shell>.world-panel>.field-toolbar{z-index:5!important}
+  .game-shell>.activity-drawer{top:8px!important;left:8px!important;right:8px!important;bottom:112px!important;width:auto!important;max-height:none!important;z-index:30!important}
+  .footer{display:none!important}
+}
+.daily-reward-card{position:relative}
+.daily-reward-dismiss{position:absolute;z-index:2;right:12px;top:12px;width:38px;height:38px;border:2px solid #b88b4e;border-radius:50%;background:#fff2cf;color:#674525;font-size:27px;line-height:1;cursor:pointer;box-shadow:0 2px 0 #a77a42}
+@media(max-width:700px){.daily-reward-dismiss{width:44px;height:44px;font-size:30px}.daily-reward-card{padding-top:56px}}
