@@ -123,6 +123,11 @@ export class FarmScene extends Phaser.Scene {
   private bindDailyReward():void {
     try{this.rewardAvailableAt=Number(localStorage.getItem(this.rewardKey)||0)||0;}catch{this.rewardAvailableAt=0;}
     document.getElementById('daily-reward-claim')?.addEventListener('click',()=>this.claimDailyReward());
+    const rewardModal=document.getElementById('daily-reward-modal');
+    const dismissReward=()=>{rewardModal?.classList.remove('open');rewardModal?.setAttribute('aria-hidden','true');};
+    document.getElementById('daily-reward-dismiss')?.addEventListener('click',dismissReward);
+    rewardModal?.addEventListener('click',(event)=>{if(event.target===rewardModal)dismissReward();});
+    document.addEventListener('keydown',(event)=>{if(event.key==='Escape'){dismissReward();const drawer=document.getElementById('activity-drawer');drawer?.classList.remove('open');drawer?.setAttribute('aria-hidden','true');}});
     if(this.rewardAvailableAt<=Date.now())this.showDailyReward();
     else this.updateDailyRewardCountdown();
     this.time.addEvent({delay:1000,loop:true,callback:()=>this.updateDailyRewardCountdown()});
