@@ -239,7 +239,7 @@ export class FarmScene extends Phaser.Scene {
     meadow.lineStyle(3,0x3f7847,1);meadow.strokeEllipse(350,198,194,99);
     meadow.fillStyle(0x79ad50,1);meadow.fillEllipse(382,198,42,22);
     meadow.fillStyle(0x4d8b42,1);meadow.fillEllipse(382,194,30,15);
-    [[315,196],[365,175],[405,208],[338,216]].forEach(([x,y],i)=>{meadow.fillStyle(0x397f56,1);meadow.fillEllipse(x!,y!,18,8);meadow.fillStyle(0xb5d96a,1);meadow.fillEllipse(x!+2,y!-2,7,3);});
+    [[315,196],[365,175],[405,208],[338,216]].forEach(([x,y])=>{meadow.fillStyle(0x397f56,1);meadow.fillEllipse(x!,y!,18,8);meadow.fillStyle(0xb5d96a,1);meadow.fillEllipse(x!+2,y!-2,7,3);});
     meadow.fillStyle(0x527c3e,1);[[260,178],[274,188],[425,170],[438,182],[278,226],[423,226]].forEach(([x,y])=>{meadow.fillEllipse(x!,y!,5,17);meadow.fillCircle(x!,y!-8,5);});
     meadow.fillStyle(0x9b7546,1);meadow.fillRoundedRect(430,190,74,15,4);meadow.fillStyle(0xd6b77a,1);meadow.fillRoundedRect(430,186,74,7,3);
     meadow.lineStyle(3,0x704a2c,1);meadow.beginPath();meadow.moveTo(432,184);meadow.lineTo(502,184);meadow.moveTo(438,179);meadow.lineTo(438,197);meadow.moveTo(496,179);meadow.lineTo(496,197);meadow.strokePath();
