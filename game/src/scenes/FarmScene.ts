@@ -238,9 +238,9 @@ export class FarmScene extends Phaser.Scene {
 
   private drawWorld(): void {
     this.plotGraphics.clear();
-    // The woodland concept replaces the old procedural meadow, pond, lane and tree-ring scenery.
-  private drawForestBorder(): void {
-    // Retained as an empty compatibility hook; the concept artwork now supplies the exterior.
+    // The woodland concept is the exterior; retain only the interactive farm grid here.
+    for(let row=0;row<ROWS;row++)for(let col=0;col<COLS;col++)if(!this.plots.has(this.key(col,row)))this.plots.set(this.key(col,row),{col,row,state:'grass',watered:false,growth:0,crop:'wheat',readyAt:0,witherAt:0});
+    this.redrawFarmTiles();
   }
 
   private renderWoodlandBackdrop(): void {
@@ -252,10 +252,6 @@ export class FarmScene extends Phaser.Scene {
       .setOrigin(0.5,0.5)
       .setDisplaySize(source.width*scale,source.height*scale)
       .setDepth(-21);
-  }
-
-    for(let row=0;row<ROWS;row++)for(let col=0;col<COLS;col++)if(!this.plots.has(this.key(col,row)))this.plots.set(this.key(col,row),{col,row,state:'grass',watered:false,growth:0,crop:'wheat',readyAt:0,witherAt:0});
-    this.redrawFarmTiles();
   }
 
   private redrawFarmTiles():void {
