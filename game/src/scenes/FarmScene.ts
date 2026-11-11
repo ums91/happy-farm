@@ -93,6 +93,7 @@ export class FarmScene extends Phaser.Scene {
   private ordersCompleted: Record<string,number> = {};
   private woodlandBackdrop: Phaser.GameObjects.Image|null = null;
   private cameraDragging = false;
+  private minFarmZoom = 0.55;
   private dragPoint = new Phaser.Math.Vector2();
   private readonly saveKey = 'happyFarmPhaserSaveV1';
 
@@ -143,7 +144,7 @@ export class FarmScene extends Phaser.Scene {
     this.refreshSelection();
     this.time.addEvent({ delay: 1000, loop: true, callback: () => { if((this.questRefreshAt>0&&Date.now()>=this.questRefreshAt)||(this.eventStartedAt>0&&Date.now()-this.eventStartedAt>=604800000)){this.ensureQuestAndEventCycles();this.renderSideRail();} this.updateCropLifecycle(); this.updateProduction(); this.updateFruitTrees(); this.refreshCropHoverTooltip(); if(this.activeBuilding==='coop'||this.activeBuilding==='barn')this.renderBuildingPanel(this.activeBuilding);else if(this.activeBuilding)this.renderGenericBuildingPanel(this.activeBuilding); } });
     this.input.on('wheel', (_pointer: Phaser.Input.Pointer, _objects: unknown[], _dx: number, dy: number) => {
-      const camera=this.cameras.main;const anchor=camera.getWorldPoint(_pointer.x,_pointer.y);camera.setZoom(Phaser.Math.Clamp(camera.zoom-dy*0.0015,0.55,1.8));const after=camera.getWorldPoint(_pointer.x,_pointer.y);camera.scrollX+=anchor.x-after.x;camera.scrollY+=anchor.y-after.y;
+      const camera=this.cameras.main;const anchor=camera.getWorldPoint(_pointer.x,_pointer.y);camera.setZoom(Phaser.Math.Clamp(camera.zoom-dy*0.0015,this.minFarmZoom,1.8));const after=camera.getWorldPoint(_pointer.x,_pointer.y);camera.scrollX+=anchor.x-after.x;camera.scrollY+=anchor.y-after.y;
     });
   }
 
@@ -195,7 +196,8 @@ export class FarmScene extends Phaser.Scene {
     const spanY=Math.max(TILE_H,(this.farmSize-1)*TILE_H+24);
     const fitX=(width-56)/spanX;
     const fitY=(height-(height<700?178:110))/spanY;
-    camera.setZoom(Phaser.Math.Clamp(Math.min(1.28,fitX*1.12,fitY*1.12),0.55,1.28));
+    this.minFarmZoom=Phaser.Math.Clamp(Math.min(1.28,fitX,fitY),0.55,1.28);
+    camera.setZoom(Phaser.Math.Clamp(Math.min(1.28,fitX*1.12,fitY*1.12),this.minFarmZoom,1.28));
     camera.centerOn(0,ORIGIN_Y+(this.farmSize-1)*TILE_H/2);
   }
 
@@ -773,7 +775,7 @@ export class FarmScene extends Phaser.Scene {
           const distance=Phaser.Math.Distance.Between(pts[0]!.x,pts[0]!.y,pts[1]!.x,pts[1]!.y);
           if(this.pinchDistance>0&&distance>0){
             const anchor=camera.getWorldPoint(midpoint.x,midpoint.y);
-            camera.setZoom(Phaser.Math.Clamp(camera.zoom*(distance/this.pinchDistance),0.55,2.0));
+            camera.setZoom(Phaser.Math.Clamp(camera.zoom*(distance/this.pinchDistance),this.minFarmZoom,2.0));
             const after=camera.getWorldPoint(midpoint.x,midpoint.y);
             camera.scrollX+=anchor.x-after.x;camera.scrollY+=anchor.y-after.y;
           }
