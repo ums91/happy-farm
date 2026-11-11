@@ -1328,3 +1328,148 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 @media(prefers-reduced-motion:reduce){
   .market-item,.market-tab,.market-buy,.modal-close{transition:none!important}
 }
+
+
+/* Market v2: move beyond plain list cards into a handcrafted village-shop presentation. */
+.market-window{
+  width:min(900px,100%)!important;
+  border:8px solid #fdf5df!important;
+  outline:2px solid #9a7140;
+  border-radius:28px!important;
+  background:
+    radial-gradient(ellipse at 12% 4%,#e3f1c9 0,transparent 27%),
+    radial-gradient(ellipse at 94% 12%,#f5dfad 0,transparent 23%),
+    linear-gradient(180deg,#fffdf4 0%,#f9efd9 46%,#f0dfbc 100%)!important;
+  box-shadow:0 7px 0 #8e6535,0 24px 70px #15251699,inset 0 0 0 2px #e5d2aa!important;
+}
+.market-header{
+  min-height:105px!important;
+  padding:15px 18px 17px!important;
+  border:3px solid #8d6037!important;
+  border-bottom:6px solid #79502f!important;
+  border-radius:19px!important;
+  background:
+    radial-gradient(circle at 8% 28%,#fff9d8 0 23px,transparent 24px),
+    linear-gradient(180deg,#fffef8 0%,#f8efd9 72%,#ead5ac 100%)!important;
+  box-shadow:inset 0 2px #fff,0 3px 0 #c7a16b!important;
+}
+.market-header:before{
+  content:"🌻  ✦  FARMER'S MARKET  ✦  🌻";
+  display:block;position:absolute;top:7px;left:18px;
+  color:#a17b42;font-size:8px;font-weight:1000;letter-spacing:2px;
+  opacity:.9;
+}
+.market-header>div{padding-top:10px}
+.market-header h2{font-size:clamp(29px,4vw,38px)!important;text-shadow:0 2px #fff,0 3px #d7e5b9!important}
+.market-header small{display:none}
+.market-header .modal-close{border:2px solid #fff!important;background:linear-gradient(#fff9ed,#e7cf9f)!important;box-shadow:0 3px 0 #b18a52!important}
+.market-tabs{
+  top:119px!important;
+  margin:0 -10px 15px!important;padding:13px 12px!important;
+  background:linear-gradient(180deg,#f2e3c3,#ead5ad)!important;
+  border-top:1px solid #fff9e9!important;border-bottom:2px solid #d1b17a!important;
+  box-shadow:inset 0 1px #fff8e5,0 3px 7px #88673a1c!important;
+}
+.market-tab{
+  min-height:43px!important;padding:9px 15px!important;
+  border:2px solid #d8c093!important;border-radius:14px!important;
+  background:linear-gradient(180deg,#fffdf5,#eee0c0)!important;
+  box-shadow:0 3px 0 #c7ab79, inset 0 1px #fff!important;
+  color:#765a35!important;font-size:11px!important;
+}
+.market-tab.active{
+  border:2px solid #5c8539!important;
+  background:linear-gradient(180deg,#a9d66d,#67983f)!important;
+  box-shadow:0 3px 0 #4c7131,inset 0 1px #d9efad!important;
+  color:#fff!important;text-shadow:0 1px #527b31!important;
+}
+.market-intro{
+  position:relative!important;margin:2px 4px 15px!important;
+  padding:12px 15px 12px 44px!important;
+  border:1px solid #dfc99c!important;border-left:5px solid #9fbd66!important;
+  border-radius:12px!important;
+  background:linear-gradient(100deg,#f5f8df,#fff9e9 72%)!important;
+  box-shadow:0 2px 0 #e5d5b5!important;
+  font-size:12px!important;color:#826b46!important;
+}
+.market-intro:before{
+  content:"📋";position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:20px;
+}
+.market-items{gap:14px!important;padding:0 3px 5px!important}
+.market-item{
+  min-height:116px!important;position:relative!important;
+  display:grid!important;grid-template-columns:76px minmax(0,1fr)!important;
+  grid-template-rows:auto auto!important;column-gap:12px!important;row-gap:7px!important;
+  align-items:center!important;padding:12px 13px!important;
+  overflow:hidden!important;
+  border:2px solid #e1cda6!important;border-radius:18px!important;
+  background:
+    radial-gradient(circle at 100% 0%,#e9f2d6 0,transparent 30%),
+    linear-gradient(145deg,#fffef9 0%,#fff7e7 100%)!important;
+  box-shadow:0 4px 0 #d7c39b,0 7px 13px #7c603018,inset 0 1px #fff!important;
+}
+.market-item:before{
+  content:"";position:absolute;left:0;top:12px;bottom:12px;width:5px;
+  border-radius:0 5px 5px 0;background:linear-gradient(#c4d994,#7fa94c);
+}
+.market-item:after{
+  content:"✦";position:absolute;right:10px;top:7px;
+  color:#d6bd83;font-size:12px;opacity:.75;
+}
+.market-art{
+  grid-column:1;grid-row:1/3!important;
+  width:76px!important;height:76px!important;flex:none!important;
+  border:2px solid #d5e2bf!important;border-radius:18px!important;
+  background:
+    radial-gradient(circle at 35% 25%,#fff 0 15%,transparent 48%),
+    linear-gradient(145deg,#f4f8e8,#dce9c6)!important;
+  box-shadow:inset 0 2px 4px #fff,0 4px 0 #c5d4ad,0 6px 10px #6d80521f!important;
+  font-size:43px!important;
+}
+.market-copy{grid-column:2;grid-row:1!important;align-self:end!important;padding-right:10px}
+.market-copy strong{font-size:14px!important;line-height:1.2!important;color:#65482b!important;text-shadow:0 1px #fff}
+.market-copy small{font-size:10px!important;line-height:1.4!important;color:#957b53!important;margin-top:5px!important}
+.market-item .market-buy{
+  grid-column:2;grid-row:2;justify-self:start;align-self:start;
+  min-width:112px!important;min-height:34px!important;
+  border:2px solid #65903f!important;border-radius:12px!important;
+  background:linear-gradient(180deg,#b1dc78 0%,#80b34c 58%,#67963d 100%)!important;
+  box-shadow:0 3px 0 #507633,inset 0 1px #e7f5c9!important;
+  color:#fff!important;text-shadow:0 1px #4c702f!important;font-size:10px!important;
+}
+.market-item .market-buy:disabled{
+  border-color:#c4cda9!important;background:linear-gradient(#e2e9cf,#cbd8ae)!important;
+  box-shadow:0 3px 0 #aebd91!important;color:#fff!important;
+}
+.market-footer{
+  min-height:49px!important;margin:15px -10px -12px!important;padding:13px 17px!important;
+  border:2px solid #9a7140!important;border-radius:0 0 14px 14px!important;
+  background:linear-gradient(180deg,#fff4d9,#ead5aa)!important;
+  box-shadow:0 4px 0 #8c6338,inset 0 1px #fff!important;
+  color:#80613a!important;
+}
+.market-footer:before{content:"🪙  ";font-size:13px}
+.market-footer strong{font-size:15px!important;color:#638e3b!important}
+.inventory-section{
+  margin:0 3px 13px!important;padding:15px!important;
+  border:2px solid #e0cda7!important;border-radius:18px!important;
+  background:linear-gradient(145deg,#fffef8,#f5ead2)!important;
+  box-shadow:0 4px 0 #d8c49d,0 7px 13px #7c603018!important;
+}
+.inventory-section h3{font-size:16px!important;color:#668c3e!important}
+.inventory-section .market-item{min-height:90px!important}
+.inventory-stat{border:2px solid #dfe8c9!important;background:linear-gradient(#fffef8,#edf4df)!important;box-shadow:0 3px 0 #d4dfbd!important}
+@media(max-width:700px){
+  .market-header{min-height:88px!important;padding:12px 13px!important}
+  .market-header:before{font-size:7px;left:13px}
+  .market-header>div{padding-top:9px}
+  .market-tabs{top:101px!important}
+  .market-item{min-height:104px!important;grid-template-columns:64px minmax(0,1fr)!important;padding:10px!important}
+  .market-art{width:64px!important;height:64px!important;font-size:36px!important}
+  .market-copy strong{font-size:13px!important}
+}
+@media(max-width:390px){
+  .market-item{grid-template-columns:56px minmax(0,1fr)!important;column-gap:9px!important}
+  .market-art{width:56px!important;height:56px!important;font-size:31px!important}
+  .market-copy small{font-size:9px!important}
+}
