@@ -18,6 +18,9 @@ const game = new Phaser.Game({
     width: 1100,
     height: 720,
   },
+  // The farm supports one-finger taps/panning and two-finger pinch zoom.
+  // Phaser otherwise enables only one active touch pointer by default.
+  input: { activePointers: 3 },
   scene: [FarmScene],
   render: { roundPixels: true, powerPreference: 'high-performance' },
 });
