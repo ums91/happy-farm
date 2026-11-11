@@ -99,7 +99,7 @@ export class FarmScene extends Phaser.Scene {
   create(): void {
     this.fitFarmToViewport();
     this.scale.on('resize', () => this.fitFarmToViewport());
-    this.plotGraphics = this.add.graphics();
+    this.plotGraphics = this.add.graphics().setDepth(-5);
     this.overlay = this.add.graphics();
     this.placementOverlay = this.add.graphics().setDepth(25000);
     this.drawWorld();
@@ -658,7 +658,7 @@ export class FarmScene extends Phaser.Scene {
       const texture = `building-${asset.folder}-${level}`;
       if (!this.textures.exists(texture)) continue;
       const p = this.toWorld(pos.col, pos.row);
-      const sprite = this.add.image(p.x, p.y - 38, texture).setDisplaySize(132, 124).setDepth(1000 + p.y + 30);
+      const sprite = this.add.image(p.x, p.y - 38, texture).setDisplaySize(132, 124).setDepth(p.y + 30);
       this.buildingAssetSprites.set(id, sprite);
     }
   }
@@ -1025,7 +1025,7 @@ export class FarmScene extends Phaser.Scene {
     this.cropSprites.delete(id);
     if (plot.state === 'grass') return;
     const p = this.toWorld(plot.col, plot.row);
-    const g = this.add.graphics();
+    const g = this.add.graphics().setDepth(-4);
     this.plotOverlays.set(id, g);
     this.diamond(g, p.x, p.y, plot.state === 'withered' ? 0x725b45 : 0x805332, plot.state === 'withered' ? 0x574332 : 0x68452f);
     g.lineStyle(2, 0xb78655, 0.9);
