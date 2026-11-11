@@ -357,7 +357,7 @@ export class FarmScene extends Phaser.Scene {
     if(id.startsWith('scarecrow'))return 'scarecrow';
     if(id.startsWith('bench'))return 'wooden_park_bench';
     if(id.startsWith('tree'))return 'evergreen_tree';
-    if(id.startsWith('decor_'))return id.slice(6);
+    if(id.startsWith('decor_'))return id.slice(6).replace(/\\d+$/,'');
     return null;
   }
 
@@ -655,6 +655,8 @@ export class FarmScene extends Phaser.Scene {
   private placementFootprint(id:string):Array<{dc:number;dr:number}> {
     const buildings=['farmhouse','barn','coop','silo','bakery','greenhouse','windmill','stable','well','workshop','waterTower'];
     if(buildings.includes(id))return [{dc:0,dr:0},{dc:1,dr:0},{dc:0,dr:1},{dc:1,dr:1}];
+    const asset=this.decorAssetForId(id)||'';
+    if(/gazebo|arch|swing|windmill|fountain|well|pond|waterfall|bridge|cart|market|campfire/.test(asset))return [{dc:0,dr:0},{dc:1,dr:0},{dc:0,dr:1},{dc:1,dr:1}];
     return [{dc:0,dr:0}];
   }
 
