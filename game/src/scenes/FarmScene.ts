@@ -105,6 +105,8 @@ export class FarmScene extends Phaser.Scene {
     this.drawWorld();
     this.load.on('progress',(value:number)=>window.dispatchEvent(new CustomEvent('happyfarm:loading',{detail:{progress:value}})));
     this.load.spritesheet('animal-cow', `${import.meta.env.BASE_URL}assets/animals/cow.png`, { frameWidth: 44, frameHeight: 40 });
+    // Optional new 4×4 cow walking sheet; legacy cow atlas remains the fallback.
+    this.load.spritesheet('animal-cow-walk-v2', `${import.meta.env.BASE_URL}assets/animals/cow-walk-spritesheet.png`, { frameWidth: 48, frameHeight: 36 });
     this.load.spritesheet('animal-hen', `${import.meta.env.BASE_URL}assets/animals/hen.png`, { frameWidth: 44, frameHeight: 40 });
     this.load.spritesheet('animal-chick', `${import.meta.env.BASE_URL}assets/animals/chick.png`, { frameWidth: 44, frameHeight: 40 });
     for (let stage = 1; stage <= 5; stage += 1) {
@@ -466,6 +468,7 @@ export class FarmScene extends Phaser.Scene {
     // Keep this grid aligned with the source PNGs so every pose stays inside its frame.
     define('animal-cow','cow-idle',0,4,4,-1);
     define('animal-cow','cow-walk',3,3,8,-1);
+    if(this.textures.exists('animal-cow-walk-v2')) this.anims.create({key:'cow-walk-v2',frames:this.anims.generateFrameNumbers('animal-cow-walk-v2',{start:0,end:15}),frameRate:8,repeat:-1});
     define('animal-cow','cow-eat',2,4,6,3);
     define('animal-cow','cow-happy',3,3,7,0);
     define('animal-cow','cow-rest',4,4,4,-1);
@@ -553,7 +556,7 @@ export class FarmScene extends Phaser.Scene {
     const baseScale=cow?0.74:0.58;
     if(sprite){
       this.tweens.killTweensOf(sprite);sprite.setAngle(0);
-      sprite.play(sprite.texture.key==='animal-chick'?'chick-walk':(cow?'cow-walk':'hen-walk'),true);
+      sprite.play(sprite.texture.key==='animal-chick'?'chick-walk':(cow?(this.anims.exists('cow-walk-v2')?'cow-walk-v2':'cow-walk'):'hen-walk'),true);
       this.tweens.add({targets:sprite,y:-5,angle:cow?-2:2,duration:260,yoyo:true,repeat:-1,ease:'Sine.inOut'});
     }
     this.tweens.add({targets:actor,x:targetX,y:targetY,duration,ease:'Sine.inOut',
