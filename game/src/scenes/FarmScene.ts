@@ -560,7 +560,7 @@ export class FarmScene extends Phaser.Scene {
       if(this.animalRouteIsClear({x:actor.x,y:actor.y},point,actor)){destination=candidate;break;}
     }
     if(!destination){
-      const spriteNow=this.animalSprites.get(actor);if(spriteNow)this.animateAnimalIdle(actor,spriteNow,cow);
+      const spriteNow=this.animalSprites.get(actor);if(spriteNow)this.animateAnimalIdle(actor,spriteNow);
       this.time.delayedCall(Phaser.Math.Between(2800,5600),()=>this.wanderAnimal(actor,cx,cy,limitX,limitY,cow));
       return;
     }
@@ -595,7 +595,7 @@ export class FarmScene extends Phaser.Scene {
   private playFeedingAnimation(actor:Phaser.GameObjects.Container):void{
     if(!actor.active)return;
     const baseScale=Math.abs(actor.scaleY),sprite=this.animalSprites.get(actor);
-    if(sprite){this.tweens.killTweensOf(sprite);const cow=sprite.texture.key==='animal-cow';sprite.play(sprite.texture.key==='animal-chick'?'chick-peck':(cow?'cow-eat':'hen-peck'),true);this.tweens.add({targets:sprite,angle:-8,y:3,duration:260,yoyo:true,repeat:3,ease:'Sine.inOut',onComplete:()=>{if(actor.active)this.animateAnimalIdle(actor,sprite,cow);}});}
+    if(sprite){this.tweens.killTweensOf(sprite);const cow=sprite.texture.key==='animal-cow';sprite.play(sprite.texture.key==='animal-chick'?'chick-peck':(cow?'cow-eat':'hen-peck'),true);this.tweens.add({targets:sprite,angle:-8,y:3,duration:260,yoyo:true,repeat:3,ease:'Sine.inOut',onComplete:()=>{if(actor.active)this.animateAnimalIdle(actor,sprite);}});}
     this.tweens.add({targets:actor,scaleY:baseScale*0.94,duration:220,yoyo:true,repeat:2,ease:'Sine.inOut',
       onComplete:()=>{if(!actor.active)return;actor.setScale(actor.scaleX<0?-baseScale:baseScale,baseScale);const feed=this.add.text(actor.x,actor.y-25,'🌿',{fontSize:'13px'}).setOrigin(.5).setDepth(actor.depth+10);this.tweens.add({targets:feed,y:feed.y-15,alpha:0,duration:850,onComplete:()=>feed.destroy()});}
     });
