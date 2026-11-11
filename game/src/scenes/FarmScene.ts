@@ -663,48 +663,6 @@ export class FarmScene extends Phaser.Scene {
     }
   }
 
-  private drawBuilding(g: Phaser.GameObjects.Graphics, x: number, y: number, wall: number, roof: number, label: string): void {
-    // Grounding, masonry foundation and a shaded side wall.
-    g.fillStyle(0x29482b,0.24);g.fillEllipse(x+7,y+16,124,32);
-    g.fillStyle(0x766044,1);g.fillRoundedRect(x-43,y+1,88,10,3);
-    g.fillStyle(0xb69a6a,1);g.fillRect(x-42,y-2,86,4);
-    const side=Phaser.Display.Color.IntegerToColor(wall).darken(25).color;
-    g.fillStyle(side,1);g.fillPoints([{x:x+31,y:y-37},{x:x+48,y:y-27},{x:x+48,y:y+8},{x:x+31,y:y+5}],true);
-    g.fillStyle(wall,1);g.fillRect(x-31,y-38,62,44);
-    g.fillStyle(Phaser.Display.Color.IntegerToColor(wall).lighten(12).color,1);g.fillRect(x-31,y-38,62,5);
-    // Roof fascia and two planes with fine shingle seams.
-    g.fillStyle(0x50352d,1);g.fillTriangle(x-51,y-33,x,y-77,x+51,y-33);
-    g.fillStyle(roof,1);g.fillPoints([{x:x-46,y:y-35},{x:x,y:y-72},{x:x+45,y:y-35},{x:x+31,y:y-29},{x:x,y:y-57},{x:x-31,y:y-29}],true);
-    g.fillStyle(Phaser.Display.Color.IntegerToColor(roof).darken(20).color,1);
-    g.fillPoints([{x:x,y:y-72},{x:x+45,y:y-35},{x:x+31,y:y-29},{x:x,y:y-57}],true);
-    g.lineStyle(1.2,0xf0c58a,0.6);
-    for(let row=0;row<3;row++){const yy=y-61+row*9;g.beginPath();g.moveTo(x-28+row*9,yy);g.lineTo(x-7+row*3,yy-15);g.moveTo(x+5+row*5,yy-4);g.lineTo(x+25+row*4,yy+7);g.strokePath();}
-    g.lineStyle(2,0x704638,0.9);g.beginPath();g.moveTo(x-43,y-34);g.lineTo(x,y-70);g.lineTo(x+44,y-34);g.strokePath();
-    // Chimney, cap and a small drifting smoke puff.
-    g.fillStyle(0x9a5a43,1);g.fillRect(x+24,y-75,11,27);g.fillStyle(0x633d32,1);g.fillRect(x+22,y-77,15,4);
-    g.fillStyle(0xffffff,0.22);g.fillCircle(x+33,y-86,4);g.fillCircle(x+38,y-93,3);
-    // Plaster highlights, timber framing and recessed door.
-    g.fillStyle(0xffffff,0.16);g.fillRect(x-27,y-31,54,3);
-    g.lineStyle(3,0x79543a,0.85);g.beginPath();g.moveTo(x-28,y-35);g.lineTo(x-28,y+2);g.moveTo(x+28,y-35);g.lineTo(x+28,y+2);g.moveTo(x-29,y-6);g.lineTo(x+29,y-6);g.strokePath();
-    g.fillStyle(0x4c3328,1);g.fillRoundedRect(x-9,y-12,18,19,2);
-    g.fillStyle(0x8b6543,1);g.fillRect(x-6,y-9,12,16);g.fillStyle(0xe6c77d,1);g.fillCircle(x+4,y-2,1.5);
-    // Glass windows with reflections, muntins and flower boxes.
-    [-20,20].forEach(wx=>{
-      g.fillStyle(0x31566a,1);g.fillRect(x+wx-7,y-28,14,15);
-      g.fillStyle(0x9ed9e9,1);g.fillRect(x+wx-5,y-26,10,11);
-      g.fillStyle(0xffffff,0.65);g.fillTriangle(x+wx-5,y-26,x+wx+4,y-26,x+wx-5,y-17);
-      g.lineStyle(2,0xf8e9c9,1);g.strokeRect(x+wx-7,y-28,14,15);
-      g.beginPath();g.moveTo(x+wx,y-27);g.lineTo(x+wx,y-14);g.moveTo(x+wx-6,y-21);g.lineTo(x+wx+6,y-21);g.strokePath();
-      g.fillStyle(0x805238,1);g.fillRect(x+wx-9,y-12,18,3);
-      g.fillStyle(0x4d873e,1);g.fillEllipse(x+wx-4,y-15,7,5);g.fillEllipse(x+wx+4,y-15,7,5);
-      g.fillStyle(0xf0b2a5,1);g.fillCircle(x+wx,y-18,2);
-    });
-    // Small siding boards on the visible side.
-    g.lineStyle(1,0xffffff,0.2);for(let yy=y-1;yy<y+7;yy+=4){g.beginPath();g.moveTo(x+34,yy);g.lineTo(x+45,yy+3);g.strokePath();}
-    g.fillStyle(0xfffdf0,0.94);g.fillRoundedRect(x-38,y+12,76,16,7);
-    this.sceneryLabels.push(this.add.text(x,y+20,label,{fontFamily:'Arial',fontSize:'8px',fontStyle:'bold',color:'#526c39'}).setOrigin(0.5));
-  }
-
   private touchPositions = new Map<number,{x:number;y:number;startX:number;startY:number}>();
   private touchGesture = false;
   private pinchDistance = 0;
