@@ -99,9 +99,9 @@ export class FarmScene extends Phaser.Scene {
     this.placementOverlay = this.add.graphics().setDepth(25000);
     this.drawWorld();
     this.load.on('progress',(value:number)=>window.dispatchEvent(new CustomEvent('happyfarm:loading',{detail:{progress:value}})));
-    this.load.spritesheet('animal-cow', `${import.meta.env.BASE_URL}assets/animals/cow.png`, { frameWidth: 48, frameHeight: 48 });
-    this.load.spritesheet('animal-hen', `${import.meta.env.BASE_URL}assets/animals/hen.png`, { frameWidth: 48, frameHeight: 48 });
-    this.load.spritesheet('animal-chick', `${import.meta.env.BASE_URL}assets/animals/chick.png`, { frameWidth: 48, frameHeight: 48 });
+    this.load.spritesheet('animal-cow', `${import.meta.env.BASE_URL}assets/animals/cow.png`, { frameWidth: 44, frameHeight: 40 });
+    this.load.spritesheet('animal-hen', `${import.meta.env.BASE_URL}assets/animals/hen.png`, { frameWidth: 44, frameHeight: 40 });
+    this.load.spritesheet('animal-chick', `${import.meta.env.BASE_URL}assets/animals/chick.png`, { frameWidth: 44, frameHeight: 40 });
     this.load.once(Phaser.Loader.Events.COMPLETE, () => {this.createAnimalAnimations();this.renderOwnedAnimals();window.dispatchEvent(new Event('happyfarm:ready'));});
     this.load.start();
     this.loadFarm();
@@ -503,8 +503,8 @@ export class FarmScene extends Phaser.Scene {
       const start=row*8;
       this.anims.create({key:name,frames:this.anims.generateFrameNumbers(key,{start,end:start+count-1}),frameRate:rate,repeat});
     };
-    // Atlas cells are 48x48, arranged in eight columns. Rows are the
-    // authored pose sequences from the existing animal artwork.
+    // The existing atlases are 352px wide: eight 44x40 cells per row.
+    // Keep this grid aligned with the source PNGs so every pose stays inside its frame.
     define('animal-cow','cow-idle',0,4,4,-1);
     define('animal-cow','cow-walk',3,3,8,-1);
     define('animal-cow','cow-eat',2,4,6,3);
@@ -547,7 +547,7 @@ export class FarmScene extends Phaser.Scene {
       actor.add(this.add.ellipse(0,6,cow?32:22,7,0x263e25,0.18));
       const texture=cow?'animal-cow':'animal-hen';
       if(this.textures.exists(texture)){
-        const sprite=this.add.sprite(0,-2,texture).setDisplaySize(cow?50:34,cow?50:34);
+        const sprite=this.add.sprite(0,-2,texture).setDisplaySize(cow?48:35,cow?44:32);
         actor.add(sprite);
         this.animalSprites.set(actor,sprite);
         this.animateAnimalIdle(actor,sprite,cow,index*110);
@@ -569,7 +569,7 @@ export class FarmScene extends Phaser.Scene {
     if(this.animals.some(a=>a.id==='hen')&&this.textures.exists('animal-chick')){
       const chick=this.add.container(henPos.x+15,henPos.y+13);chick.setDepth(henPos.y+14);
       chick.add(this.add.ellipse(0,4,15,4,0x263e25,0.18));
-      const chickSprite=this.add.sprite(0,-1,'animal-chick').setDisplaySize(18,18);chick.add(chickSprite);this.animalSprites.set(chick,chickSprite);
+      const chickSprite=this.add.sprite(0,-1,'animal-chick').setDisplaySize(18,16.4);chick.add(chickSprite);this.animalSprites.set(chick,chickSprite);
       this.animalActors.push(chick);
       chickSprite.play('chick-idle');this.animateAnimalIdle(chick,chickSprite,false,250);
       this.wanderAnimal(chick,henPos.x,henPos.y,Math.max(5,this.paddockSize('hen').width/2-15),Math.max(5,this.paddockSize('hen').height/2-15),false);
@@ -592,8 +592,8 @@ export class FarmScene extends Phaser.Scene {
     const duration=Phaser.Math.Between(cow?2600:1500,cow?4300:2800);
     if(sprite){this.tweens.killTweensOf(sprite);sprite.setAngle(0);sprite.play(sprite.texture.key==='animal-chick'?'chick-walk':(cow?'cow-walk':'hen-walk'),true);this.tweens.add({targets:sprite,y:-5,angle:cow?-2:2,duration:260,yoyo:true,repeat:-1,ease:'Sine.inOut'});}
     this.tweens.add({targets:actor,x:targetX,y:targetY,duration,ease:'Sine.inOut',
-      onStart:()=>actor.setScale((cow?0.88:0.62)*(targetX<actor.x?-1:1),cow?0.88:0.62),
-      onComplete:()=>{if(actor.active){actor.setScale(cow?0.88:0.62,cow?0.88:0.62);if(sprite)this.animateAnimalIdle(actor,sprite,cow);this.time.delayedCall(Phaser.Math.Between(1100,2600),()=>this.wanderAnimal(actor,cx,cy,limitX,limitY,cow));}}
+      onStart:()=>actor.setScale((cow?0.74:0.58)*(targetX<actor.x?-1:1),cow?0.74:0.58),
+      onComplete:()=>{if(actor.active){actor.setScale(cow?0.74:0.58,cow?0.74:0.58);if(sprite)this.animateAnimalIdle(actor,sprite,cow);this.time.delayedCall(Phaser.Math.Between(1100,2600),()=>this.wanderAnimal(actor,cx,cy,limitX,limitY,cow));}}
     });
   }
 
