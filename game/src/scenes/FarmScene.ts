@@ -1064,7 +1064,11 @@ export class FarmScene extends Phaser.Scene {
     document.getElementById('top-orders')?.addEventListener('click',()=>showDrawer('orders'));
     document.getElementById('left-events')?.addEventListener('click',()=>showDrawer('events'));
     document.getElementById('left-rewards')?.addEventListener('click',()=>showDrawer('rewards'));
-    document.getElementById('drawer-close')?.addEventListener('click',closeDrawer);
+    const drawerClose=document.getElementById('drawer-close');
+    drawerClose?.addEventListener('click',(event)=>{event.preventDefault();event.stopPropagation();closeDrawer();});
+    /* iOS Safari can occasionally miss a synthesized click over the Phaser canvas;
+       close on the native pointer gesture as well. */
+    drawerClose?.addEventListener('pointerdown',(event)=>{event.preventDefault();event.stopPropagation();closeDrawer();},{capture:true});
     document.getElementById('top-inventory')?.addEventListener('click',()=>this.openInventory());
     document.getElementById('top-settings')?.addEventListener('click',()=>this.editFarmProfile());
     document.getElementById('settings-open')?.addEventListener('click',()=>this.editFarmProfile());
