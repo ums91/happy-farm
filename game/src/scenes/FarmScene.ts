@@ -128,8 +128,8 @@ export class FarmScene extends Phaser.Scene {
     document.getElementById('daily-reward-dismiss')?.addEventListener('click',dismissReward);
     rewardModal?.addEventListener('click',(event)=>{if(event.target===rewardModal)dismissReward();});
     document.addEventListener('keydown',(event)=>{if(event.key==='Escape'){dismissReward();const drawer=document.getElementById('activity-drawer');drawer?.classList.remove('open');drawer?.setAttribute('aria-hidden','true');}});
-    if(this.rewardAvailableAt<=Date.now())this.showDailyReward();
-    else this.updateDailyRewardCountdown();
+    /* Never block the farm with a startup reward modal. Rewards can be opened deliberately later. */
+    this.updateDailyRewardCountdown();
     this.time.addEvent({delay:1000,loop:true,callback:()=>this.updateDailyRewardCountdown()});
   }
   private showDailyReward():void {
