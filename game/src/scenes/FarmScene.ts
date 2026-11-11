@@ -539,7 +539,7 @@ export class FarmScene extends Phaser.Scene {
       }
       this.animalActors.push(actor);
       const marginX=bounds.width/2-(cow?28:19),marginY=bounds.height/2-(cow?25:18);
-      this.wanderAnimal(actor,center.x,center.y,marginX,marginY,cow);
+      if(animal.assigned===false){const sprite=this.animalSprites.get(actor);if(sprite){sprite.setAngle(cow?8:12).setY(1);this.tweens.add({targets:sprite,y:2,duration:cow?1900:1250,yoyo:true,repeat:-1,ease:'Sine.inOut'});}}else this.wanderAnimal(actor,center.x,center.y,marginX,marginY,cow);
     });
     // A small chick companion brings life to an occupied chicken run without changing save data.
     if(this.animals.some(a=>a.id==='hen')&&this.textures.exists('animal-chick')){
