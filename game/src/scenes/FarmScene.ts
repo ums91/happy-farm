@@ -91,6 +91,7 @@ export class FarmScene extends Phaser.Scene {
   private eventClaimed=false;
   private claimedMilestones:number[]=[];
   private ordersCompleted: Record<string,number> = {};
+  private woodlandBackdrop: Phaser.GameObjects.Image|null = null;
   private cameraDragging = false;
   private dragPoint = new Phaser.Math.Vector2();
   private readonly saveKey = 'happyFarmPhaserSaveV1';
