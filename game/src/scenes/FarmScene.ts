@@ -486,8 +486,13 @@ export class FarmScene extends Phaser.Scene {
 
   private renderOwnedAnimals(): void {
     this.animalActors.forEach(actor=>{this.tweens.killTweensOf(actor);const sprite=this.animalSprites.get(actor);if(sprite)this.tweens.killTweensOf(sprite);actor.destroy();});this.animalActors=[];this.animalSprites.clear();
-    const henPos=this.toWorld(this.decor.coop!.col,this.decor.coop!.row);
-    const cowPos=this.toWorld(this.decor.barn!.col,this.decor.barn!.row);
+    // Resolve animal home anchors defensively: older saves may contain animals before
+    // their matching building decor has been restored or placed.
+    const farmhouse=this.decor.farmhouse||{col:3,row:1};
+    const henHome=this.decor.coop||{col:Math.min(COLS-1,farmhouse.col+2),row:farmhouse.row+1};
+    const cowHome=this.decor.barn||{col:Math.min(COLS-1,farmhouse.col+3),row:Math.min(ROWS-1,farmhouse.row+3)};
+    const henPos=this.toWorld(henHome.col,henHome.row);
+    const cowPos=this.toWorld(cowHome.col,cowHome.row);
     const kindIndexes:Record<AnimalId,number>={hen:0,cow:0};
     this.animals.forEach((animal,index)=>{
       const cow=animal.id==='cow';
@@ -510,7 +515,8 @@ export class FarmScene extends Phaser.Scene {
       actor.add(this.add.ellipse(0,6,cow?32:22,7,0x263e25,0.18));
       const texture=cow?'animal-cow':'animal-hen';
       if(this.textures.exists(texture)){
-        const sprite=this.add.sprite(0,-2,texture).setDisplaySize(cow?48:35,cow?44:32);
+        const sprite=this.add.sprite(0,-2,texture).setDisplaySize(cow?58:35,cow?52:32).setAlpha(1).setVisible(true);
+        sprite.setDepth(2);
         actor.add(sprite);
         this.animalSprites.set(actor,sprite);
         this.animateAnimalIdle(actor,sprite,cow,index*110);
