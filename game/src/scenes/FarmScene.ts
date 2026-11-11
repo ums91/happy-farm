@@ -918,10 +918,7 @@ export class FarmScene extends Phaser.Scene {
         if (plot.state === 'grass' || plot.state === 'withered') { plot.state = 'tilled'; plot.witherAt = 0; plot.readyAt = 0; plot.growth = 0; }
         break;
       case 'plant':
-        if (plot.state === 'tilled') {
-          if (this.inventory[this.selectedCrop] > 0) { plot.state = 'growing'; plot.crop = this.selectedCrop; plot.growth = 0; plot.witherAt = 0; this.inventory[this.selectedCrop]--; this.scheduleGrowth(plot, CROPS[this.selectedCrop].growMs); }
-          else this.toast(`No ${CROPS[this.selectedCrop].name} seeds. Buy seeds from the Market first.`);
-        }
+        if (plot.state === 'tilled') this.sowSelectedPlot();
         break;
       case 'water':
         if (plot.state === 'growing' && !plot.watered) { plot.watered = true; this.scheduleGrowth(plot, Math.max(1500, Math.ceil((plot.readyAt - Date.now()) / 2))); }
@@ -1120,20 +1117,18 @@ export class FarmScene extends Phaser.Scene {
     const selected=this.selected?this.selected.state:'grass';
     const rows=(Object.entries(CROPS) as Array<[CropId,typeof CROPS[CropId]]>).map(([id,c])=>{
       const locked=level<c.unlockLevel,active=this.selectedCrop===id;
-      return '<article class="market-item field-seed-card '+(active?'chosen':'')+'"><div class="market-art">'+c.emoji+'</div><div class="market-copy"><strong>'+c.name+(active?' · Selected':'')+'</strong><small>'+ (locked?'🔒 Unlock at Level '+c.unlockLevel:'Grow '+Math.round(c.growMs/1000)+' sec · Sell for '+c.reward+' coins · In bag: '+this.inventory[id])+'</small></div><button class="market-buy" data-field-seed="'+id+'" '+(locked?'disabled':'')+'>'+(locked?'Locked':active?'Selected':'Select')+'</button><button class="market-buy seed-buy" data-field-buy="'+id+'" '+(locked||this.coins<c.cost?'disabled':'')+'>🪙 '+c.cost+' · Buy</button></article>';
+      return '<article class="market-item field-seed-card '+(active?'chosen':'')+'"><div class="market-art">'+c.emoji+'</div><div class="market-copy"><strong>'+c.name+(active?' · Selected':'')+'</strong><small>'+ (locked?'🔒 Unlock at Level '+c.unlockLevel:'Grow '+Math.round(c.growMs/1000)+' sec · Sell for '+c.reward+' coins · Planting cost: '+c.cost+' coins per field')+'</small></div><button class="market-buy" data-field-seed="'+id+'" '+(locked?'disabled':'')+'>'+(locked?'Locked':active?'Selected':'Select')+'</button></article>';
     }).join('');
-    host.innerHTML='<section class="inventory-section"><h3>🌱 Choose a seed · Field '+(this.selected? (this.selected.col+1)+', '+(this.selected.row+1):'')+' · '+selected+'</h3><p>Select a crop to equip its seeds. Tap each ploughed field to sow; the selected seed stays active. Buy seed bags here when stock runs out. Seed cost: '+CROPS[this.selectedCrop].cost+' coins if you have none.</p><div class="quest-list">'+rows+'</div></section>';
+    host.innerHTML='<section class="inventory-section"><h3>🌱 Choose a seed · Field '+(this.selected? (this.selected.col+1)+', '+(this.selected.row+1):'')+' · '+selected+'</h3><p>Choose a crop once, then tap as many ploughed fields as you like. The planting cost is deducted from your coins for each field. Use Select again to change crops.</p><div class="quest-list">'+rows+'</div></section>';
   }
   private sowSelectedPlot():void {
     const plot=this.selected;if(!plot)return;
     const crop=CROPS[this.selectedCrop];if(this.farmerLevel<crop.unlockLevel){this.toast('Reach Level '+crop.unlockLevel+' to unlock '+crop.name+'.');return;}
     if(plot.state!=='tilled'){this.toast('Plow this field before sowing.');return;}
-    if(this.inventory[this.selectedCrop]<=0){
-      this.toast('No '+crop.name+' seeds left. Buy a seed bag to continue sowing.');this.openFieldSeedPicker();return;
-    }
-    this.inventory[this.selectedCrop]--;
+    if(this.coins<crop.cost){this.toast('Not enough coins to plant '+crop.name+'. You need '+crop.cost+' coins.');return;}
+    this.coins-=crop.cost;
     plot.state='growing';plot.crop=this.selectedCrop;plot.growth=0;plot.watered=false;this.scheduleGrowth(plot,crop.growMs);
-    this.redrawPlot(plot);this.saveFarm();this.refreshHud();this.refreshSelection();this.drawSelection();this.toast(crop.name+' sown. '+this.inventory[this.selectedCrop]+' seeds remaining · selected seed stays active.');
+    this.redrawPlot(plot);this.saveFarm();this.refreshHud();this.refreshSelection();this.drawSelection();this.toast(crop.name+' sown · '+crop.cost+' coins deducted. The selected seed remains active.');
   }
 
   private bindToolbar(): void {
@@ -1143,7 +1138,7 @@ export class FarmScene extends Phaser.Scene {
         this.activeTool = button.dataset.tool as Tool; this.movingDecor=null; this.movingPlotKey=null;this.movingPreviewTile=null;this.movingPreviewValid=false;this.drawPlacementOverlay();
         document.querySelectorAll('[data-tool]').forEach(el => el.classList.remove('active'));
         button.classList.add('active');
-        if(this.activeTool==='plant'&&this.selected)this.openFieldSeedPicker();
+        if(this.activeTool==='select'&&this.selected?.state==='tilled')this.openFieldSeedPicker();
         this.refreshSelection();
       });
     });
@@ -1170,11 +1165,11 @@ export class FarmScene extends Phaser.Scene {
     picker.innerHTML = (Object.entries(CROPS) as Array<[CropId, typeof CROPS[CropId]]>)
       .map(([id, crop]) => {
         const locked = level < crop.unlockLevel;
-        return `<option value="${id}" ${locked ? 'disabled' : ''}>${crop.emoji} ${crop.name} · ${locked ? 'Unlock LV ' + crop.unlockLevel : this.inventory[id] + ' seeds'}</option>`;
+        return `<option value="${id}" ${locked ? 'disabled' : ''}>${crop.emoji} ${crop.name} · ${locked ? 'Unlock LV ' + crop.unlockLevel : crop.cost + ' coins / field'}</option>`;
       }).join('');
     picker.value = this.selectedCrop;
     const count = document.getElementById('selected-seed-count');
-    if (count) count.textContent = `${this.inventory[this.selectedCrop]} available`;
+    if (count) count.textContent = `${CROPS[this.selectedCrop].cost} coins / field`;
   }
 
   private editFarmProfile():void {
@@ -1607,7 +1602,7 @@ export class FarmScene extends Phaser.Scene {
       return;
     }
     const names: Record<PlotState, string> = { grass: 'Open grassland', tilled: 'Freshly plowed soil', growing: 'Growing crop', ready: 'Ready to harvest', withered: 'Withered crop · plow to clear' };
-    const actions: Record<Tool, string> = { select: 'Choose a tool to work this plot.', plow: 'Plow open or withered land to prepare the soil.', plant: `Plant ${CROPS[this.selectedCrop].name} · ${this.inventory[this.selectedCrop]} seeds in your bag.`, water: 'Water once to cut remaining growth time in half.', harvest: this.selected.state === 'withered' ? 'This crop has withered. Select Plow to clear the plot.' : 'Harvest ripe crops before their harvest window closes.', move: 'Drag a tree, farmhouse, barn, silo or animal pen to a new grid position.' };
+    const actions: Record<Tool, string> = { select: 'Choose a tool to work this plot.', plow: 'Plow open or withered land to prepare the soil.', plant: `Plant ${CROPS[this.selectedCrop].name} · ${CROPS[this.selectedCrop].cost} coins per field.`, water: 'Water once to cut remaining growth time in half.', harvest: this.selected.state === 'withered' ? 'This crop has withered. Select Plow to clear the plot.' : 'Harvest ripe crops before their harvest window closes.', move: 'Drag a tree, farmhouse, barn, silo or animal pen to a new grid position.' };
     host.innerHTML = `<span class="selection-kicker">LAND · ${this.selected.col + 1}, ${this.selected.row + 1}</span><strong>${names[this.selected.state]}</strong><p>${actions[this.activeTool]}</p>`;
   }
 }
