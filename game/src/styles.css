@@ -1107,3 +1107,51 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
   .loading-scene h1{font-size:36px}
   .loading-landscape span{font-size:29px}
 }
+
+
+/* Farm polish: clearer building management, calmer hierarchy and consistent touch targets. */
+.market-window{scrollbar-color:#b8a071 #f4ead3;scrollbar-width:thin}
+.market-header{position:sticky;top:-12px;z-index:4;background:linear-gradient(180deg,#fffdf4,#f4e8cb);margin:-5px -5px 0;padding:8px 7px 12px}
+.market-header h2{letter-spacing:-.5px}
+.market-intro{max-width:70ch;line-height:1.55}
+.inventory-section{display:grid;gap:10px}
+.inventory-section>p{margin:0;color:#88714d;font-size:12px;line-height:1.55}
+.inventory-section h3{display:flex;align-items:center;gap:8px;padding-bottom:7px;border-bottom:1px solid #e6d5b2}
+.inventory-section .market-item{min-width:0}
+.inventory-grid{align-items:stretch}
+.animal-progress{position:relative;overflow:hidden;background:linear-gradient(110deg,#fffdf5,#f3ead6);border:1px solid #e0cfaa;box-shadow:0 2px 0 #d8c39a}
+.animal-progress strong{padding:3px 8px;border-radius:20px;background:#e7f1d8;color:#557b39}
+.production-track{height:9px;background:#e7dfc9;box-shadow:inset 0 1px 2px #69532b20}
+.production-track i{background:linear-gradient(90deg,#76ad48,#b7d76c)}
+.building-actions .market-buy{min-height:42px}
+.building-levels{gap:5px;margin:5px 0;color:#d5c8ad;font-size:20px}
+.building-levels .reached{color:#e8b94e;text-shadow:0 1px #9c7330,0 0 8px #f3d47a60}
+.farm-expansion-card{position:relative;isolation:isolate}
+.farm-expansion-card:after{content:"";position:absolute;inset:0 0 0 auto;width:26%;z-index:-1;background:radial-gradient(ellipse at 80% 50%,#c9e6a25c,transparent 70%)}
+.market-buy,.market-tab,.modal-close,.dock-button,.tool,.left-nav button,.top-actions button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.market-buy:focus-visible,.market-tab:focus-visible,.dock-button:focus-visible,.tool:focus-visible,.left-nav button:focus-visible,.top-actions button:focus-visible{outline:3px solid #e7b94f;outline-offset:2px}
+.market-buy:disabled{cursor:not-allowed;filter:grayscale(.25)}
+@media(min-width:701px){
+  .field-toolbar{backdrop-filter:blur(8px);background:linear-gradient(180deg,#3c2b1feF,#211910f7)}
+  .field-toolbar .tool{transition:transform .16s ease,filter .16s ease,background .16s ease}
+  .field-toolbar .tool:hover{transform:translateY(-3px);filter:brightness(1.14)}
+  .dock-button{transition:transform .16s ease,filter .16s ease}
+  .world-label{letter-spacing:.8px}
+  .activity-drawer{backdrop-filter:blur(12px);background:linear-gradient(145deg,#fff9eaf5,#ead6b5f5)}
+  .market-window{max-height:min(88svh,900px)}
+}
+@media(max-width:700px){
+  .market-header{top:-10px;margin:-3px -3px 0}
+  .market-intro{font-size:11px;line-height:1.45}
+  .inventory-section{gap:8px}
+  .inventory-section h3{font-size:13px;padding-bottom:5px}
+  .inventory-section>p{font-size:11px}
+  .animal-progress{padding:9px;gap:6px}
+  .building-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+  .building-actions .market-buy{min-width:0;width:100%;font-size:11px}
+}
+@media(max-width:390px){
+  .building-actions{grid-template-columns:1fr}
+  .market-window{padding:9px}
+  .market-item{gap:7px}
+}
