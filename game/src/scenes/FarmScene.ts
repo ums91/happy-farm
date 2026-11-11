@@ -170,14 +170,13 @@ export class FarmScene extends Phaser.Scene {
   }
 
   private fitFarmToViewport(): void {
-    const camera = this.cameras.main;
-    const width = Math.max(320, this.scale.width);
-    const height = Math.max(360, this.scale.height);
-    // Fit the complete isometric field with a little breathing room on every edge.
-    const fitX = (width - 72) / 980;
-    const fitY = (height - 96) / 560;
-    camera.setZoom(Phaser.Math.Clamp(Math.min(1.05, fitX, fitY), 0.58, 1.05));
-    camera.centerOn(0, 245);
+    const camera=this.cameras.main,width=Math.max(320,this.scale.width),height=Math.max(360,this.scale.height);
+    const spanX=Math.max(TILE_W,(this.farmSize-1)*TILE_W+24);
+    const spanY=Math.max(TILE_H,(this.farmSize-1)*TILE_H+24);
+    const fitX=(width-56)/spanX;
+    const fitY=(height-(height<700?178:110))/spanY;
+    camera.setZoom(Phaser.Math.Clamp(Math.min(1.05,fitX,fitY),0.55,1.05));
+    camera.centerOn(0,ORIGIN_Y+(this.farmSize-1)*TILE_H/2);
   }
 
   private get farmSize():number{return FARM_SIZES[this.farmExpansionLevel]||FARM_SIZES[0];}
