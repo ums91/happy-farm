@@ -908,6 +908,11 @@ export class FarmScene extends Phaser.Scene {
   }
 
   private applyTool(plot: Plot): void {
+    // Resolve elapsed crop timers synchronously before handling a click.
+    if(plot.state==='growing'&&plot.readyAt>0&&plot.readyAt<=Date.now()){
+      plot.state='ready';plot.growth=100;plot.readyAt=0;plot.witherAt=Date.now()+Math.max(300000,CROPS[plot.crop].growMs*2);
+      this.growthTimers.get(this.key(plot.col,plot.row))?.remove(false);this.growthTimers.delete(this.key(plot.col,plot.row));this.scheduleWithering(plot);this.redrawPlot(plot);
+    }
     switch (this.activeTool) {
       case 'plow':
         if (plot.state === 'grass' && this.establishedFieldCount >= this.plowLimit) {
@@ -940,6 +945,7 @@ export class FarmScene extends Phaser.Scene {
     plot.witherAt = 0;
     this.growthTimers.get(id)?.remove(false);
     this.growthTimers.set(id, this.time.delayedCall(delay, () => {
+      if(plot.state!=='growing'||plot.readyAt>Date.now())return;
       plot.state = 'ready';
       plot.growth = 100;
       plot.readyAt = 0;
@@ -968,6 +974,13 @@ export class FarmScene extends Phaser.Scene {
     const now = Date.now();
     let changed = false;
     for (const plot of this.plots.values()) {
+      if (plot.state === 'growing' && plot.readyAt > 0 && plot.readyAt <= now) {
+        // Fallback when a Phaser timer is delayed or missed: elapsed crops become harvestable.
+        plot.state='ready';plot.growth=100;plot.readyAt=0;plot.witherAt=now+Math.max(300000,CROPS[plot.crop].growMs*2);
+        this.growthTimers.get(this.key(plot.col,plot.row))?.remove(false);this.growthTimers.delete(this.key(plot.col,plot.row));
+        this.redrawPlot(plot);this.scheduleWithering(plot);changed=true;
+        continue;
+      }
       if (plot.state === 'growing' && plot.readyAt > 0) {
         const total = CROPS[plot.crop].growMs / (plot.watered ? 2 : 1);
         const remaining = Math.max(0, plot.readyAt - now);
