@@ -828,7 +828,7 @@ export class FarmScene extends Phaser.Scene {
       ? [...Array(Math.max(0,this.farmSize-2))].map((_,i)=>i+2)
       : [...Array(this.farmSize)].map((_,i)=>i);
     for(const row of rows){
-      for(let col=0;col<COLS;col++){
+      for(let col=0;col<this.farmSize;col++){
         const key=this.key(col,row);
         const plot=this.plots.get(key);
         if(plot?.state==='grass'&&!occupied.has(key))return {col,row};
