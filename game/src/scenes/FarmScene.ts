@@ -506,7 +506,7 @@ export class FarmScene extends Phaser.Scene {
     // Atlas cells are 48x48, arranged in eight columns. Rows are the
     // authored pose sequences from the existing animal artwork.
     define('animal-cow','cow-idle',0,4,4,-1);
-    define('animal-cow','cow-walk',1,8,10,-1);
+    define('animal-cow','cow-walk',3,3,8,-1);
     define('animal-cow','cow-eat',2,4,6,3);
     define('animal-cow','cow-happy',3,3,7,0);
     define('animal-cow','cow-rest',4,4,4,-1);
