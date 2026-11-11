@@ -265,16 +265,7 @@ export class FarmScene extends Phaser.Scene {
       if((col*11+row*7)%31===0){this.plotGraphics.fillStyle(0x5c9846,0.9);this.plotGraphics.fillEllipse(point.x+13,point.y+3,5,3);this.plotGraphics.fillEllipse(point.x+17,point.y,4,3);}
       const plot=this.plots.get(this.key(col,row));if(plot&&plot.state!=='grass')this.redrawPlot(plot);
     }
-    this.drawPath();this.drawFence();this.drawFlowerPatches();
-  }
-
-  private drawFence():void {
-    const g=this.plotGraphics,size=this.farmSize-1;
-    const corners=[this.toWorld(0,0),this.toWorld(size,0),this.toWorld(size,size),this.toWorld(0,size),this.toWorld(0,0)];
-    g.lineStyle(6,0x825a34,1);g.beginPath();g.moveTo(corners[0]!.x,corners[0]!.y-7);corners.slice(1).forEach(p=>g.lineTo(p.x,p.y-7));g.strokePath();
-    for(let edge=0;edge<4;edge++){const p=corners[edge]!;g.fillStyle(0xb9854b,1);g.fillRoundedRect(p.x-4,p.y-19,8,23,2);g.fillStyle(0xe2bd7b,1);g.fillRoundedRect(p.x-5,p.y-20,10,4,2);const q=corners[edge+1]!;for(let n=1;n<size;n++){const x=Phaser.Math.Linear(p.x,q.x,n/size),y=Phaser.Math.Linear(p.y,q.y,n/size);g.fillStyle(0xb9854b,1);g.fillRoundedRect(x-2.5,y-16,5,19,2);g.fillStyle(0xe2bd7b,1);g.fillRoundedRect(x-3.5,y-17,7,3,2);}}
-    const gateX=(corners[2]!.x+corners[3]!.x)/2,gateY=(corners[2]!.y+corners[3]!.y)/2;
-    g.lineStyle(5,0x76502f,1);g.beginPath();g.moveTo(gateX-24,gateY-8);g.lineTo(gateX-24,gateY-27);g.moveTo(gateX+24,gateY-8);g.lineTo(gateX+24,gateY-27);g.moveTo(gateX-24,gateY-24);g.lineTo(gateX+24,gateY-24);g.strokePath();
+    this.drawPath();this.drawFlowerPatches();
   }
 
   private drawFlowerPatches():void {
