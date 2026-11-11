@@ -528,12 +528,16 @@ export class FarmScene extends Phaser.Scene {
     });
     // A small chick companion brings life to an occupied chicken run without changing save data.
     if(this.animals.some(a=>a.id==='hen')&&this.textures.exists('animal-chick')){
-      const chick=this.add.container(henPos.x+15,henPos.y+13);chick.setDepth(henPos.y+14);
+      const chickTile=this.nearestAnimalCell(henHome);
+      if(!chickTile)return;
+      const chickPos=this.toWorld(chickTile.col,chickTile.row);
+      this.animalReservedCells.add(this.animalCellKey(chickTile));
+      const chick=this.add.container(chickPos.x,chickPos.y);chick.setDepth(chickPos.y+14);
       chick.add(this.add.ellipse(0,4,15,4,0x263e25,0.18));
       const chickSprite=this.add.sprite(0,-1,'animal-chick').setDisplaySize(18,16.4);chick.add(chickSprite);this.animalSprites.set(chick,chickSprite);
       this.animalActors.push(chick);
       chickSprite.play('chick-idle');this.animateAnimalIdle(chick,chickSprite,false,250);
-      this.wanderAnimal(chick,henPos.x,henPos.y,TILE_W*2-15,TILE_H*2-15,false);
+      this.wanderAnimal(chick,chickPos.x,chickPos.y,TILE_W*2-15,TILE_H*2-15,false);
     }
   }
 
@@ -708,7 +712,8 @@ export class FarmScene extends Phaser.Scene {
     const plot=this.plots.get(this.key(tile.col,tile.row));
     if(!plot||plot.state!=='grass'||this.decorOccupiesCell(tile.col,tile.row))return true;
     const key=this.animalCellKey(tile);
-    if(this.animalReservedCells.has(key))return true;
+    const actorTile=actor?this.toTile(actor.x,actor.y):null;
+    if(this.animalReservedCells.has(key)&&(!actorTile||actorTile.col!==tile.col||actorTile.row!==tile.row))return true;
     return this.animalActors.some(other=>other!==actor&&other.active&&(()=>{const t=this.toTile(other.x,other.y);return !!t&&t.col===tile.col&&t.row===tile.row;})());
   }
 
