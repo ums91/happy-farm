@@ -1,0 +1,2082 @@
+[
+  {
+    "filename": "flower_arch_bench_sheet1.png",
+    "display_name": "Flower Arch Bench",
+    "asset_id": "flower_arch_bench",
+    "source_sheet": "Colorful Farm Decorations Asset Sheet-4.png",
+    "source_index": 1,
+    "source_bbox": [
+      17,
+      25,
+      303,
+      286
+    ],
+    "width": 315,
+    "height": 298,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "red_roof_well_sheet1.png",
+    "display_name": "Red Roof Well",
+    "asset_id": "red_roof_well",
+    "source_sheet": "Colorful Farm Decorations Asset Sheet-4.png",
+    "source_index": 2,
+    "source_bbox": [
+      328,
+      28,
+      224,
+      270
+    ],
+    "width": 236,
+    "height": 282,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "garden_lamp_post_sheet1.png",
+    "display_name": "Garden Lamp Post",
+    "asset_id": "garden_lamp_post",
+    "source_sheet": "Colorful Farm Decorations Asset Sheet-4.png",
+    "source_index": 3,
+    "source_bbox": [
+      568,
+      14,
+      154,
+      288
+    ],
+    "width": 166,
+    "height": 300,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "tiered_stone_fountain_sheet1.png",
+    "display_name": "Tiered Stone Fountain",
+    "asset_id": "tiered_stone_fountain",
+    "source_sheet": "Colorful Farm Decorations Asset Sheet-4.png",
+    "source_index": 4,
+    "source_bbox": [
+      733,
+      14,
+      298,
+      284
+    ],
+    "width": 310,
+    "height": 296,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "flower_market_cart_sheet1.png",
+    "display_name": "Flower Market Cart",
+    "asset_id": "flower_market_cart",
+    "source_sheet": "Colorful Farm Decorations Asset Sheet-4.png",
+    "source_index": 5,
+    "source_bbox": [
+      1041,
+      33,
+      262,
+      263
+    ],
+    "width": 274,
+    "height": 275,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "wooden_windmill_sheet1.png",
+    "display_name": "Wooden Windmill",
+    "asset_id": "wooden_windmill",
+    "source_sheet": "Colorful Farm Decorations Asset Sheet-4.png",
+    "source_index": 6,
+    "source_bbox": [
+      1317,
+      15,
+      207,
+      288
+    ],
+    "width": 219,
+    "height": 300,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "birdhouse_post_sheet1.png",
+    "display_name": "Birdhouse Post",
+    "asset_id": "birdhouse_post",
+    "source_sheet": "Colorful Farm Decorations Asset Sheet-4.png",
+    "source_index": 7,
+    "source_bbox": [
+      21,
+      344,
+      181,
+      254
+    ],
+    "width": 193,
+    "height": 266,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "farm_signpost_sheet1.png",
+    "display_name": "Farm Signpost",
+    "asset_id": "farm_signpost",
+    "source_sheet": "Colorful Farm Decorations Asset Sheet-4.png",
+    "source_index": 8,
+    "source_bbox": [
+      226,
+      322,
+      160,
+      278
+    ],
+    "width": 172,
+    "height": 290,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "flower_gate_arch_sheet1.png",
+    "display_name": "Flower Gate Arch",
+    "asset_id": "flower_gate_arch",
+    "source_sheet": "Colorful Farm Decorations Asset Sheet-4.png",
+    "source_index": 9,
+    "source_bbox": [
+      399,
+      327,
+      286,
+      264
+    ],
+    "width": 298,
+    "height": 276,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "flower_swing_bench_sheet1.png",
+    "display_name": "Flower Swing Bench",
+    "asset_id": "flower_swing_bench",
+    "source_sheet": "Colorful Farm Decorations Asset Sheet-4.png",
+    "source_index": 10,
+    "source_bbox": [
+      699,
+      334,
+      318,
+      280
+    ],
+    "width": 330,
+    "height": 292,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "bird_bath_sheet1.png",
+    "display_name": "Bird Bath",
+    "asset_id": "bird_bath",
+    "source_sheet": "Colorful Farm Decorations Asset Sheet-4.png",
+    "source_index": 11,
+    "source_bbox": [
+      1031,
+      371,
+      192,
+      225
+    ],
+    "width": 204,
+    "height": 237,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "hay_bales_barrel_sheet1.png",
+    "display_name": "Hay Bales Barrel",
+    "asset_id": "hay_bales_barrel",
+    "source_sheet": "Colorful Farm Decorations Asset Sheet-4.png",
+    "source_index": 12,
+    "source_bbox": [
+      1242,
+      330,
+      283,
+      271
+    ],
+    "width": 295,
+    "height": 283,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "apple_tree_sheet1.png",
+    "display_name": "Apple Tree",
+    "asset_id": "apple_tree",
+    "source_sheet": "Colorful Farm Decorations Asset Sheet-4.png",
+    "source_index": 13,
+    "source_bbox": [
+      13,
+      615,
+      214,
+      231
+    ],
+    "width": 226,
+    "height": 243,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "pink_blossom_tree_sheet1.png",
+    "display_name": "Pink Blossom Tree",
+    "asset_id": "pink_blossom_tree",
+    "source_sheet": "Colorful Farm Decorations Asset Sheet-4.png",
+    "source_index": 14,
+    "source_bbox": [
+      237,
+      619,
+      197,
+      222
+    ],
+    "width": 209,
+    "height": 234,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "golden_orange_tree_sheet1.png",
+    "display_name": "Golden Orange Tree",
+    "asset_id": "golden_orange_tree",
+    "source_sheet": "Colorful Farm Decorations Asset Sheet-4.png",
+    "source_index": 15,
+    "source_bbox": [
+      442,
+      616,
+      186,
+      225
+    ],
+    "width": 198,
+    "height": 237,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "evergreen_tree_sheet1.png",
+    "display_name": "Evergreen Tree",
+    "asset_id": "evergreen_tree",
+    "source_sheet": "Colorful Farm Decorations Asset Sheet-4.png",
+    "source_index": 16,
+    "source_bbox": [
+      628,
+      614,
+      164,
+      226
+    ],
+    "width": 176,
+    "height": 238,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "mossy_rocks_sheet1.png",
+    "display_name": "Mossy Rocks",
+    "asset_id": "mossy_rocks",
+    "source_sheet": "Colorful Farm Decorations Asset Sheet-4.png",
+    "source_index": 17,
+    "source_bbox": [
+      804,
+      681,
+      213,
+      148
+    ],
+    "width": 225,
+    "height": 160,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "hollow_log_planter_sheet1.png",
+    "display_name": "Hollow Log Planter",
+    "asset_id": "hollow_log_planter",
+    "source_sheet": "Colorful Farm Decorations Asset Sheet-4.png",
+    "source_index": 18,
+    "source_bbox": [
+      1034,
+      682,
+      246,
+      153
+    ],
+    "width": 258,
+    "height": 165,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "flower_stump_sheet1.png",
+    "display_name": "Flower Stump",
+    "asset_id": "flower_stump",
+    "source_sheet": "Colorful Farm Decorations Asset Sheet-4.png",
+    "source_index": 19,
+    "source_bbox": [
+      1296,
+      688,
+      226,
+      139
+    ],
+    "width": 238,
+    "height": 151,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "wooden_fence_sheet1.png",
+    "display_name": "Wooden Fence",
+    "asset_id": "wooden_fence",
+    "source_sheet": "Colorful Farm Decorations Asset Sheet-4.png",
+    "source_index": 20,
+    "source_bbox": [
+      6,
+      885,
+      218,
+      106
+    ],
+    "width": 230,
+    "height": 118,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "white_picket_fence_sheet1.png",
+    "display_name": "White Picket Fence",
+    "asset_id": "white_picket_fence",
+    "source_sheet": "Colorful Farm Decorations Asset Sheet-4.png",
+    "source_index": 21,
+    "source_bbox": [
+      238,
+      886,
+      198,
+      106
+    ],
+    "width": 210,
+    "height": 118,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "stone_wall_sheet1.png",
+    "display_name": "Stone Wall",
+    "asset_id": "stone_wall",
+    "source_sheet": "Colorful Farm Decorations Asset Sheet-4.png",
+    "source_index": 22,
+    "source_bbox": [
+      448,
+      886,
+      232,
+      106
+    ],
+    "width": 244,
+    "height": 118,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "pink_flower_hedge_sheet1.png",
+    "display_name": "Pink Flower Hedge",
+    "asset_id": "pink_flower_hedge",
+    "source_sheet": "Colorful Farm Decorations Asset Sheet-4.png",
+    "source_index": 23,
+    "source_bbox": [
+      693,
+      884,
+      203,
+      108
+    ],
+    "width": 215,
+    "height": 120,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "yellow_flower_hedge_sheet1.png",
+    "display_name": "Yellow Flower Hedge",
+    "asset_id": "yellow_flower_hedge",
+    "source_sheet": "Colorful Farm Decorations Asset Sheet-4.png",
+    "source_index": 24,
+    "source_bbox": [
+      911,
+      884,
+      194,
+      109
+    ],
+    "width": 206,
+    "height": 121,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "green_hedge_sheet1.png",
+    "display_name": "Green Hedge",
+    "asset_id": "green_hedge",
+    "source_sheet": "Colorful Farm Decorations Asset Sheet-4.png",
+    "source_index": 25,
+    "source_bbox": [
+      1119,
+      882,
+      172,
+      113
+    ],
+    "width": 184,
+    "height": 125,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "purple_flower_hedge_sheet1.png",
+    "display_name": "Purple Flower Hedge",
+    "asset_id": "purple_flower_hedge",
+    "source_sheet": "Colorful Farm Decorations Asset Sheet-4.png",
+    "source_index": 26,
+    "source_bbox": [
+      1305,
+      880,
+      222,
+      113
+    ],
+    "width": 234,
+    "height": 125,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "flower_archway_sheet2.png",
+    "display_name": "Flower Archway",
+    "asset_id": "flower_archway",
+    "source_sheet": "Colorful Farm Decor Sprite Sheet-3.png",
+    "source_index": 1,
+    "source_bbox": [
+      17,
+      9,
+      251,
+      245
+    ],
+    "width": 263,
+    "height": 257,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "white_picket_fence_flowers_sheet2.png",
+    "display_name": "White Picket Fence Flowers",
+    "asset_id": "white_picket_fence_flowers",
+    "source_sheet": "Colorful Farm Decor Sprite Sheet-3.png",
+    "source_index": 2,
+    "source_bbox": [
+      279,
+      48,
+      227,
+      175
+    ],
+    "width": 239,
+    "height": 187,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "wooden_park_bench_sheet2.png",
+    "display_name": "Wooden Park Bench",
+    "asset_id": "wooden_park_bench",
+    "source_sheet": "Colorful Farm Decor Sprite Sheet-3.png",
+    "source_index": 3,
+    "source_bbox": [
+      506,
+      52,
+      213,
+      173
+    ],
+    "width": 225,
+    "height": 185,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "ornate_lamp_post_sheet2.png",
+    "display_name": "Ornate Lamp Post",
+    "asset_id": "ornate_lamp_post",
+    "source_sheet": "Colorful Farm Decor Sprite Sheet-3.png",
+    "source_index": 4,
+    "source_bbox": [
+      724,
+      6,
+      105,
+      245
+    ],
+    "width": 117,
+    "height": 257,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "red_roof_well_variant_sheet2.png",
+    "display_name": "Red Roof Well Variant",
+    "asset_id": "red_roof_well_variant",
+    "source_sheet": "Colorful Farm Decor Sprite Sheet-3.png",
+    "source_index": 5,
+    "source_bbox": [
+      847,
+      7,
+      217,
+      246
+    ],
+    "width": 229,
+    "height": 258,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "large_stone_fountain_sheet2.png",
+    "display_name": "Large Stone Fountain",
+    "asset_id": "large_stone_fountain",
+    "source_sheet": "Colorful Farm Decor Sprite Sheet-3.png",
+    "source_index": 6,
+    "source_bbox": [
+      1070,
+      7,
+      271,
+      205
+    ],
+    "width": 283,
+    "height": 217,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "rooster_signpost_sheet2.png",
+    "display_name": "Rooster Signpost",
+    "asset_id": "rooster_signpost",
+    "source_sheet": "Colorful Farm Decor Sprite Sheet-3.png",
+    "source_index": 7,
+    "source_bbox": [
+      1360,
+      13,
+      159,
+      209
+    ],
+    "width": 171,
+    "height": 221,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "hay_cart_sheet2.png",
+    "display_name": "Hay Cart",
+    "asset_id": "hay_cart",
+    "source_sheet": "Colorful Farm Decor Sprite Sheet-3.png",
+    "source_index": 8,
+    "source_bbox": [
+      1152,
+      227,
+      192,
+      233
+    ],
+    "width": 204,
+    "height": 245,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "hay_stack_pitchfork_sheet2.png",
+    "display_name": "Hay Stack Pitchfork",
+    "asset_id": "hay_stack_pitchfork",
+    "source_sheet": "Colorful Farm Decor Sprite Sheet-3.png",
+    "source_index": 9,
+    "source_bbox": [
+      1366,
+      236,
+      134,
+      228
+    ],
+    "width": 146,
+    "height": 240,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "apple_barrels_crate_sheet2.png",
+    "display_name": "Apple Barrels Crate",
+    "asset_id": "apple_barrels_crate",
+    "source_sheet": "Colorful Farm Decor Sprite Sheet-3.png",
+    "source_index": 10,
+    "source_bbox": [
+      19,
+      254,
+      237,
+      190
+    ],
+    "width": 249,
+    "height": 202,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "flower_cart_sheet2.png",
+    "display_name": "Flower Cart",
+    "asset_id": "flower_cart",
+    "source_sheet": "Colorful Farm Decor Sprite Sheet-3.png",
+    "source_index": 11,
+    "source_bbox": [
+      277,
+      263,
+      207,
+      168
+    ],
+    "width": 219,
+    "height": 180,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "bird_bath_stone_sheet2.png",
+    "display_name": "Bird Bath Stone",
+    "asset_id": "bird_bath_stone",
+    "source_sheet": "Colorful Farm Decor Sprite Sheet-3.png",
+    "source_index": 12,
+    "source_bbox": [
+      498,
+      283,
+      218,
+      160
+    ],
+    "width": 230,
+    "height": 172,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "wisteria_swing_sheet2.png",
+    "display_name": "Wisteria Swing",
+    "asset_id": "wisteria_swing",
+    "source_sheet": "Colorful Farm Decor Sprite Sheet-3.png",
+    "source_index": 13,
+    "source_bbox": [
+      731,
+      267,
+      236,
+      193
+    ],
+    "width": 248,
+    "height": 205,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "garden_gazebo_sheet2.png",
+    "display_name": "Garden Gazebo",
+    "asset_id": "garden_gazebo",
+    "source_sheet": "Colorful Farm Decor Sprite Sheet-3.png",
+    "source_index": 14,
+    "source_bbox": [
+      995,
+      255,
+      144,
+      202
+    ],
+    "width": 156,
+    "height": 214,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "flower_stall_sheet2.png",
+    "display_name": "Flower Stall",
+    "asset_id": "flower_stall",
+    "source_sheet": "Colorful Farm Decor Sprite Sheet-3.png",
+    "source_index": 15,
+    "source_bbox": [
+      18,
+      455,
+      277,
+      227
+    ],
+    "width": 289,
+    "height": 239,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "picnic_table_sheet2.png",
+    "display_name": "Picnic Table",
+    "asset_id": "picnic_table",
+    "source_sheet": "Colorful Farm Decor Sprite Sheet-3.png",
+    "source_index": 16,
+    "source_bbox": [
+      307,
+      436,
+      247,
+      254
+    ],
+    "width": 259,
+    "height": 266,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "campfire_stumps_sheet2.png",
+    "display_name": "Campfire Stumps",
+    "asset_id": "campfire_stumps",
+    "source_sheet": "Colorful Farm Decor Sprite Sheet-3.png",
+    "source_index": 17,
+    "source_bbox": [
+      566,
+      472,
+      216,
+      206
+    ],
+    "width": 228,
+    "height": 218,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "waterfall_pond_sheet2.png",
+    "display_name": "Waterfall Pond",
+    "asset_id": "waterfall_pond",
+    "source_sheet": "Colorful Farm Decor Sprite Sheet-3.png",
+    "source_index": 18,
+    "source_bbox": [
+      1256,
+      470,
+      253,
+      200
+    ],
+    "width": 265,
+    "height": 212,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "lily_pond_sheet2.png",
+    "display_name": "Lily Pond",
+    "asset_id": "lily_pond",
+    "source_sheet": "Colorful Farm Decor Sprite Sheet-3.png",
+    "source_index": 19,
+    "source_bbox": [
+      793,
+      500,
+      240,
+      166
+    ],
+    "width": 252,
+    "height": 178,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "sunflower_cart_sheet2.png",
+    "display_name": "Sunflower Cart",
+    "asset_id": "sunflower_cart",
+    "source_sheet": "Colorful Farm Decor Sprite Sheet-3.png",
+    "source_index": 20,
+    "source_bbox": [
+      1045,
+      503,
+      202,
+      151
+    ],
+    "width": 214,
+    "height": 163,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "pink_blossom_tree_variant_sheet2.png",
+    "display_name": "Pink Blossom Tree Variant",
+    "asset_id": "pink_blossom_tree_variant",
+    "source_sheet": "Colorful Farm Decor Sprite Sheet-3.png",
+    "source_index": 21,
+    "source_bbox": [
+      9,
+      689,
+      279,
+      177
+    ],
+    "width": 291,
+    "height": 189,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "orange_blossom_tree_sheet2.png",
+    "display_name": "Orange Blossom Tree",
+    "asset_id": "orange_blossom_tree",
+    "source_sheet": "Colorful Farm Decor Sprite Sheet-3.png",
+    "source_index": 22,
+    "source_bbox": [
+      296,
+      709,
+      220,
+      152
+    ],
+    "width": 232,
+    "height": 164,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "apple_tree_variant_sheet2.png",
+    "display_name": "Apple Tree Variant",
+    "asset_id": "apple_tree_variant",
+    "source_sheet": "Colorful Farm Decor Sprite Sheet-3.png",
+    "source_index": 23,
+    "source_bbox": [
+      529,
+      708,
+      150,
+      163
+    ],
+    "width": 162,
+    "height": 175,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "orange_fruit_tree_sheet2.png",
+    "display_name": "Orange Fruit Tree",
+    "asset_id": "orange_fruit_tree",
+    "source_sheet": "Colorful Farm Decor Sprite Sheet-3.png",
+    "source_index": 24,
+    "source_bbox": [
+      691,
+      673,
+      178,
+      201
+    ],
+    "width": 190,
+    "height": 213,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "evergreen_tree_variant_sheet2.png",
+    "display_name": "Evergreen Tree Variant",
+    "asset_id": "evergreen_tree_variant",
+    "source_sheet": "Colorful Farm Decor Sprite Sheet-3.png",
+    "source_index": 25,
+    "source_bbox": [
+      878,
+      679,
+      162,
+      191
+    ],
+    "width": 174,
+    "height": 203,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "string_lights_sheet2.png",
+    "display_name": "String Lights",
+    "asset_id": "string_lights",
+    "source_sheet": "Colorful Farm Decor Sprite Sheet-3.png",
+    "source_index": 26,
+    "source_bbox": [
+      1050,
+      677,
+      156,
+      190
+    ],
+    "width": 168,
+    "height": 202,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "festival_bunting_sheet2.png",
+    "display_name": "Festival Bunting",
+    "asset_id": "festival_bunting",
+    "source_sheet": "Colorful Farm Decor Sprite Sheet-3.png",
+    "source_index": 27,
+    "source_bbox": [
+      1215,
+      679,
+      157,
+      189
+    ],
+    "width": 169,
+    "height": 201,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "stepping_stone_path_sheet2.png",
+    "display_name": "Stepping Stone Path",
+    "asset_id": "stepping_stone_path",
+    "source_sheet": "Colorful Farm Decor Sprite Sheet-3.png",
+    "source_index": 28,
+    "source_bbox": [
+      1372,
+      673,
+      156,
+      211
+    ],
+    "width": 168,
+    "height": 223,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "green_hedge_flowers_sheet2.png",
+    "display_name": "Green Hedge Flowers",
+    "asset_id": "green_hedge_flowers",
+    "source_sheet": "Colorful Farm Decor Sprite Sheet-3.png",
+    "source_index": 29,
+    "source_bbox": [
+      10,
+      880,
+      209,
+      131
+    ],
+    "width": 221,
+    "height": 143,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "pink_flower_bush_sheet2.png",
+    "display_name": "Pink Flower Bush",
+    "asset_id": "pink_flower_bush",
+    "source_sheet": "Colorful Farm Decor Sprite Sheet-3.png",
+    "source_index": 30,
+    "source_bbox": [
+      233,
+      881,
+      206,
+      128
+    ],
+    "width": 218,
+    "height": 140,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "rose_bush_sheet2.png",
+    "display_name": "Rose Bush",
+    "asset_id": "rose_bush",
+    "source_sheet": "Colorful Farm Decor Sprite Sheet-3.png",
+    "source_index": 31,
+    "source_bbox": [
+      452,
+      891,
+      147,
+      120
+    ],
+    "width": 159,
+    "height": 132,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "lavender_bush_sheet2.png",
+    "display_name": "Lavender Bush",
+    "asset_id": "lavender_bush",
+    "source_sheet": "Colorful Farm Decor Sprite Sheet-3.png",
+    "source_index": 32,
+    "source_bbox": [
+      602,
+      888,
+      194,
+      122
+    ],
+    "width": 206,
+    "height": 134,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "rock_cluster_sheet2.png",
+    "display_name": "Rock Cluster",
+    "asset_id": "rock_cluster",
+    "source_sheet": "Colorful Farm Decor Sprite Sheet-3.png",
+    "source_index": 33,
+    "source_bbox": [
+      817,
+      881,
+      160,
+      130
+    ],
+    "width": 172,
+    "height": 142,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "yellow_flower_bush_sheet2.png",
+    "display_name": "Yellow Flower Bush",
+    "asset_id": "yellow_flower_bush",
+    "source_sheet": "Colorful Farm Decor Sprite Sheet-3.png",
+    "source_index": 34,
+    "source_bbox": [
+      997,
+      881,
+      146,
+      130
+    ],
+    "width": 158,
+    "height": 142,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "purple_flower_bush_sheet2.png",
+    "display_name": "Purple Flower Bush",
+    "asset_id": "purple_flower_bush",
+    "source_sheet": "Colorful Farm Decor Sprite Sheet-3.png",
+    "source_index": 35,
+    "source_bbox": [
+      1163,
+      880,
+      168,
+      129
+    ],
+    "width": 180,
+    "height": 141,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "mossy_rock_cluster_sheet2.png",
+    "display_name": "Mossy Rock Cluster",
+    "asset_id": "mossy_rock_cluster",
+    "source_sheet": "Colorful Farm Decor Sprite Sheet-3.png",
+    "source_index": 36,
+    "source_bbox": [
+      1347,
+      901,
+      176,
+      105
+    ],
+    "width": 188,
+    "height": 117,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "flower_gate_arch_sheet3.png",
+    "display_name": "Flower Gate Arch",
+    "asset_id": "flower_gate_arch",
+    "source_sheet": "Colorful Isometric Farm Decorations Collection-2.png",
+    "source_index": 1,
+    "source_bbox": [
+      10,
+      30,
+      295,
+      282
+    ],
+    "width": 307,
+    "height": 294,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "stone_well_variant.png",
+    "display_name": "Stone Well Variant",
+    "asset_id": "stone_well_variant",
+    "source_sheet": "Colorful Isometric Farm Decorations Collection-2.png",
+    "source_index": 2,
+    "source_bbox": [
+      305,
+      37,
+      225,
+      265
+    ],
+    "width": 237,
+    "height": 277,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "flower_tree_bench.png",
+    "display_name": "Flower Tree Bench",
+    "asset_id": "flower_tree_bench",
+    "source_sheet": "Colorful Isometric Farm Decorations Collection-2.png",
+    "source_index": 3,
+    "source_bbox": [
+      523,
+      15,
+      286,
+      291
+    ],
+    "width": 298,
+    "height": 303,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "red_roof_gazebo.png",
+    "display_name": "Red Roof Gazebo",
+    "asset_id": "red_roof_gazebo",
+    "source_sheet": "Colorful Isometric Farm Decorations Collection-2.png",
+    "source_index": 4,
+    "source_bbox": [
+      814,
+      10,
+      273,
+      288
+    ],
+    "width": 285,
+    "height": 300,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "flower_fountain.png",
+    "display_name": "Flower Fountain",
+    "asset_id": "flower_fountain",
+    "source_sheet": "Colorful Isometric Farm Decorations Collection-2.png",
+    "source_index": 5,
+    "source_bbox": [
+      1093,
+      23,
+      266,
+      271
+    ],
+    "width": 278,
+    "height": 283,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "wooden_windmill_variant.png",
+    "display_name": "Wooden Windmill Variant",
+    "asset_id": "wooden_windmill_variant",
+    "source_sheet": "Colorful Isometric Farm Decorations Collection-2.png",
+    "source_index": 6,
+    "source_bbox": [
+      1365,
+      16,
+      167,
+      287
+    ],
+    "width": 179,
+    "height": 299,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "lamp_post_flower.png",
+    "display_name": "Lamp Post Flower",
+    "asset_id": "lamp_post_flower",
+    "source_sheet": "Colorful Isometric Farm Decorations Collection-2.png",
+    "source_index": 7,
+    "source_bbox": [
+      8,
+      333,
+      139,
+      259
+    ],
+    "width": 151,
+    "height": 271,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "sunflower_cart_variant.png",
+    "display_name": "Sunflower Cart Variant",
+    "asset_id": "sunflower_cart_variant",
+    "source_sheet": "Colorful Isometric Farm Decorations Collection-2.png",
+    "source_index": 8,
+    "source_bbox": [
+      171,
+      379,
+      229,
+      207
+    ],
+    "width": 241,
+    "height": 219,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "hay_bales_pitchfork.png",
+    "display_name": "Hay Bales Pitchfork",
+    "asset_id": "hay_bales_pitchfork",
+    "source_sheet": "Colorful Isometric Farm Decorations Collection-2.png",
+    "source_index": 9,
+    "source_bbox": [
+      399,
+      378,
+      266,
+      206
+    ],
+    "width": 278,
+    "height": 218,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "apple_barrels_variant.png",
+    "display_name": "Apple Barrels Variant",
+    "asset_id": "apple_barrels_variant",
+    "source_sheet": "Colorful Isometric Farm Decorations Collection-2.png",
+    "source_index": 10,
+    "source_bbox": [
+      688,
+      382,
+      213,
+      205
+    ],
+    "width": 225,
+    "height": 217,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "flower_market_stall.png",
+    "display_name": "Flower Market Stall",
+    "asset_id": "flower_market_stall",
+    "source_sheet": "Colorful Isometric Farm Decorations Collection-2.png",
+    "source_index": 11,
+    "source_bbox": [
+      909,
+      345,
+      249,
+      239
+    ],
+    "width": 261,
+    "height": 251,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "birdhouse_post_variant.png",
+    "display_name": "Birdhouse Post Variant",
+    "asset_id": "birdhouse_post_variant",
+    "source_sheet": "Colorful Isometric Farm Decorations Collection-2.png",
+    "source_index": 12,
+    "source_bbox": [
+      1184,
+      332,
+      123,
+      257
+    ],
+    "width": 135,
+    "height": 269,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "scarecrow.png",
+    "display_name": "Scarecrow",
+    "asset_id": "scarecrow",
+    "source_sheet": "Colorful Isometric Farm Decorations Collection-2.png",
+    "source_index": 13,
+    "source_bbox": [
+      1328,
+      333,
+      202,
+      254
+    ],
+    "width": 214,
+    "height": 266,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "rope_fence.png",
+    "display_name": "Rope Fence",
+    "asset_id": "rope_fence",
+    "source_sheet": "Colorful Isometric Farm Decorations Collection-2.png",
+    "source_index": 14,
+    "source_bbox": [
+      3,
+      631,
+      254,
+      129
+    ],
+    "width": 266,
+    "height": 141,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "picket_fence_flower.png",
+    "display_name": "Picket Fence Flower",
+    "asset_id": "picket_fence_flower",
+    "source_sheet": "Colorful Isometric Farm Decorations Collection-2.png",
+    "source_index": 15,
+    "source_bbox": [
+      273,
+      629,
+      219,
+      125
+    ],
+    "width": 231,
+    "height": 137,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "stone_lamp_wall.png",
+    "display_name": "Stone Lamp Wall",
+    "asset_id": "stone_lamp_wall",
+    "source_sheet": "Colorful Isometric Farm Decorations Collection-2.png",
+    "source_index": 16,
+    "source_bbox": [
+      505,
+      608,
+      233,
+      149
+    ],
+    "width": 245,
+    "height": 161,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "flower_planter_cart.png",
+    "display_name": "Flower Planter Cart",
+    "asset_id": "flower_planter_cart",
+    "source_sheet": "Colorful Isometric Farm Decorations Collection-2.png",
+    "source_index": 17,
+    "source_bbox": [
+      758,
+      632,
+      199,
+      119
+    ],
+    "width": 211,
+    "height": 131,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "pink_flower_bush_variant.png",
+    "display_name": "Pink Flower Bush Variant",
+    "asset_id": "pink_flower_bush_variant",
+    "source_sheet": "Colorful Isometric Farm Decorations Collection-2.png",
+    "source_index": 18,
+    "source_bbox": [
+      1193,
+      621,
+      172,
+      134
+    ],
+    "width": 184,
+    "height": 146,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "green_hedge_variant.png",
+    "display_name": "Green Hedge Variant",
+    "asset_id": "green_hedge_variant",
+    "source_sheet": "Colorful Isometric Farm Decorations Collection-2.png",
+    "source_index": 19,
+    "source_bbox": [
+      977,
+      642,
+      196,
+      101
+    ],
+    "width": 208,
+    "height": 113,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "mossy_rock_variant.png",
+    "display_name": "Mossy Rock Variant",
+    "asset_id": "mossy_rock_variant",
+    "source_sheet": "Colorful Isometric Farm Decorations Collection-2.png",
+    "source_index": 20,
+    "source_bbox": [
+      1375,
+      647,
+      150,
+      102
+    ],
+    "width": 162,
+    "height": 114,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "garden_pond_reeds.png",
+    "display_name": "Garden Pond Reeds",
+    "asset_id": "garden_pond_reeds",
+    "source_sheet": "Colorful Isometric Farm Decorations Collection-2.png",
+    "source_index": 21,
+    "source_bbox": [
+      12,
+      772,
+      339,
+      234
+    ],
+    "width": 351,
+    "height": 246,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "wisteria_swing_bench.png",
+    "display_name": "Wisteria Swing Bench",
+    "asset_id": "wisteria_swing_bench",
+    "source_sheet": "Colorful Isometric Farm Decorations Collection-2.png",
+    "source_index": 22,
+    "source_bbox": [
+      874,
+      775,
+      250,
+      226
+    ],
+    "width": 262,
+    "height": 238,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "stone_birdbath.png",
+    "display_name": "Stone Birdbath",
+    "asset_id": "stone_birdbath",
+    "source_sheet": "Colorful Isometric Farm Decorations Collection-2.png",
+    "source_index": 23,
+    "source_bbox": [
+      1315,
+      782,
+      212,
+      218
+    ],
+    "width": 224,
+    "height": 230,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "wooden_bridge.png",
+    "display_name": "Wooden Bridge",
+    "asset_id": "wooden_bridge",
+    "source_sheet": "Colorful Isometric Farm Decorations Collection-2.png",
+    "source_index": 24,
+    "source_bbox": [
+      368,
+      803,
+      267,
+      190
+    ],
+    "width": 279,
+    "height": 202,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "campfire_circle.png",
+    "display_name": "Campfire Circle",
+    "asset_id": "campfire_circle",
+    "source_sheet": "Colorful Isometric Farm Decorations Collection-2.png",
+    "source_index": 25,
+    "source_bbox": [
+      639,
+      802,
+      237,
+      176
+    ],
+    "width": 249,
+    "height": 188,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "wisteria_garden_arch.png",
+    "display_name": "Wisteria Garden Arch",
+    "asset_id": "wisteria_garden_arch",
+    "source_sheet": "Colorful Isometric Farm Decorations Collection-2.png",
+    "source_index": 26,
+    "source_bbox": [
+      1138,
+      823,
+      169,
+      170
+    ],
+    "width": 181,
+    "height": 182,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "white_picket_fence_sheet4.png",
+    "display_name": "White Picket Fence",
+    "asset_id": "white_picket_fence",
+    "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
+    "source_index": 1,
+    "source_bbox": [
+      3,
+      31,
+      203,
+      174
+    ],
+    "width": 215,
+    "height": 186,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "wooden_farm_gate.png",
+    "display_name": "Wooden Farm Gate",
+    "asset_id": "wooden_farm_gate",
+    "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
+    "source_index": 2,
+    "source_bbox": [
+      205,
+      38,
+      170,
+      164
+    ],
+    "width": 182,
+    "height": 176,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "stone_wall_lamp.png",
+    "display_name": "Stone Wall Lamp",
+    "asset_id": "stone_wall_lamp",
+    "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
+    "source_index": 3,
+    "source_bbox": [
+      377,
+      11,
+      211,
+      189
+    ],
+    "width": 223,
+    "height": 201,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "flower_arch_bench_variant.png",
+    "display_name": "Flower Arch Bench Variant",
+    "asset_id": "flower_arch_bench_variant",
+    "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
+    "source_index": 4,
+    "source_bbox": [
+      592,
+      9,
+      468,
+      206
+    ],
+    "width": 480,
+    "height": 218,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "garden_arbor_lantern.png",
+    "display_name": "Garden Arbor Lantern",
+    "asset_id": "garden_arbor_lantern",
+    "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
+    "source_index": 5,
+    "source_bbox": [
+      1067,
+      15,
+      92,
+      187
+    ],
+    "width": 104,
+    "height": 199,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "hanging_lantern_post.png",
+    "display_name": "Hanging Lantern Post",
+    "asset_id": "hanging_lantern_post",
+    "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
+    "source_index": 6,
+    "source_bbox": [
+      1179,
+      12,
+      101,
+      197
+    ],
+    "width": 113,
+    "height": 209,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "double_lantern_post.png",
+    "display_name": "Double Lantern Post",
+    "asset_id": "double_lantern_post",
+    "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
+    "source_index": 7,
+    "source_bbox": [
+      1293,
+      18,
+      89,
+      188
+    ],
+    "width": 101,
+    "height": 200,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "farm_direction_sign.png",
+    "display_name": "Farm Direction Sign",
+    "asset_id": "farm_direction_sign",
+    "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
+    "source_index": 8,
+    "source_bbox": [
+      1393,
+      10,
+      139,
+      197
+    ],
+    "width": 151,
+    "height": 209,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "scarecrow_variant.png",
+    "display_name": "Scarecrow Variant",
+    "asset_id": "scarecrow_variant",
+    "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
+    "source_index": 9,
+    "source_bbox": [
+      429,
+      211,
+      212,
+      202
+    ],
+    "width": 224,
+    "height": 214,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "garden_swing_bench.png",
+    "display_name": "Garden Swing Bench",
+    "asset_id": "garden_swing_bench",
+    "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
+    "source_index": 10,
+    "source_bbox": [
+      659,
+      210,
+      162,
+      197
+    ],
+    "width": 174,
+    "height": 209,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "picnic_table_variant.png",
+    "display_name": "Picnic Table Variant",
+    "asset_id": "picnic_table_variant",
+    "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
+    "source_index": 11,
+    "source_bbox": [
+      838,
+      217,
+      222,
+      188
+    ],
+    "width": 234,
+    "height": 200,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "cushioned_swing.png",
+    "display_name": "Cushioned Swing",
+    "asset_id": "cushioned_swing",
+    "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
+    "source_index": 12,
+    "source_bbox": [
+      1063,
+      214,
+      115,
+      189
+    ],
+    "width": 127,
+    "height": 201,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "red_roof_well_variant2.png",
+    "display_name": "Red Roof Well Variant2",
+    "asset_id": "red_roof_well_variant2",
+    "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
+    "source_index": 13,
+    "source_bbox": [
+      1199,
+      239,
+      122,
+      152
+    ],
+    "width": 134,
+    "height": 164,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "tiered_fountain_variant.png",
+    "display_name": "Tiered Fountain Variant",
+    "asset_id": "tiered_fountain_variant",
+    "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
+    "source_index": 14,
+    "source_bbox": [
+      1330,
+      224,
+      203,
+      169
+    ],
+    "width": 215,
+    "height": 181,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "birdhouse_post_variant2.png",
+    "display_name": "Birdhouse Post Variant2",
+    "asset_id": "birdhouse_post_variant2",
+    "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
+    "source_index": 15,
+    "source_bbox": [
+      16,
+      245,
+      199,
+      158
+    ],
+    "width": 211,
+    "height": 170,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "bird_bath_variant.png",
+    "display_name": "Bird Bath Variant",
+    "asset_id": "bird_bath_variant",
+    "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
+    "source_index": 16,
+    "source_bbox": [
+      229,
+      240,
+      205,
+      162
+    ],
+    "width": 217,
+    "height": 174,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "flower_cart_variant.png",
+    "display_name": "Flower Cart Variant",
+    "asset_id": "flower_cart_variant",
+    "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
+    "source_index": 17,
+    "source_bbox": [
+      1168,
+      398,
+      131,
+      204
+    ],
+    "width": 143,
+    "height": 216,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "park_bench_variant.png",
+    "display_name": "Park Bench Variant",
+    "asset_id": "park_bench_variant",
+    "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
+    "source_index": 18,
+    "source_bbox": [
+      5,
+      435,
+      164,
+      154
+    ],
+    "width": 176,
+    "height": 166,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "picnic_table_variant2.png",
+    "display_name": "Picnic Table Variant2",
+    "asset_id": "picnic_table_variant2",
+    "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
+    "source_index": 19,
+    "source_bbox": [
+      182,
+      421,
+      147,
+      165
+    ],
+    "width": 159,
+    "height": 177,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "wooden_windmill_variant2.png",
+    "display_name": "Wooden Windmill Variant2",
+    "asset_id": "wooden_windmill_variant2",
+    "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
+    "source_index": 20,
+    "source_bbox": [
+      337,
+      444,
+      180,
+      136
+    ],
+    "width": 192,
+    "height": 148,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "sunflower_cart_variant_sheet4.png",
+    "display_name": "Sunflower Cart Variant",
+    "asset_id": "sunflower_cart_variant",
+    "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
+    "source_index": 21,
+    "source_bbox": [
+      528,
+      422,
+      199,
+      165
+    ],
+    "width": 211,
+    "height": 177,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "purple_flower_pot.png",
+    "display_name": "Purple Flower Pot",
+    "asset_id": "purple_flower_pot",
+    "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
+    "source_index": 22,
+    "source_bbox": [
+      732,
+      410,
+      149,
+      185
+    ],
+    "width": 161,
+    "height": 197,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "round_flowerbed.png",
+    "display_name": "Round Flowerbed",
+    "asset_id": "round_flowerbed",
+    "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
+    "source_index": 23,
+    "source_bbox": [
+      898,
+      424,
+      254,
+      162
+    ],
+    "width": 266,
+    "height": 174,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "rock_flowerbed.png",
+    "display_name": "Rock Flowerbed",
+    "asset_id": "rock_flowerbed",
+    "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
+    "source_index": 24,
+    "source_bbox": [
+      1317,
+      406,
+      207,
+      183
+    ],
+    "width": 219,
+    "height": 195,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "red_hand_pump.png",
+    "display_name": "Red Hand Pump",
+    "asset_id": "red_hand_pump",
+    "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
+    "source_index": 25,
+    "source_bbox": [
+      12,
+      600,
+      215,
+      207
+    ],
+    "width": 227,
+    "height": 219,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "lily_pond_reeds.png",
+    "display_name": "Lily Pond Reeds",
+    "asset_id": "lily_pond_reeds",
+    "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
+    "source_index": 26,
+    "source_bbox": [
+      237,
+      610,
+      177,
+      193
+    ],
+    "width": 189,
+    "height": 205,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "wisteria_trellis.png",
+    "display_name": "Wisteria Trellis",
+    "asset_id": "wisteria_trellis",
+    "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
+    "source_index": 27,
+    "source_bbox": [
+      423,
+      615,
+      157,
+      186
+    ],
+    "width": 169,
+    "height": 198,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "pink_blossom_tree_variant2.png",
+    "display_name": "Pink Blossom Tree Variant2",
+    "asset_id": "pink_blossom_tree_variant2",
+    "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
+    "source_index": 28,
+    "source_bbox": [
+      588,
+      615,
+      152,
+      185
+    ],
+    "width": 164,
+    "height": 197,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "apple_tree_variant2.png",
+    "display_name": "Apple Tree Variant2",
+    "asset_id": "apple_tree_variant2",
+    "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
+    "source_index": 29,
+    "source_bbox": [
+      750,
+      609,
+      168,
+      192
+    ],
+    "width": 180,
+    "height": 204,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "orange_tree_variant2.png",
+    "display_name": "Orange Tree Variant2",
+    "asset_id": "orange_tree_variant2",
+    "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
+    "source_index": 30,
+    "source_bbox": [
+      926,
+      609,
+      179,
+      193
+    ],
+    "width": 191,
+    "height": 205,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "pear_tree.png",
+    "display_name": "Pear Tree",
+    "asset_id": "pear_tree",
+    "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
+    "source_index": 31,
+    "source_bbox": [
+      1103,
+      605,
+      130,
+      196
+    ],
+    "width": 142,
+    "height": 208,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "wisteria_tree.png",
+    "display_name": "Wisteria Tree",
+    "asset_id": "wisteria_tree",
+    "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
+    "source_index": 32,
+    "source_bbox": [
+      1242,
+      635,
+      107,
+      164
+    ],
+    "width": 119,
+    "height": 176,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "green_hedge_variant2.png",
+    "display_name": "Green Hedge Variant2",
+    "asset_id": "green_hedge_variant2",
+    "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
+    "source_index": 33,
+    "source_bbox": [
+      1357,
+      613,
+      167,
+      179
+    ],
+    "width": 179,
+    "height": 191,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "pine_tree_variant.png",
+    "display_name": "Pine Tree Variant",
+    "asset_id": "pine_tree_variant",
+    "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
+    "source_index": 34,
+    "source_bbox": [
+      3,
+      845,
+      179,
+      148
+    ],
+    "width": 191,
+    "height": 160,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "small_green_tree.png",
+    "display_name": "Small Green Tree",
+    "asset_id": "small_green_tree",
+    "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
+    "source_index": 35,
+    "source_bbox": [
+      188,
+      868,
+      149,
+      114
+    ],
+    "width": 161,
+    "height": 126,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "white_blossom_tree.png",
+    "display_name": "White Blossom Tree",
+    "asset_id": "white_blossom_tree",
+    "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
+    "source_index": 36,
+    "source_bbox": [
+      341,
+      854,
+      160,
+      136
+    ],
+    "width": 172,
+    "height": 148,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "hay_bales_stack.png",
+    "display_name": "Hay Bales Stack",
+    "asset_id": "hay_bales_stack",
+    "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
+    "source_index": 37,
+    "source_bbox": [
+      507,
+      859,
+      166,
+      123
+    ],
+    "width": 178,
+    "height": 135,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "firewood_stack.png",
+    "display_name": "Firewood Stack",
+    "asset_id": "firewood_stack",
+    "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
+    "source_index": 38,
+    "source_bbox": [
+      679,
+      833,
+      173,
+      156
+    ],
+    "width": 185,
+    "height": 168,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "mossy_rocks_variant2.png",
+    "display_name": "Mossy Rocks Variant2",
+    "asset_id": "mossy_rocks_variant2",
+    "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
+    "source_index": 39,
+    "source_bbox": [
+      864,
+      850,
+      156,
+      138
+    ],
+    "width": 168,
+    "height": 150,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "flower_stump_variant.png",
+    "display_name": "Flower Stump Variant",
+    "asset_id": "flower_stump_variant",
+    "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
+    "source_index": 40,
+    "source_bbox": [
+      1025,
+      858,
+      151,
+      130
+    ],
+    "width": 163,
+    "height": 142,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "hay_cart_variant.png",
+    "display_name": "Hay Cart Variant",
+    "asset_id": "hay_cart_variant",
+    "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
+    "source_index": 41,
+    "source_bbox": [
+      1168,
+      806,
+      112,
+      204
+    ],
+    "width": 124,
+    "height": 216,
+    "alpha": "transparent"
+  },
+  {
+    "filename": "campfire_variant.png",
+    "display_name": "Campfire Variant",
+    "asset_id": "campfire_variant",
+    "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
+    "source_index": 42,
+    "source_bbox": [
+      1287,
+      800,
+      242,
+      209
+    ],
+    "width": 254,
+    "height": 221,
+    "alpha": "transparent"
+  }
+]

@@ -1,0 +1,131 @@
+filename,display_name,asset_id,source_sheet,source_index,source_bbox,width,height,alpha
+flower_arch_bench_sheet1.png,Flower Arch Bench,flower_arch_bench,Colorful Farm Decorations Asset Sheet-4.png,1,"[17, 25, 303, 286]",315,298,transparent
+red_roof_well_sheet1.png,Red Roof Well,red_roof_well,Colorful Farm Decorations Asset Sheet-4.png,2,"[328, 28, 224, 270]",236,282,transparent
+garden_lamp_post_sheet1.png,Garden Lamp Post,garden_lamp_post,Colorful Farm Decorations Asset Sheet-4.png,3,"[568, 14, 154, 288]",166,300,transparent
+tiered_stone_fountain_sheet1.png,Tiered Stone Fountain,tiered_stone_fountain,Colorful Farm Decorations Asset Sheet-4.png,4,"[733, 14, 298, 284]",310,296,transparent
+flower_market_cart_sheet1.png,Flower Market Cart,flower_market_cart,Colorful Farm Decorations Asset Sheet-4.png,5,"[1041, 33, 262, 263]",274,275,transparent
+wooden_windmill_sheet1.png,Wooden Windmill,wooden_windmill,Colorful Farm Decorations Asset Sheet-4.png,6,"[1317, 15, 207, 288]",219,300,transparent
+birdhouse_post_sheet1.png,Birdhouse Post,birdhouse_post,Colorful Farm Decorations Asset Sheet-4.png,7,"[21, 344, 181, 254]",193,266,transparent
+farm_signpost_sheet1.png,Farm Signpost,farm_signpost,Colorful Farm Decorations Asset Sheet-4.png,8,"[226, 322, 160, 278]",172,290,transparent
+flower_gate_arch_sheet1.png,Flower Gate Arch,flower_gate_arch,Colorful Farm Decorations Asset Sheet-4.png,9,"[399, 327, 286, 264]",298,276,transparent
+flower_swing_bench_sheet1.png,Flower Swing Bench,flower_swing_bench,Colorful Farm Decorations Asset Sheet-4.png,10,"[699, 334, 318, 280]",330,292,transparent
+bird_bath_sheet1.png,Bird Bath,bird_bath,Colorful Farm Decorations Asset Sheet-4.png,11,"[1031, 371, 192, 225]",204,237,transparent
+hay_bales_barrel_sheet1.png,Hay Bales Barrel,hay_bales_barrel,Colorful Farm Decorations Asset Sheet-4.png,12,"[1242, 330, 283, 271]",295,283,transparent
+apple_tree_sheet1.png,Apple Tree,apple_tree,Colorful Farm Decorations Asset Sheet-4.png,13,"[13, 615, 214, 231]",226,243,transparent
+pink_blossom_tree_sheet1.png,Pink Blossom Tree,pink_blossom_tree,Colorful Farm Decorations Asset Sheet-4.png,14,"[237, 619, 197, 222]",209,234,transparent
+golden_orange_tree_sheet1.png,Golden Orange Tree,golden_orange_tree,Colorful Farm Decorations Asset Sheet-4.png,15,"[442, 616, 186, 225]",198,237,transparent
+evergreen_tree_sheet1.png,Evergreen Tree,evergreen_tree,Colorful Farm Decorations Asset Sheet-4.png,16,"[628, 614, 164, 226]",176,238,transparent
+mossy_rocks_sheet1.png,Mossy Rocks,mossy_rocks,Colorful Farm Decorations Asset Sheet-4.png,17,"[804, 681, 213, 148]",225,160,transparent
+hollow_log_planter_sheet1.png,Hollow Log Planter,hollow_log_planter,Colorful Farm Decorations Asset Sheet-4.png,18,"[1034, 682, 246, 153]",258,165,transparent
+flower_stump_sheet1.png,Flower Stump,flower_stump,Colorful Farm Decorations Asset Sheet-4.png,19,"[1296, 688, 226, 139]",238,151,transparent
+wooden_fence_sheet1.png,Wooden Fence,wooden_fence,Colorful Farm Decorations Asset Sheet-4.png,20,"[6, 885, 218, 106]",230,118,transparent
+white_picket_fence_sheet1.png,White Picket Fence,white_picket_fence,Colorful Farm Decorations Asset Sheet-4.png,21,"[238, 886, 198, 106]",210,118,transparent
+stone_wall_sheet1.png,Stone Wall,stone_wall,Colorful Farm Decorations Asset Sheet-4.png,22,"[448, 886, 232, 106]",244,118,transparent
+pink_flower_hedge_sheet1.png,Pink Flower Hedge,pink_flower_hedge,Colorful Farm Decorations Asset Sheet-4.png,23,"[693, 884, 203, 108]",215,120,transparent
+yellow_flower_hedge_sheet1.png,Yellow Flower Hedge,yellow_flower_hedge,Colorful Farm Decorations Asset Sheet-4.png,24,"[911, 884, 194, 109]",206,121,transparent
+green_hedge_sheet1.png,Green Hedge,green_hedge,Colorful Farm Decorations Asset Sheet-4.png,25,"[1119, 882, 172, 113]",184,125,transparent
+purple_flower_hedge_sheet1.png,Purple Flower Hedge,purple_flower_hedge,Colorful Farm Decorations Asset Sheet-4.png,26,"[1305, 880, 222, 113]",234,125,transparent
+flower_archway_sheet2.png,Flower Archway,flower_archway,Colorful Farm Decor Sprite Sheet-3.png,1,"[17, 9, 251, 245]",263,257,transparent
+white_picket_fence_flowers_sheet2.png,White Picket Fence Flowers,white_picket_fence_flowers,Colorful Farm Decor Sprite Sheet-3.png,2,"[279, 48, 227, 175]",239,187,transparent
+wooden_park_bench_sheet2.png,Wooden Park Bench,wooden_park_bench,Colorful Farm Decor Sprite Sheet-3.png,3,"[506, 52, 213, 173]",225,185,transparent
+ornate_lamp_post_sheet2.png,Ornate Lamp Post,ornate_lamp_post,Colorful Farm Decor Sprite Sheet-3.png,4,"[724, 6, 105, 245]",117,257,transparent
+red_roof_well_variant_sheet2.png,Red Roof Well Variant,red_roof_well_variant,Colorful Farm Decor Sprite Sheet-3.png,5,"[847, 7, 217, 246]",229,258,transparent
+large_stone_fountain_sheet2.png,Large Stone Fountain,large_stone_fountain,Colorful Farm Decor Sprite Sheet-3.png,6,"[1070, 7, 271, 205]",283,217,transparent
+rooster_signpost_sheet2.png,Rooster Signpost,rooster_signpost,Colorful Farm Decor Sprite Sheet-3.png,7,"[1360, 13, 159, 209]",171,221,transparent
+hay_cart_sheet2.png,Hay Cart,hay_cart,Colorful Farm Decor Sprite Sheet-3.png,8,"[1152, 227, 192, 233]",204,245,transparent
+hay_stack_pitchfork_sheet2.png,Hay Stack Pitchfork,hay_stack_pitchfork,Colorful Farm Decor Sprite Sheet-3.png,9,"[1366, 236, 134, 228]",146,240,transparent
+apple_barrels_crate_sheet2.png,Apple Barrels Crate,apple_barrels_crate,Colorful Farm Decor Sprite Sheet-3.png,10,"[19, 254, 237, 190]",249,202,transparent
+flower_cart_sheet2.png,Flower Cart,flower_cart,Colorful Farm Decor Sprite Sheet-3.png,11,"[277, 263, 207, 168]",219,180,transparent
+bird_bath_stone_sheet2.png,Bird Bath Stone,bird_bath_stone,Colorful Farm Decor Sprite Sheet-3.png,12,"[498, 283, 218, 160]",230,172,transparent
+wisteria_swing_sheet2.png,Wisteria Swing,wisteria_swing,Colorful Farm Decor Sprite Sheet-3.png,13,"[731, 267, 236, 193]",248,205,transparent
+garden_gazebo_sheet2.png,Garden Gazebo,garden_gazebo,Colorful Farm Decor Sprite Sheet-3.png,14,"[995, 255, 144, 202]",156,214,transparent
+flower_stall_sheet2.png,Flower Stall,flower_stall,Colorful Farm Decor Sprite Sheet-3.png,15,"[18, 455, 277, 227]",289,239,transparent
+picnic_table_sheet2.png,Picnic Table,picnic_table,Colorful Farm Decor Sprite Sheet-3.png,16,"[307, 436, 247, 254]",259,266,transparent
+campfire_stumps_sheet2.png,Campfire Stumps,campfire_stumps,Colorful Farm Decor Sprite Sheet-3.png,17,"[566, 472, 216, 206]",228,218,transparent
+waterfall_pond_sheet2.png,Waterfall Pond,waterfall_pond,Colorful Farm Decor Sprite Sheet-3.png,18,"[1256, 470, 253, 200]",265,212,transparent
+lily_pond_sheet2.png,Lily Pond,lily_pond,Colorful Farm Decor Sprite Sheet-3.png,19,"[793, 500, 240, 166]",252,178,transparent
+sunflower_cart_sheet2.png,Sunflower Cart,sunflower_cart,Colorful Farm Decor Sprite Sheet-3.png,20,"[1045, 503, 202, 151]",214,163,transparent
+pink_blossom_tree_variant_sheet2.png,Pink Blossom Tree Variant,pink_blossom_tree_variant,Colorful Farm Decor Sprite Sheet-3.png,21,"[9, 689, 279, 177]",291,189,transparent
+orange_blossom_tree_sheet2.png,Orange Blossom Tree,orange_blossom_tree,Colorful Farm Decor Sprite Sheet-3.png,22,"[296, 709, 220, 152]",232,164,transparent
+apple_tree_variant_sheet2.png,Apple Tree Variant,apple_tree_variant,Colorful Farm Decor Sprite Sheet-3.png,23,"[529, 708, 150, 163]",162,175,transparent
+orange_fruit_tree_sheet2.png,Orange Fruit Tree,orange_fruit_tree,Colorful Farm Decor Sprite Sheet-3.png,24,"[691, 673, 178, 201]",190,213,transparent
+evergreen_tree_variant_sheet2.png,Evergreen Tree Variant,evergreen_tree_variant,Colorful Farm Decor Sprite Sheet-3.png,25,"[878, 679, 162, 191]",174,203,transparent
+string_lights_sheet2.png,String Lights,string_lights,Colorful Farm Decor Sprite Sheet-3.png,26,"[1050, 677, 156, 190]",168,202,transparent
+festival_bunting_sheet2.png,Festival Bunting,festival_bunting,Colorful Farm Decor Sprite Sheet-3.png,27,"[1215, 679, 157, 189]",169,201,transparent
+stepping_stone_path_sheet2.png,Stepping Stone Path,stepping_stone_path,Colorful Farm Decor Sprite Sheet-3.png,28,"[1372, 673, 156, 211]",168,223,transparent
+green_hedge_flowers_sheet2.png,Green Hedge Flowers,green_hedge_flowers,Colorful Farm Decor Sprite Sheet-3.png,29,"[10, 880, 209, 131]",221,143,transparent
+pink_flower_bush_sheet2.png,Pink Flower Bush,pink_flower_bush,Colorful Farm Decor Sprite Sheet-3.png,30,"[233, 881, 206, 128]",218,140,transparent
+rose_bush_sheet2.png,Rose Bush,rose_bush,Colorful Farm Decor Sprite Sheet-3.png,31,"[452, 891, 147, 120]",159,132,transparent
+lavender_bush_sheet2.png,Lavender Bush,lavender_bush,Colorful Farm Decor Sprite Sheet-3.png,32,"[602, 888, 194, 122]",206,134,transparent
+rock_cluster_sheet2.png,Rock Cluster,rock_cluster,Colorful Farm Decor Sprite Sheet-3.png,33,"[817, 881, 160, 130]",172,142,transparent
+yellow_flower_bush_sheet2.png,Yellow Flower Bush,yellow_flower_bush,Colorful Farm Decor Sprite Sheet-3.png,34,"[997, 881, 146, 130]",158,142,transparent
+purple_flower_bush_sheet2.png,Purple Flower Bush,purple_flower_bush,Colorful Farm Decor Sprite Sheet-3.png,35,"[1163, 880, 168, 129]",180,141,transparent
+mossy_rock_cluster_sheet2.png,Mossy Rock Cluster,mossy_rock_cluster,Colorful Farm Decor Sprite Sheet-3.png,36,"[1347, 901, 176, 105]",188,117,transparent
+flower_gate_arch_sheet3.png,Flower Gate Arch,flower_gate_arch,Colorful Isometric Farm Decorations Collection-2.png,1,"[10, 30, 295, 282]",307,294,transparent
+stone_well_variant.png,Stone Well Variant,stone_well_variant,Colorful Isometric Farm Decorations Collection-2.png,2,"[305, 37, 225, 265]",237,277,transparent
+flower_tree_bench.png,Flower Tree Bench,flower_tree_bench,Colorful Isometric Farm Decorations Collection-2.png,3,"[523, 15, 286, 291]",298,303,transparent
+red_roof_gazebo.png,Red Roof Gazebo,red_roof_gazebo,Colorful Isometric Farm Decorations Collection-2.png,4,"[814, 10, 273, 288]",285,300,transparent
+flower_fountain.png,Flower Fountain,flower_fountain,Colorful Isometric Farm Decorations Collection-2.png,5,"[1093, 23, 266, 271]",278,283,transparent
+wooden_windmill_variant.png,Wooden Windmill Variant,wooden_windmill_variant,Colorful Isometric Farm Decorations Collection-2.png,6,"[1365, 16, 167, 287]",179,299,transparent
+lamp_post_flower.png,Lamp Post Flower,lamp_post_flower,Colorful Isometric Farm Decorations Collection-2.png,7,"[8, 333, 139, 259]",151,271,transparent
+sunflower_cart_variant.png,Sunflower Cart Variant,sunflower_cart_variant,Colorful Isometric Farm Decorations Collection-2.png,8,"[171, 379, 229, 207]",241,219,transparent
+hay_bales_pitchfork.png,Hay Bales Pitchfork,hay_bales_pitchfork,Colorful Isometric Farm Decorations Collection-2.png,9,"[399, 378, 266, 206]",278,218,transparent
+apple_barrels_variant.png,Apple Barrels Variant,apple_barrels_variant,Colorful Isometric Farm Decorations Collection-2.png,10,"[688, 382, 213, 205]",225,217,transparent
+flower_market_stall.png,Flower Market Stall,flower_market_stall,Colorful Isometric Farm Decorations Collection-2.png,11,"[909, 345, 249, 239]",261,251,transparent
+birdhouse_post_variant.png,Birdhouse Post Variant,birdhouse_post_variant,Colorful Isometric Farm Decorations Collection-2.png,12,"[1184, 332, 123, 257]",135,269,transparent
+scarecrow.png,Scarecrow,scarecrow,Colorful Isometric Farm Decorations Collection-2.png,13,"[1328, 333, 202, 254]",214,266,transparent
+rope_fence.png,Rope Fence,rope_fence,Colorful Isometric Farm Decorations Collection-2.png,14,"[3, 631, 254, 129]",266,141,transparent
+picket_fence_flower.png,Picket Fence Flower,picket_fence_flower,Colorful Isometric Farm Decorations Collection-2.png,15,"[273, 629, 219, 125]",231,137,transparent
+stone_lamp_wall.png,Stone Lamp Wall,stone_lamp_wall,Colorful Isometric Farm Decorations Collection-2.png,16,"[505, 608, 233, 149]",245,161,transparent
+flower_planter_cart.png,Flower Planter Cart,flower_planter_cart,Colorful Isometric Farm Decorations Collection-2.png,17,"[758, 632, 199, 119]",211,131,transparent
+pink_flower_bush_variant.png,Pink Flower Bush Variant,pink_flower_bush_variant,Colorful Isometric Farm Decorations Collection-2.png,18,"[1193, 621, 172, 134]",184,146,transparent
+green_hedge_variant.png,Green Hedge Variant,green_hedge_variant,Colorful Isometric Farm Decorations Collection-2.png,19,"[977, 642, 196, 101]",208,113,transparent
+mossy_rock_variant.png,Mossy Rock Variant,mossy_rock_variant,Colorful Isometric Farm Decorations Collection-2.png,20,"[1375, 647, 150, 102]",162,114,transparent
+garden_pond_reeds.png,Garden Pond Reeds,garden_pond_reeds,Colorful Isometric Farm Decorations Collection-2.png,21,"[12, 772, 339, 234]",351,246,transparent
+wisteria_swing_bench.png,Wisteria Swing Bench,wisteria_swing_bench,Colorful Isometric Farm Decorations Collection-2.png,22,"[874, 775, 250, 226]",262,238,transparent
+stone_birdbath.png,Stone Birdbath,stone_birdbath,Colorful Isometric Farm Decorations Collection-2.png,23,"[1315, 782, 212, 218]",224,230,transparent
+wooden_bridge.png,Wooden Bridge,wooden_bridge,Colorful Isometric Farm Decorations Collection-2.png,24,"[368, 803, 267, 190]",279,202,transparent
+campfire_circle.png,Campfire Circle,campfire_circle,Colorful Isometric Farm Decorations Collection-2.png,25,"[639, 802, 237, 176]",249,188,transparent
+wisteria_garden_arch.png,Wisteria Garden Arch,wisteria_garden_arch,Colorful Isometric Farm Decorations Collection-2.png,26,"[1138, 823, 169, 170]",181,182,transparent
+white_picket_fence_sheet4.png,White Picket Fence,white_picket_fence,Farm Market Decoration Sprite Sheet-1.png,1,"[3, 31, 203, 174]",215,186,transparent
+wooden_farm_gate.png,Wooden Farm Gate,wooden_farm_gate,Farm Market Decoration Sprite Sheet-1.png,2,"[205, 38, 170, 164]",182,176,transparent
+stone_wall_lamp.png,Stone Wall Lamp,stone_wall_lamp,Farm Market Decoration Sprite Sheet-1.png,3,"[377, 11, 211, 189]",223,201,transparent
+flower_arch_bench_variant.png,Flower Arch Bench Variant,flower_arch_bench_variant,Farm Market Decoration Sprite Sheet-1.png,4,"[592, 9, 468, 206]",480,218,transparent
+garden_arbor_lantern.png,Garden Arbor Lantern,garden_arbor_lantern,Farm Market Decoration Sprite Sheet-1.png,5,"[1067, 15, 92, 187]",104,199,transparent
+hanging_lantern_post.png,Hanging Lantern Post,hanging_lantern_post,Farm Market Decoration Sprite Sheet-1.png,6,"[1179, 12, 101, 197]",113,209,transparent
+double_lantern_post.png,Double Lantern Post,double_lantern_post,Farm Market Decoration Sprite Sheet-1.png,7,"[1293, 18, 89, 188]",101,200,transparent
+farm_direction_sign.png,Farm Direction Sign,farm_direction_sign,Farm Market Decoration Sprite Sheet-1.png,8,"[1393, 10, 139, 197]",151,209,transparent
+scarecrow_variant.png,Scarecrow Variant,scarecrow_variant,Farm Market Decoration Sprite Sheet-1.png,9,"[429, 211, 212, 202]",224,214,transparent
+garden_swing_bench.png,Garden Swing Bench,garden_swing_bench,Farm Market Decoration Sprite Sheet-1.png,10,"[659, 210, 162, 197]",174,209,transparent
+picnic_table_variant.png,Picnic Table Variant,picnic_table_variant,Farm Market Decoration Sprite Sheet-1.png,11,"[838, 217, 222, 188]",234,200,transparent
+cushioned_swing.png,Cushioned Swing,cushioned_swing,Farm Market Decoration Sprite Sheet-1.png,12,"[1063, 214, 115, 189]",127,201,transparent
+red_roof_well_variant2.png,Red Roof Well Variant2,red_roof_well_variant2,Farm Market Decoration Sprite Sheet-1.png,13,"[1199, 239, 122, 152]",134,164,transparent
+tiered_fountain_variant.png,Tiered Fountain Variant,tiered_fountain_variant,Farm Market Decoration Sprite Sheet-1.png,14,"[1330, 224, 203, 169]",215,181,transparent
+birdhouse_post_variant2.png,Birdhouse Post Variant2,birdhouse_post_variant2,Farm Market Decoration Sprite Sheet-1.png,15,"[16, 245, 199, 158]",211,170,transparent
+bird_bath_variant.png,Bird Bath Variant,bird_bath_variant,Farm Market Decoration Sprite Sheet-1.png,16,"[229, 240, 205, 162]",217,174,transparent
+flower_cart_variant.png,Flower Cart Variant,flower_cart_variant,Farm Market Decoration Sprite Sheet-1.png,17,"[1168, 398, 131, 204]",143,216,transparent
+park_bench_variant.png,Park Bench Variant,park_bench_variant,Farm Market Decoration Sprite Sheet-1.png,18,"[5, 435, 164, 154]",176,166,transparent
+picnic_table_variant2.png,Picnic Table Variant2,picnic_table_variant2,Farm Market Decoration Sprite Sheet-1.png,19,"[182, 421, 147, 165]",159,177,transparent
+wooden_windmill_variant2.png,Wooden Windmill Variant2,wooden_windmill_variant2,Farm Market Decoration Sprite Sheet-1.png,20,"[337, 444, 180, 136]",192,148,transparent
+sunflower_cart_variant_sheet4.png,Sunflower Cart Variant,sunflower_cart_variant,Farm Market Decoration Sprite Sheet-1.png,21,"[528, 422, 199, 165]",211,177,transparent
+purple_flower_pot.png,Purple Flower Pot,purple_flower_pot,Farm Market Decoration Sprite Sheet-1.png,22,"[732, 410, 149, 185]",161,197,transparent
+round_flowerbed.png,Round Flowerbed,round_flowerbed,Farm Market Decoration Sprite Sheet-1.png,23,"[898, 424, 254, 162]",266,174,transparent
+rock_flowerbed.png,Rock Flowerbed,rock_flowerbed,Farm Market Decoration Sprite Sheet-1.png,24,"[1317, 406, 207, 183]",219,195,transparent
+red_hand_pump.png,Red Hand Pump,red_hand_pump,Farm Market Decoration Sprite Sheet-1.png,25,"[12, 600, 215, 207]",227,219,transparent
+lily_pond_reeds.png,Lily Pond Reeds,lily_pond_reeds,Farm Market Decoration Sprite Sheet-1.png,26,"[237, 610, 177, 193]",189,205,transparent
+wisteria_trellis.png,Wisteria Trellis,wisteria_trellis,Farm Market Decoration Sprite Sheet-1.png,27,"[423, 615, 157, 186]",169,198,transparent
+pink_blossom_tree_variant2.png,Pink Blossom Tree Variant2,pink_blossom_tree_variant2,Farm Market Decoration Sprite Sheet-1.png,28,"[588, 615, 152, 185]",164,197,transparent
+apple_tree_variant2.png,Apple Tree Variant2,apple_tree_variant2,Farm Market Decoration Sprite Sheet-1.png,29,"[750, 609, 168, 192]",180,204,transparent
+orange_tree_variant2.png,Orange Tree Variant2,orange_tree_variant2,Farm Market Decoration Sprite Sheet-1.png,30,"[926, 609, 179, 193]",191,205,transparent
+pear_tree.png,Pear Tree,pear_tree,Farm Market Decoration Sprite Sheet-1.png,31,"[1103, 605, 130, 196]",142,208,transparent
+wisteria_tree.png,Wisteria Tree,wisteria_tree,Farm Market Decoration Sprite Sheet-1.png,32,"[1242, 635, 107, 164]",119,176,transparent
+green_hedge_variant2.png,Green Hedge Variant2,green_hedge_variant2,Farm Market Decoration Sprite Sheet-1.png,33,"[1357, 613, 167, 179]",179,191,transparent
+pine_tree_variant.png,Pine Tree Variant,pine_tree_variant,Farm Market Decoration Sprite Sheet-1.png,34,"[3, 845, 179, 148]",191,160,transparent
+small_green_tree.png,Small Green Tree,small_green_tree,Farm Market Decoration Sprite Sheet-1.png,35,"[188, 868, 149, 114]",161,126,transparent
+white_blossom_tree.png,White Blossom Tree,white_blossom_tree,Farm Market Decoration Sprite Sheet-1.png,36,"[341, 854, 160, 136]",172,148,transparent
+hay_bales_stack.png,Hay Bales Stack,hay_bales_stack,Farm Market Decoration Sprite Sheet-1.png,37,"[507, 859, 166, 123]",178,135,transparent
+firewood_stack.png,Firewood Stack,firewood_stack,Farm Market Decoration Sprite Sheet-1.png,38,"[679, 833, 173, 156]",185,168,transparent
+mossy_rocks_variant2.png,Mossy Rocks Variant2,mossy_rocks_variant2,Farm Market Decoration Sprite Sheet-1.png,39,"[864, 850, 156, 138]",168,150,transparent
+flower_stump_variant.png,Flower Stump Variant,flower_stump_variant,Farm Market Decoration Sprite Sheet-1.png,40,"[1025, 858, 151, 130]",163,142,transparent
+hay_cart_variant.png,Hay Cart Variant,hay_cart_variant,Farm Market Decoration Sprite Sheet-1.png,41,"[1168, 806, 112, 204]",124,216,transparent
+campfire_variant.png,Campfire Variant,campfire_variant,Farm Market Decoration Sprite Sheet-1.png,42,"[1287, 800, 242, 209]",254,221,transparent
