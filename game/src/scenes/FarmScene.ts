@@ -112,7 +112,7 @@ export class FarmScene extends Phaser.Scene {
     this.load.image('windmill-body', `${import.meta.env.BASE_URL}assets/buildings/windmill/windmill-body.png`);
     this.load.image('windmill-rotor', `${import.meta.env.BASE_URL}assets/buildings/windmill/windmill-rotor.png`);
     this.load.spritesheet('animal-cow', `${import.meta.env.BASE_URL}assets/animals/cow.png`, { frameWidth: 384, frameHeight: 256 });
-    this.load.spritesheet('animal-hen', `${import.meta.env.BASE_URL}assets/animals/hen.png`, { frameWidth: 44, frameHeight: 40 });
+    this.load.spritesheet('animal-hen', `${import.meta.env.BASE_URL}assets/animals/hen.png`, { frameWidth: 48, frameHeight: 48 });
     this.load.spritesheet('animal-chick', `${import.meta.env.BASE_URL}assets/animals/chick.png`, { frameWidth: 44, frameHeight: 40 });
     for (let stage = 1; stage <= 5; stage += 1) {
       this.load.image(`crop-tomato-${stage}`, `${import.meta.env.BASE_URL}assets/crops/tomato/tomato-stage-${stage}-${['seeds','sprout','young','flowering','ripe'][stage - 1]}.png`);
@@ -435,7 +435,7 @@ export class FarmScene extends Phaser.Scene {
       actor.add(this.add.ellipse(0,6,cow?32:22,7,0x263e25,0.18));
       const texture=cow?'animal-cow':'animal-hen';
       if(this.textures.exists(texture)){
-        const sprite=this.add.sprite(0,-2,texture).setDisplaySize(cow?88:35,cow?59:32).setAlpha(1).setVisible(true);
+        const sprite=this.add.sprite(0,-2,texture).setDisplaySize(cow?88:38,cow?59:38).setAlpha(1).setVisible(true);
         sprite.setDepth(2);
         actor.add(sprite);
         this.animalSprites.set(actor,sprite);
@@ -487,8 +487,11 @@ export class FarmScene extends Phaser.Scene {
     for(let attempt=0;attempt<28;attempt++){
       const candidate={col:current.col+Phaser.Math.Between(-2,2),row:current.row+Phaser.Math.Between(-2,2)};
       if(candidate.col===current.col&&candidate.row===current.row)continue;
-      if(this.animalCellBlocked(candidate,actor))continue;
+      if(candidate.col<0||candidate.row<0||candidate.col>=COLS||candidate.row>=ROWS)continue;
       const point=this.toWorld(candidate.col,candidate.row);
+      // Keep hens and chicks roaming around their coop instead of drifting across the whole farm.
+      if(Math.abs(point.x-cx)>limitX||Math.abs(point.y-cy)>limitY)continue;
+      if(this.animalCellBlocked(candidate,actor))continue;
       if(this.animalRouteIsClear({x:actor.x,y:actor.y},point,actor)){destination=candidate;break;}
     }
     if(!destination){
@@ -513,11 +516,20 @@ export class FarmScene extends Phaser.Scene {
         actor.setScale(baseScale,baseScale);
         if(sprite){
           this.tweens.killTweensOf(sprite);sprite.setAngle(0).setY(-2);
-          sprite.play(cow?'cow-eat':(sprite.texture.key==='animal-chick'?'chick-peck':'hen-peck'),true);
-          this.time.delayedCall(Phaser.Math.Between(cow?2200:1000,cow?4200:1900),()=>{
+          const isChick=sprite.texture.key==='animal-chick';
+          const peck=isChick?'chick-peck':(cow?'cow-eat':'hen-peck');
+          sprite.play(peck,true);
+          this.time.delayedCall(Phaser.Math.Between(cow?2200:1100,cow?4200:2100),()=>{
             if(!actor.active||!sprite.active)return;
+            // Hens occasionally pause to cluck after pecking; chicks keep their shorter peck cycle.
+            const cluck=!cow&&!isChick&&Math.random()<0.32;
+            if(cluck){sprite.play('hen-cluck');this.time.delayedCall(650,()=>{
+              if(!actor.active||!sprite.active)return;
+              this.animateAnimalIdle(actor,sprite);
+              this.time.delayedCall(Phaser.Math.Between(2200,4600),()=>this.wanderAnimal(actor,cx,cy,limitX,limitY,cow));
+            });return;}
             this.animateAnimalIdle(actor,sprite);
-            this.time.delayedCall(Phaser.Math.Between(2600,6200),()=>this.wanderAnimal(actor,cx,cy,limitX,limitY,cow));
+            this.time.delayedCall(Phaser.Math.Between(isChick?1600:2600,isChick?3600:6200),()=>this.wanderAnimal(actor,cx,cy,limitX,limitY,cow));
           });
         }else this.time.delayedCall(3000,()=>this.wanderAnimal(actor,cx,cy,limitX,limitY,cow));
       }
