@@ -1074,3 +1074,36 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
   .game-shell>.world-panel>.field-toolbar .dock-button{height:31px!important;min-height:31px!important}
   .game-shell>.world-panel>.field-toolbar .tool{height:38px!important;min-height:38px!important}
 }
+
+
+/* Happy Farm startup screen and farm expansion card. */
+.loading-screen{
+  position:fixed;inset:0;z-index:10000;display:grid;place-items:center;
+  padding:24px;background:linear-gradient(180deg,#a8dff7 0%,#d9f0f5 47%,#8fca61 48%,#477f3e 100%);
+  opacity:1;visibility:visible;transition:opacity .65s ease,visibility .65s ease;
+}
+.loading-screen.is-hidden{opacity:0;visibility:hidden;pointer-events:none}
+.loading-scene{
+  position:relative;width:min(440px,100%);padding:34px 30px 27px;text-align:center;overflow:hidden;
+  border:5px solid #fff;border-radius:28px;background:linear-gradient(#fffdf3,#f5e7c6);
+  box-shadow:0 7px 0 #b58a50,0 18px 48px #284b3650;
+}
+.loading-sun{position:absolute;top:20px;right:25px;width:58px;height:58px;border-radius:50%;background:#ffe28a;box-shadow:0 0 0 10px #ffe28a35}
+.loading-logo{position:relative;margin:0 auto 6px;width:74px;height:74px;display:grid;place-items:center;border:4px solid #fff;border-radius:50%;background:linear-gradient(#b9df79,#6da94a);font-size:39px;box-shadow:0 4px 0 #8fae5e}
+.loading-eyebrow{margin:12px 0 0;color:#a68b5d;font-size:10px;font-weight:900;letter-spacing:3px}
+.loading-scene h1{margin:0;color:#6b9c3d;font:900 42px/1.12 'Baloo 2',Nunito,sans-serif;text-shadow:0 2px #fff}
+.loading-tagline{margin:3px 0 15px;color:#a28455;font-size:13px;font-weight:800}
+.loading-landscape{height:66px;display:flex;align-items:end;justify-content:center;gap:15px;margin:0 -10px 17px;padding:0 8px 7px;border-bottom:5px solid #8dbd55;border-radius:50%;background:linear-gradient(transparent,#d8edb7)}
+.loading-landscape span{font-size:34px;filter:drop-shadow(0 3px 1px #5c804255)}
+.loading-progress{height:13px;padding:2px;overflow:hidden;border:1px solid #d4c093;border-radius:20px;background:#e9ddbd;box-shadow:inset 0 1px 3px #735a3030}
+.loading-progress i{display:block;width:5%;height:100%;border-radius:20px;background:linear-gradient(90deg,#8fc85a,#b9df72);transition:width .2s ease}
+.loading-status{display:flex;justify-content:space-between;margin:8px 2px 13px;color:#92764b;font-size:11px;font-weight:800}
+.loading-status strong{color:#6b9c3d}
+.loading-scene>small{color:#9e895f;font-size:8px;font-weight:900;letter-spacing:1.8px}
+.farm-expansion-card{border:2px solid #b5d58b!important;background:linear-gradient(110deg,#f7ffe9,#fff8df)!important}
+.farm-expansion-card .market-art{background:#e4f2cb!important}
+@media(max-width:480px){
+  .loading-scene{padding:28px 20px 23px}
+  .loading-scene h1{font-size:36px}
+  .loading-landscape span{font-size:29px}
+}
