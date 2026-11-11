@@ -356,6 +356,8 @@ export class FarmScene extends Phaser.Scene {
     if(id.startsWith('fountain'))return 'tiered_stone_fountain';
     if(id.startsWith('scarecrow'))return 'scarecrow';
     if(id.startsWith('bench'))return 'wooden_park_bench';
+    if(id.startsWith('mangoTree')||id.startsWith('mango_tree'))return 'small_green_tree';
+    if(id.startsWith('pineTree')||id.startsWith('pine_tree'))return 'pine_tree_variant';
     if(id.startsWith('tree'))return 'evergreen_tree';
     if(id.startsWith('decor_'))return id.slice(6).replace(/[0-9]+$/,'');
     return null;
