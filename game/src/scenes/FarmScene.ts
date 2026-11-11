@@ -357,7 +357,7 @@ export class FarmScene extends Phaser.Scene {
     if(id.startsWith('scarecrow'))return 'scarecrow';
     if(id.startsWith('bench'))return 'wooden_park_bench';
     if(id.startsWith('tree'))return 'evergreen_tree';
-    if(id.startsWith('decor_'))return id.slice(6).replace(/\\d+$/,'');
+    if(id.startsWith('decor_'))return id.slice(6).replace(/[0-9]+$/,'');
     return null;
   }
 
