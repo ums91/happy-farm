@@ -1003,3 +1003,74 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 }
 
 /* Deployment trigger: publish the consolidated mobile gameplay fixes. */
+
+/* Mobile HUD recovery: explicitly keep the complete farm control dock above the Phaser canvas. */
+@media (max-width:700px){
+  .game-shell>.world-panel>.field-toolbar{
+    position:absolute!important;
+    z-index:100!important;
+    display:flex!important;
+    visibility:visible!important;
+    opacity:1!important;
+    pointer-events:auto!important;
+    left:4px!important;right:4px!important;
+    bottom:max(4px,env(safe-area-inset-bottom))!important;
+    width:auto!important;max-width:none!important;
+    height:auto!important;min-height:0!important;max-height:132px!important;
+    flex-direction:column!important;align-items:stretch!important;
+    gap:5px!important;margin:0!important;padding:6px!important;
+    overflow:visible!important;
+    background:linear-gradient(180deg,#fffdf2f7,#ead6aaf7)!important;
+    border:2px solid #fff!important;border-radius:14px!important;
+    box-shadow:0 3px 0 #9b7443,0 7px 20px #263d2450!important;
+    transform:none!important;
+  }
+  .game-shell>.world-panel>.field-toolbar .dock-management{
+    display:grid!important;visibility:visible!important;
+    grid-template-columns:repeat(5,minmax(0,1fr))!important;
+    width:100%!important;min-width:0!important;gap:4px!important;
+  }
+  .game-shell>.world-panel>.field-toolbar .dock-button{
+    display:flex!important;visibility:visible!important;opacity:1!important;
+    flex:1 1 0!important;min-width:0!important;width:auto!important;
+    min-height:34px!important;height:34px!important;padding:2px!important;
+    align-items:center!important;justify-content:center!important;
+    color:#59452e!important;background:linear-gradient(#fffef8,#f2e5c8)!important;
+    border:1px solid #d9c49a!important;border-radius:8px!important;
+    text-shadow:none!important;pointer-events:auto!important;
+  }
+  .game-shell>.world-panel>.field-toolbar .dock-button span{display:block!important;font-size:17px!important;line-height:1!important}
+  .game-shell>.world-panel>.field-toolbar .dock-button small{display:block!important;font-size:7px!important;line-height:1!important;margin-top:1px!important}
+  .game-shell>.world-panel>.field-toolbar .dock-divider{display:none!important}
+  .game-shell>.world-panel>.field-toolbar .tool-grid{
+    display:grid!important;visibility:visible!important;opacity:1!important;
+    position:static!important;transform:none!important;
+    grid-template-columns:repeat(6,minmax(0,1fr))!important;
+    width:100%!important;min-width:0!important;gap:4px!important;
+    margin:0!important;padding:0!important;
+    background:transparent!important;border:0!important;box-shadow:none!important;
+  }
+  .game-shell>.world-panel>.field-toolbar .tool{
+    display:flex!important;visibility:visible!important;opacity:1!important;
+    flex:1 1 0!important;min-width:0!important;width:auto!important;
+    height:42px!important;min-height:42px!important;padding:2px 0!important;
+    flex-direction:column!important;align-items:center!important;justify-content:center!important;
+    gap:0!important;color:#5d4a31!important;
+    background:linear-gradient(#fffef9,#f0e2c2)!important;
+    border:1px solid #d8c29a!important;border-radius:8px!important;
+    box-shadow:0 2px 0 #c4a978!important;pointer-events:auto!important;
+  }
+  .game-shell>.world-panel>.field-toolbar .tool.active{
+    color:#355d2c!important;background:linear-gradient(#effbdc,#c5e39b)!important;
+    border:2px solid #83a957!important;
+  }
+  .game-shell>.world-panel>.field-toolbar .tool span{display:block!important;font-size:17px!important;line-height:1!important}
+  .game-shell>.world-panel>.field-toolbar .tool small{display:block!important;font-size:7px!important;line-height:1!important;margin-top:2px!important}
+  .game-shell>.world-panel>.field-toolbar button{pointer-events:auto!important;touch-action:manipulation!important}
+  .game-shell>.world-panel .world-hint{bottom:145px!important}
+}
+@media(max-width:390px){
+  .game-shell>.world-panel>.field-toolbar{left:3px!important;right:3px!important;padding:5px!important;gap:4px!important}
+  .game-shell>.world-panel>.field-toolbar .dock-button{height:31px!important;min-height:31px!important}
+  .game-shell>.world-panel>.field-toolbar .tool{height:38px!important;min-height:38px!important}
+}
