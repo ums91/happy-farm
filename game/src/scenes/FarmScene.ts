@@ -40,6 +40,7 @@ export class FarmScene extends Phaser.Scene {
   private tomatoSprites = new Map<string, Phaser.GameObjects.Image>();
   private cropSprites = new Map<string, Phaser.GameObjects.Image>();
   private buildingAssetSprites = new Map<string, Phaser.GameObjects.Image>();
+  private windmillRotorSprites = new Map<string, Phaser.GameObjects.Image>();
   private growthTimers = new Map<string, Phaser.Time.TimerEvent>();
   private plotGraphics!: Phaser.GameObjects.Graphics;
   private overlay!: Phaser.GameObjects.Graphics;
@@ -108,6 +109,8 @@ export class FarmScene extends Phaser.Scene {
     this.drawWorld();
     this.load.on('progress',(value:number)=>window.dispatchEvent(new CustomEvent('happyfarm:loading',{detail:{progress:value}})));
     this.load.image('enchanted-woodland', `${import.meta.env.BASE_URL}assets/environment/Lush%20Forest%20Farm%20Border%20Scene.png`);
+    this.load.image('windmill-body', `${import.meta.env.BASE_URL}assets/buildings/windmill/windmill-body.png`);
+    this.load.image('windmill-rotor', `${import.meta.env.BASE_URL}assets/buildings/windmill/windmill-rotor.png`);
     this.load.spritesheet('animal-cow', `${import.meta.env.BASE_URL}assets/animals/cow.png`, { frameWidth: 384, frameHeight: 256 });
     this.load.spritesheet('animal-hen', `${import.meta.env.BASE_URL}assets/animals/hen.png`, { frameWidth: 44, frameHeight: 40 });
     this.load.spritesheet('animal-chick', `${import.meta.env.BASE_URL}assets/animals/chick.png`, { frameWidth: 44, frameHeight: 40 });
@@ -533,6 +536,8 @@ export class FarmScene extends Phaser.Scene {
   private renderBuildingAssets(): void {
     this.buildingAssetSprites.forEach(sprite => sprite.destroy());
     this.buildingAssetSprites.clear();
+    this.windmillRotorSprites.forEach(sprite => {this.tweens.killTweensOf(sprite);sprite.destroy();});
+    this.windmillRotorSprites.clear();
     const assets: Record<string, { folder: string; level: number }> = {
       farmhouse: { folder: 'farmhouse', level: Math.min(6,1+Math.floor((this.farmerLevel-1)/3)) },
       barn: { folder: 'cow-shed', level: this.buildings.barnLevel },
@@ -550,9 +555,22 @@ export class FarmScene extends Phaser.Scene {
       const pos = this.decor[id];
       if (!pos) continue;
       const level = Phaser.Math.Clamp(Math.floor(asset.level), 1, 6);
+      const p = this.toWorld(pos.col, pos.row);
+      if(id==='windmill'&&this.textures.exists('windmill-body')&&this.textures.exists('windmill-rotor')){
+        const source=this.textures.get('windmill-body').getSourceImage() as HTMLImageElement;
+        const scale=Math.min(132/source.width,124/source.height);
+        const body=this.add.image(p.x,p.y+24,'windmill-body').setOrigin(0.5,1).setScale(scale).setDepth(p.y+30);
+        this.buildingAssetSprites.set(id,body);
+        // The axle sits at roughly 75% width and 36% height in the prepared body art.
+        const axleX=p.x-source.width*scale/2+source.width*0.75*scale;
+        const axleY=p.y+24-source.height*scale+source.height*0.36*scale;
+        const rotor=this.add.image(axleX,axleY,'windmill-rotor').setOrigin(0.5,0.5).setScale(scale).setDepth(p.y+32);
+        this.windmillRotorSprites.set(id,rotor);
+        this.tweens.add({targets:rotor,angle:360,duration:9000,repeat:-1,ease:'Linear'});
+        continue;
+      }
       const texture = `building-${asset.folder}-${level}`;
       if (!this.textures.exists(texture)) continue;
-      const p = this.toWorld(pos.col, pos.row);
       const source = this.textures.get(texture).getSourceImage() as HTMLImageElement;
       const scale = Math.min(132 / source.width, 124 / source.height);
       const sprite = this.add.image(p.x, p.y + 24, texture).setOrigin(0.5, 1).setScale(scale).setDepth(p.y + 30);
