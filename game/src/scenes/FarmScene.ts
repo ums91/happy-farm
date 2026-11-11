@@ -549,11 +549,31 @@ export class FarmScene extends Phaser.Scene {
     const sprite=this.animalSprites.get(actor);
     const targetX=Phaser.Math.Clamp(cx+Phaser.Math.Between(-Math.max(5,limitX-8),Math.max(5,limitX-8)),cx-limitX,cx+limitX);
     const targetY=Phaser.Math.Clamp(cy+Phaser.Math.Between(-Math.max(4,limitY-5),Math.max(4,limitY-5)),cy-limitY,cy+limitY);
-    const duration=Phaser.Math.Between(cow?2600:1500,cow?4300:2800);
-    if(sprite){this.tweens.killTweensOf(sprite);sprite.setAngle(0);sprite.play(sprite.texture.key==='animal-chick'?'chick-walk':(cow?'cow-walk':'hen-walk'),true);this.tweens.add({targets:sprite,y:-5,angle:cow?-2:2,duration:260,yoyo:true,repeat:-1,ease:'Sine.inOut'});}
+    const duration=Phaser.Math.Between(cow?2800:1700,cow?4600:3000);
+    const baseScale=cow?0.74:0.58;
+    if(sprite){
+      this.tweens.killTweensOf(sprite);sprite.setAngle(0);
+      sprite.play(sprite.texture.key==='animal-chick'?'chick-walk':(cow?'cow-walk':'hen-walk'),true);
+      this.tweens.add({targets:sprite,y:-5,angle:cow?-2:2,duration:260,yoyo:true,repeat:-1,ease:'Sine.inOut'});
+    }
     this.tweens.add({targets:actor,x:targetX,y:targetY,duration,ease:'Sine.inOut',
-      onStart:()=>actor.setScale((cow?0.74:0.58)*(targetX<actor.x?-1:1),cow?0.74:0.58),
-      onComplete:()=>{if(actor.active){actor.setScale(cow?0.74:0.58,cow?0.74:0.58);if(sprite)this.animateAnimalIdle(actor,sprite,cow);this.time.delayedCall(Phaser.Math.Between(1100,2600),()=>this.wanderAnimal(actor,cx,cy,limitX,limitY,cow));}}
+      onStart:()=>actor.setScale((targetX<actor.x?-1:1)*baseScale,baseScale),
+      onUpdate:()=>actor.setDepth(actor.y+this.animalActors.indexOf(actor)),
+      onComplete:()=>{
+        if(!actor.active)return;
+        actor.setScale(baseScale,baseScale);
+        if(sprite){
+          this.tweens.killTweensOf(sprite);sprite.setAngle(0).setY(-2);
+          sprite.play(cow?'cow-eat':(sprite.texture.key==='animal-chick'?'chick-peck':'hen-peck'),true);
+          this.time.delayedCall(Phaser.Math.Between(cow?2200:1000,cow?4200:1900),()=>{
+            if(!actor.active||!sprite.active)return;
+            this.animateAnimalIdle(actor,sprite,cow);
+            this.time.delayedCall(Phaser.Math.Between(900,1900),()=>this.wanderAnimal(actor,cx,cy,limitX,limitY,cow));
+          });
+        }else{
+          this.time.delayedCall(Phaser.Math.Between(1200,2200),()=>this.wanderAnimal(actor,cx,cy,limitX,limitY,cow));
+        }
+      }
     });
   }
 
