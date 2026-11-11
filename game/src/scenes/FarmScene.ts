@@ -421,6 +421,7 @@ export class FarmScene extends Phaser.Scene {
     const siloPos=this.decor.silo!; const silo = this.toWorld(siloPos.col, siloPos.row);
     g.fillStyle(0x426f3d, 0.22);
     g.fillEllipse(silo.x + 31, silo.y + 5, 52, 15);
+    const siloLevel=this.buildings.warehouseLevel;
     g.fillStyle(0xc9d4c5, 1);
     g.fillRoundedRect(silo.x + 17, silo.y - 52, 29, 59, 9);
     g.fillStyle(0xe8eee1, 1);
@@ -429,6 +430,10 @@ export class FarmScene extends Phaser.Scene {
     g.fillEllipse(silo.x + 31, silo.y - 52, 29, 12);
     g.fillStyle(0x8b4939, 1);
     g.fillTriangle(silo.x + 15, silo.y - 48, silo.x + 31, silo.y - 64, silo.x + 47, silo.y - 48);
+    g.lineStyle(2,0x879887,.9);g.beginPath();g.moveTo(silo.x+19,silo.y-31);g.lineTo(silo.x+44,silo.y-31);g.moveTo(silo.x+19,silo.y-15);g.lineTo(silo.x+44,silo.y-15);g.strokePath();
+    g.fillStyle(0x9f4937,1);g.fillRoundedRect(silo.x+25,silo.y-7,13,13,2);g.fillStyle(0xead7a8,1);g.fillCircle(silo.x+35,silo.y-1,1.5);
+    if(siloLevel>=3){g.fillStyle(0x6f9c4c,1);g.fillEllipse(silo.x+10,silo.y-2,12,5);g.fillEllipse(silo.x+53,silo.y-2,12,5);}
+    if(siloLevel>=5){g.fillStyle(0xe3c17c,1);g.fillRect(silo.x+12,silo.y-57,38,3);}
     this.drawAdditionalBuildings(g);
     // Flowering borders near the path.
     [[-330, 145], [-300, 165], [315, 135], [345, 158], [-360, 320], [365, 330]].forEach(([x, y], i) => {
@@ -476,26 +481,50 @@ export class FarmScene extends Phaser.Scene {
   }
 
   private drawCowPaddock(g:Phaser.GameObjects.Graphics,x:number,y:number):void{
-    const size=this.paddockSize('cow');
+    const size=this.paddockSize('cow'),level=this.buildings.barnLevel;
     this.drawPaddockFence(g,x,y,size.width,size.height,'cow');
-    // Low open-sided shade shelter: the pasture remains the main structure, not a house.
-    const sx=x-size.width*.25,sy=y-size.height*.23;
-    g.fillStyle(0x5b422e,1);g.fillRect(sx-18,sy-3,36,17);
-    g.fillStyle(0x9a6544,1);g.fillTriangle(sx-23,sy-4,sx,sy-17,sx+23,sy-4);
-    g.fillStyle(0xe5d0a2,1);g.fillRect(sx-14,sy+1,28,12);
-    this.sceneryLabels.push(this.add.text(x,y+size.height/2+7,'COW PASTURE · LVL '+this.buildings.barnLevel,{fontFamily:'Arial',fontSize:'8px',fontStyle:'bold',color:'#526c39'}).setOrigin(.5));
+    // A recognisable red dairy barn, with a gambrel roof, loft, cross-braced doors and hay vent.
+    const sx=x-size.width*.22,sy=y-size.height*.22;
+    g.fillStyle(0x29482b,.25);g.fillEllipse(sx+4,sy+20,78,18);
+    g.fillStyle(0x8f3f30,1);g.fillRect(sx-29,sy-23,58,43);
+    g.fillStyle(0xb9563f,1);g.fillRect(sx-25,sy-20,50,36);
+    g.fillStyle(0x74372d,1);g.fillPoints([{x:sx-36,y:sy-22},{x:sx-24,y:sy-43},{x:sx-12,y:sy-48},{x:sx+12,y:sy-48},{x:sx+24,y:sy-43},{x:sx+36,y:sy-22},{x:sx+27,y:sy-17},{x:sx+17,y:sy-37},{x:sx-17,y:sy-37},{x:sx-27,y:sy-17}],true);
+    g.fillStyle(0xc46a4c,1);g.fillPoints([{x:sx-31,y:sy-23},{x:sx-21,y:sy-40},{x:sx-10,y:sy-44},{x:sx+10,y:sy-44},{x:sx+21,y:sy-40},{x:sx+31,y:sy-23}],true);
+    g.lineStyle(2,0xe6a078,.8);g.beginPath();g.moveTo(sx-24,sy-19);g.lineTo(sx-24,sy+15);g.moveTo(sx+24,sy-19);g.lineTo(sx+24,sy+15);g.strokePath();
+    // Upper hay loft and cross-braced double doors.
+    g.fillStyle(0x49372b,1);g.fillRoundedRect(sx-10,sy-34,20,12,2);
+    g.fillStyle(0xe7c58a,1);g.fillTriangle(sx-7,sy-25,sx,sy-32,sx+7,sy-25);
+    g.fillStyle(0x71372c,1);g.fillRect(sx-15,sy-1,30,22);
+    g.lineStyle(3,0xe3b17c,1);g.strokeRect(sx-15,sy-1,30,22);
+    g.beginPath();g.moveTo(sx-14,sy);g.lineTo(sx+14,sy+20);g.moveTo(sx+14,sy);g.lineTo(sx-14,sy+20);g.moveTo(sx,sy);g.lineTo(sx,sy+20);g.strokePath();
+    g.fillStyle(0xffd77a,1);g.fillCircle(sx-3,sy+10,1.5);g.fillCircle(sx+3,sy+10,1.5);
+    g.fillStyle(0x9ed9e9,1);g.fillRect(sx-24,sy-13,8,9);g.fillStyle(0xf8e8c9,1);g.lineStyle(1,0xf8e8c9,1);g.strokeRect(sx-24,sy-13,8,9);g.beginPath();g.moveTo(sx-20,sy-13);g.lineTo(sx-20,sy-4);g.strokePath();
+    g.fillStyle(0xd5b16c,1);g.fillEllipse(sx+21,sy+17,17,6);
+    if(level>=3){g.fillStyle(0xe8d2a0,1);g.fillRect(sx-31,sy+14,62,4);g.fillStyle(0x6d9b4d,1);g.fillEllipse(sx-29,sy+12,8,5);g.fillEllipse(sx+29,sy+12,8,5);}
+    if(level>=5){g.fillStyle(0xf2dfb6,1);g.fillRect(sx-34,sy-25,4,40);g.fillRect(sx+30,sy-25,4,40);}
+    this.sceneryLabels.push(this.add.text(x,y+size.height/2+7,'DAIRY BARN · LVL '+level,{fontFamily:'Arial',fontSize:'8px',fontStyle:'bold',color:'#526c39'}).setOrigin(.5));
   }
 
   private drawChickenRun(g:Phaser.GameObjects.Graphics,x:number,y:number):void{
-    const size=this.paddockSize('hen');
+    const size=this.paddockSize('hen'),level=this.buildings.coopLevel;
     this.drawPaddockFence(g,x,y,size.width,size.height,'hen');
-    // A low nesting shelter and perch fit inside a compact square chicken run.
+    // Timber hen house with a warm tiled roof, round vent, ramp and visible nesting boxes.
     const sx=x-size.width*.23,sy=y-size.height*.2;
-    g.fillStyle(0xd9c49a,1);g.fillRoundedRect(sx-13,sy-2,26,16,3);
-    g.fillStyle(0x9b543c,1);g.fillTriangle(sx-16,sy-2,sx,sy-13,sx+16,sy-2);
-    g.fillStyle(0x67442e,1);g.fillRect(sx-5,sy+5,10,9);
+    g.fillStyle(0x5b422e,.22);g.fillEllipse(sx+2,sy+18,49,12);
+    g.fillStyle(0xe5d0a2,1);g.fillRoundedRect(sx-20,sy-5,40,24,3);
+    g.fillStyle(0xc9a879,1);g.fillRect(sx-17,sy-2,34,18);
+    g.fillStyle(0x914a38,1);g.fillTriangle(sx-25,sy-5,sx,sy-25,sx+25,sy-5);
+    g.fillStyle(0xb96a4c,1);g.fillTriangle(sx-19,sy-7,sx,sy-22,sx+19,sy-7);
+    g.lineStyle(1,0xe9b98a,.9);g.beginPath();g.moveTo(sx-12,sy-13);g.lineTo(sx-5,sy-18);g.moveTo(sx+1,sy-17);g.lineTo(sx+9,sy-11);g.strokePath();
+    g.fillStyle(0x68432e,1);g.fillRoundedRect(sx-6,sy+4,12,15,2);
+    g.fillStyle(0x4c3728,1);g.fillCircle(sx,sy-10,4);g.fillStyle(0xf3dfb5,1);g.fillCircle(sx,sy-10,2);
+    g.fillStyle(0x8a6139,1);g.fillTriangle(sx+7,sy+17,sx+23,sy+17,sx+17,sy+30);
+    // Nesting boxes and eggs become more prominent as the coop is upgraded.
+    g.fillStyle(0x8b5a35,1);g.fillRoundedRect(sx+13,sy+4,17,11,2);g.fillStyle(0xf5e8c8,1);g.fillEllipse(sx+21,sy+5,5,6);
+    if(level>=2){g.fillStyle(0x8b5a35,1);g.fillRoundedRect(sx-30,sy+4,15,11,2);g.fillStyle(0xf5e8c8,1);g.fillEllipse(sx-22,sy+5,5,6);}
+    if(level>=4){g.fillStyle(0xe7d4a8,1);g.fillRect(sx-22,sy-2,44,3);g.fillStyle(0x6d9b4d,1);g.fillEllipse(sx-22,sy+18,7,4);g.fillEllipse(sx+22,sy+18,7,4);}
     g.lineStyle(3,0x8a6139,1);g.beginPath();g.moveTo(x+size.width*.1,y+size.height*.12);g.lineTo(x+size.width*.34,y+size.height*.12);g.strokePath();
-    this.sceneryLabels.push(this.add.text(x,y+size.height/2+7,'CHICKEN RUN · LVL '+this.buildings.coopLevel,{fontFamily:'Arial',fontSize:'8px',fontStyle:'bold',color:'#79502e'}).setOrigin(.5));
+    this.sceneryLabels.push(this.add.text(x,y+size.height/2+7,'CHICKEN COOP · LVL '+level,{fontFamily:'Arial',fontSize:'8px',fontStyle:'bold',color:'#79502e'}).setOrigin(.5));
   }
 
   private createAnimalAnimations(): void {
