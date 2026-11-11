@@ -104,9 +104,7 @@ export class FarmScene extends Phaser.Scene {
     this.placementOverlay = this.add.graphics().setDepth(25000);
     this.drawWorld();
     this.load.on('progress',(value:number)=>window.dispatchEvent(new CustomEvent('happyfarm:loading',{detail:{progress:value}})));
-    this.load.spritesheet('animal-cow', `${import.meta.env.BASE_URL}assets/animals/cow.png`, { frameWidth: 44, frameHeight: 40 });
-    // Optional new 4×4 cow walking sheet; legacy cow atlas remains the fallback.
-    this.load.spritesheet('animal-cow-walk-v2', `${import.meta.env.BASE_URL}assets/animals/cow-walk-spritesheet.png`, { frameWidth: 48, frameHeight: 36 });
+    this.load.spritesheet('animal-cow', `${import.meta.env.BASE_URL}assets/animals/cow.png`, { frameWidth: 384, frameHeight: 256 });
     this.load.spritesheet('animal-hen', `${import.meta.env.BASE_URL}assets/animals/hen.png`, { frameWidth: 44, frameHeight: 40 });
     this.load.spritesheet('animal-chick', `${import.meta.env.BASE_URL}assets/animals/chick.png`, { frameWidth: 44, frameHeight: 40 });
     for (let stage = 1; stage <= 5; stage += 1) {
@@ -460,18 +458,17 @@ export class FarmScene extends Phaser.Scene {
   }
 
   private createAnimalAnimations(): void {
-    const define=(key:string,name:string,row:number,count:number,rate:number,repeat:number)=>{
-      const start=row*8;
+    const define=(key:string,name:string,row:number,count:number,rate:number,repeat:number,columns=8)=>{
+      const start=row*columns;
       this.anims.create({key:name,frames:this.anims.generateFrameNumbers(key,{start,end:start+count-1}),frameRate:rate,repeat});
     };
-    // The existing atlases are 352px wide: eight 44x40 cells per row.
-    // Keep this grid aligned with the source PNGs so every pose stays inside its frame.
-    define('animal-cow','cow-idle',0,4,4,-1);
-    define('animal-cow','cow-walk',3,3,8,-1);
-    if(this.textures.exists('animal-cow-walk-v2')) this.anims.create({key:'cow-walk-v2',frames:this.anims.generateFrameNumbers('animal-cow-walk-v2',{start:0,end:15}),frameRate:8,repeat:-1});
-    define('animal-cow','cow-eat',2,4,6,3);
-    define('animal-cow','cow-happy',3,3,7,0);
-    define('animal-cow','cow-rest',4,4,4,-1);
+    // cow.png is a 4 × 4 atlas of 384 × 256 full-body frames (1536 × 1024).
+    // The hen and chick atlases retain their original 44 × 40 frame grid.
+    define('animal-cow','cow-idle',0,4,4,-1,4);
+    define('animal-cow','cow-walk',1,4,8,-1,4);
+    define('animal-cow','cow-eat',2,4,6,-1,4);
+    define('animal-cow','cow-happy',3,4,7,0,4);
+    define('animal-cow','cow-rest',0,4,3,-1,4);
     define('animal-hen','hen-idle',0,4,4,-1);
     define('animal-hen','hen-walk',1,6,9,-1);
     define('animal-hen','hen-peck',2,4,7,3);
@@ -515,7 +512,7 @@ export class FarmScene extends Phaser.Scene {
       actor.add(this.add.ellipse(0,6,cow?32:22,7,0x263e25,0.18));
       const texture=cow?'animal-cow':'animal-hen';
       if(this.textures.exists(texture)){
-        const sprite=this.add.sprite(0,-2,texture).setDisplaySize(cow?58:35,cow?52:32).setAlpha(1).setVisible(true);
+        const sprite=this.add.sprite(0,-2,texture).setDisplaySize(cow?88:35,cow?59:32).setAlpha(1).setVisible(true);
         sprite.setDepth(2);
         actor.add(sprite);
         this.animalSprites.set(actor,sprite);
@@ -562,7 +559,7 @@ export class FarmScene extends Phaser.Scene {
     const baseScale=cow?0.74:0.58;
     if(sprite){
       this.tweens.killTweensOf(sprite);sprite.setAngle(0);
-      sprite.play(sprite.texture.key==='animal-chick'?'chick-walk':(cow?(this.anims.exists('cow-walk-v2')?'cow-walk-v2':'cow-walk'):'hen-walk'),true);
+      sprite.play(sprite.texture.key==='animal-chick'?'chick-walk':(cow?'cow-walk':'hen-walk'),true);
       this.tweens.add({targets:sprite,y:-5,angle:cow?-2:2,duration:260,yoyo:true,repeat:-1,ease:'Sine.inOut'});
     }
     this.tweens.add({targets:actor,x:targetX,y:targetY,duration,ease:'Sine.inOut',
