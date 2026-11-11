@@ -507,7 +507,7 @@ export class FarmScene extends Phaser.Scene {
         sprite.setDepth(2);
         actor.add(sprite);
         this.animalSprites.set(actor,sprite);
-        this.animateAnimalIdle(actor,sprite,cow,index*110);
+        this.animateAnimalIdle(actor,sprite,cow);
       }else{
         // Keep the original vector animal as a graceful fallback while artwork loads.
         const body=this.add.graphics();
@@ -520,7 +520,7 @@ export class FarmScene extends Phaser.Scene {
       }
       this.animalActors.push(actor);
       const marginX=bounds.width/2-(cow?28:19),marginY=bounds.height/2-(cow?25:18);
-      if(animal.assigned===false){const sprite=this.animalSprites.get(actor);if(sprite){sprite.setAngle(0).setY(1).play(cow?'cow-rest':'hen-rest',true);this.tweens.add({targets:sprite,y:2,duration:cow?1900:1250,yoyo:true,repeat:-1,ease:'Sine.inOut'});}}else this.wanderAnimal(actor,center.x,center.y,marginX,marginY,cow);
+      if(animal.assigned===false){const sprite=this.animalSprites.get(actor);if(sprite){sprite.setAngle(0).setY(1).play(cow?'cow-rest':'hen-rest',true);this.tweens.add({targets:sprite,y:2,duration:cow?1900:1250,yoyo:true,repeat:-1,ease:'Sine.inOut'});}}else this.time.delayedCall(Phaser.Math.Between(2200,5200),()=>this.wanderAnimal(actor,center.x,center.y,marginX,marginY,cow));
     });
     // A small chick companion brings life to an occupied chicken run without changing save data.
     if(this.animals.some(a=>a.id==='hen')&&this.textures.exists('animal-chick')){
@@ -537,12 +537,13 @@ export class FarmScene extends Phaser.Scene {
     }
   }
 
-  private animateAnimalIdle(actor:Phaser.GameObjects.Container,sprite:Phaser.GameObjects.Sprite,cow:boolean,delay=0):void{
+  // FarmVille-style resting is genuinely still: hold a single idle frame so no legs cycle.
+  private animateAnimalIdle(actor:Phaser.GameObjects.Container,sprite:Phaser.GameObjects.Sprite,cow:boolean):void{
     if(!actor.active||!sprite.active)return;
     this.tweens.killTweensOf(sprite);
+    sprite.anims.stop();
     sprite.setAngle(0).setY(-2);
-    sprite.play(sprite.texture.key==='animal-chick'?'chick-idle':(cow?'cow-idle':'hen-idle'),true);
-    this.tweens.add({targets:sprite,y:cow?-3:-4,angle:cow?-1.5:1.5,duration:cow?1450:850,delay,yoyo:true,repeat:-1,ease:'Sine.inOut'});
+    sprite.setFrame(0);
   }
 
   private wanderAnimal(actor:Phaser.GameObjects.Container,cx:number,cy:number,limitX:number,limitY:number,cow:boolean):void{
@@ -560,7 +561,7 @@ export class FarmScene extends Phaser.Scene {
     }
     if(!destination){
       const spriteNow=this.animalSprites.get(actor);if(spriteNow)this.animateAnimalIdle(actor,spriteNow,cow);
-      this.time.delayedCall(Phaser.Math.Between(1200,2200),()=>this.wanderAnimal(actor,cx,cy,limitX,limitY,cow));
+      this.time.delayedCall(Phaser.Math.Between(2800,5600),()=>this.wanderAnimal(actor,cx,cy,limitX,limitY,cow));
       return;
     }
     const dest=this.toWorld(destination.col,destination.row),key=this.animalCellKey(destination);
@@ -584,9 +585,9 @@ export class FarmScene extends Phaser.Scene {
           this.time.delayedCall(Phaser.Math.Between(cow?2200:1000,cow?4200:1900),()=>{
             if(!actor.active||!sprite.active)return;
             this.animateAnimalIdle(actor,sprite,cow);
-            this.time.delayedCall(Phaser.Math.Between(900,1900),()=>this.wanderAnimal(actor,cx,cy,limitX,limitY,cow));
+            this.time.delayedCall(Phaser.Math.Between(2600,6200),()=>this.wanderAnimal(actor,cx,cy,limitX,limitY,cow));
           });
-        }else this.time.delayedCall(1200,()=>this.wanderAnimal(actor,cx,cy,limitX,limitY,cow));
+        }else this.time.delayedCall(3000,()=>this.wanderAnimal(actor,cx,cy,limitX,limitY,cow));
       }
     });
   }
