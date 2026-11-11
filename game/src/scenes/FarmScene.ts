@@ -1054,10 +1054,14 @@ export class FarmScene extends Phaser.Scene {
     const showDrawer=(section:'quests'|'orders'|'events'|'rewards')=>{
       const drawer=document.getElementById('activity-drawer');if(!drawer)return;
       const title=document.getElementById('drawer-title');if(title)title.textContent=({quests:'Farm Quests',orders:'Orders & Delivery',events:'Farm Events',rewards:'Farm Rewards'} as Record<string,string>)[section];
-      ['quests','orders','events','rewards'].forEach(key=>document.getElementById('rail-'+key)?.classList.toggle('drawer-hidden',key!==section));
-      drawer.classList.add('open');drawer.setAttribute('aria-hidden','false');
+      ['quests','orders','events','rewards'].forEach(key=>{
+        const panel=document.getElementById('rail-'+key);if(!panel)return;
+        const active=key===section;panel.classList.toggle('drawer-hidden',!active);
+        panel.hidden=!active;panel.style.display=active?'':'none';
+      });
+      drawer.hidden=false;drawer.style.display='block';drawer.classList.add('open');drawer.setAttribute('aria-hidden','false');
     };
-    const closeDrawer=()=>{const drawer=document.getElementById('activity-drawer');drawer?.classList.remove('open');drawer?.setAttribute('aria-hidden','true');};
+    const closeDrawer=()=>{const drawer=document.getElementById('activity-drawer');if(!drawer)return;drawer.classList.remove('open');drawer.setAttribute('aria-hidden','true');drawer.hidden=true;drawer.style.display='none';};
     document.getElementById('left-quests')?.addEventListener('click',()=>showDrawer('quests'));
     document.getElementById('top-quests')?.addEventListener('click',()=>showDrawer('quests'));
     document.getElementById('left-orders')?.addEventListener('click',()=>showDrawer('orders'));
@@ -1065,10 +1069,10 @@ export class FarmScene extends Phaser.Scene {
     document.getElementById('left-events')?.addEventListener('click',()=>showDrawer('events'));
     document.getElementById('left-rewards')?.addEventListener('click',()=>showDrawer('rewards'));
     const drawerClose=document.getElementById('drawer-close');
-    drawerClose?.addEventListener('click',(event)=>{event.preventDefault();event.stopPropagation();closeDrawer();});
-    /* iOS Safari can occasionally miss a synthesized click over the Phaser canvas;
-       close on the native pointer gesture as well. */
-    drawerClose?.addEventListener('pointerdown',(event)=>{event.preventDefault();event.stopPropagation();closeDrawer();},{capture:true});
+    const dismissDrawer=(event:Event)=>{event.preventDefault();event.stopPropagation();closeDrawer();};
+    drawerClose?.addEventListener('click',dismissDrawer);
+    drawerClose?.addEventListener('pointerup',dismissDrawer,{capture:true});
+    drawerClose?.addEventListener('touchend',dismissDrawer,{capture:true,passive:false});
     document.getElementById('top-inventory')?.addEventListener('click',()=>this.openInventory());
     document.getElementById('top-settings')?.addEventListener('click',()=>this.editFarmProfile());
     document.getElementById('settings-open')?.addEventListener('click',()=>this.editFarmProfile());
