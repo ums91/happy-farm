@@ -7,7 +7,7 @@ This file expands the user-supplied CDX excerpt into a searchable record-level i
 ## Findings
 
 - 58 animal/tree records are present in the supplied excerpt.
-- `animals`: 37 records — 24 PNG and 13 SWF.
+- `animals`: 37 records — 27 PNG and 10 SWF.
 - `animalsnew`: 7 records — 3 PNG and 4 SWF.
 - `trees`: 14 records — 11 PNG and 3 SWF.
 - Combined: 41 PNG and 17 SWF.
