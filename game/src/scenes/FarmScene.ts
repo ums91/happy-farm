@@ -430,9 +430,7 @@ export class FarmScene extends Phaser.Scene {
       if(id.startsWith('pearTree')){g.fillStyle(0xc9cf4e,1);[[-17,-4],[15,3],[2,-22],[25,-16]].forEach(([dx,dy])=>g.fillEllipse(p.x+dx!,canopyY+dy!,7,9));}
       if(id.startsWith('cherryTree')){g.fillStyle(0xb72e45,1);[[-18,-5],[15,4],[2,-22],[25,-16]].forEach(([dx,dy])=>g.fillCircle(p.x+dx!,canopyY+dy!,3));}
     });
-    // Small garden beds and stepping stones around the homestead.
-    const barnPos=this.decor.barn;if(barnPos){const barn=this.toWorld(barnPos.col,barnPos.row);this.drawCowPaddock(g,barn.x,barn.y-10);}
-    const coopPos=this.decor.coop;if(coopPos){const coop=this.toWorld(coopPos.col,coopPos.row);this.drawChickenRun(g,coop.x,coop.y-8);}
+    // Animals roam freely around their coop and cow shed; no enclosure fences.
     // Flowering borders near the path.
     [[-330, 145], [-300, 165], [315, 135], [345, 158], [-360, 320], [365, 330]].forEach(([x, y], i) => {
       g.fillStyle(0x4d873f, 0.85);
@@ -454,77 +452,6 @@ export class FarmScene extends Phaser.Scene {
     });
     // Building PNGs are the authoritative building visuals; draw them above the ground scenery.
     this.renderBuildingAssets();
-  }
-
-  private paddockSize(kind:AnimalId):{width:number;height:number}{
-    const level=kind==='hen'?this.buildings.coopLevel:this.buildings.barnLevel;
-    return kind==='hen'
-      ? {width:82+(level-1)*13,height:72+(level-1)*12}
-      : {width:132+(level-1)*17,height:86+(level-1)*13};
-  }
-
-  private drawPaddockFence(g:Phaser.GameObjects.Graphics,x:number,y:number,width:number,height:number,kind:AnimalId):void{
-    const left=x-width/2,top=y-height/2;
-    g.fillStyle(kind==='hen'?0xb2a16b:0x8da96b,0.22);g.fillRoundedRect(left+4,top+5,width-8,height-8,8);
-    g.fillStyle(kind==='hen'?0x8fb35b:0x7fa957,0.2);g.fillEllipse(x,y+height*0.18,width*.78,height*.25);
-    // Timber rails and evenly spaced posts make the enclosure read as a real paddock.
-    g.lineStyle(5,0x76502f,1);g.strokeRoundedRect(left,top,width,height,5);
-    g.lineStyle(2,0xd6b77d,1);g.strokeRoundedRect(left+3,top+3,width-6,height-6,4);
-    const post=(px:number,py:number)=>{g.fillStyle(0x5c3d27,1);g.fillRoundedRect(px-3,py-5,6,12,2);g.fillStyle(0xc69a5d,1);g.fillRect(px-2,py-5,4,2);};
-    for(let px=left+width/4;px<left+width-5;px+=width/4){post(px,top);post(px,top+height);}
-    for(let py=top+height/3;py<top+height-4;py+=height/3){post(left,py);post(left+width,py);}
-    // A small gate and feed trough sit inside the fenced area.
-    g.fillStyle(0x69472c,1);g.fillRoundedRect(x-13,top+height-7,26,5,2);
-    g.lineStyle(2,0xe0c18a,1);g.beginPath();g.moveTo(x-10,top+height-8);g.lineTo(x-10,top+height-1);g.moveTo(x+10,top+height-8);g.lineTo(x+10,top+height-1);g.strokePath();
-    g.fillStyle(0x76502f,1);g.fillRoundedRect(left+width*.22,top+height*.28,kind==='hen'?24:34,8,3);
-    g.fillStyle(0x9b7043,1);g.fillRect(left+width*.22+3,top+height*.28-3,kind==='hen'?18:28,3);
-  }
-
-  private drawCowPaddock(g:Phaser.GameObjects.Graphics,x:number,y:number):void{
-    const size=this.paddockSize('cow'),level=this.buildings.barnLevel;
-    this.drawPaddockFence(g,x,y,size.width,size.height,'cow');
-    // A recognisable red dairy barn, with a gambrel roof, loft, cross-braced doors and hay vent.
-    const sx=x-size.width*.22,sy=y-size.height*.22;
-    g.fillStyle(0x29482b,.25);g.fillEllipse(sx+4,sy+20,78,18);
-    g.fillStyle(0x8f3f30,1);g.fillRect(sx-29,sy-23,58,43);
-    g.fillStyle(0xb9563f,1);g.fillRect(sx-25,sy-20,50,36);
-    g.fillStyle(0x74372d,1);g.fillPoints([{x:sx-36,y:sy-22},{x:sx-24,y:sy-43},{x:sx-12,y:sy-48},{x:sx+12,y:sy-48},{x:sx+24,y:sy-43},{x:sx+36,y:sy-22},{x:sx+27,y:sy-17},{x:sx+17,y:sy-37},{x:sx-17,y:sy-37},{x:sx-27,y:sy-17}],true);
-    g.fillStyle(0xc46a4c,1);g.fillPoints([{x:sx-31,y:sy-23},{x:sx-21,y:sy-40},{x:sx-10,y:sy-44},{x:sx+10,y:sy-44},{x:sx+21,y:sy-40},{x:sx+31,y:sy-23}],true);
-    g.lineStyle(2,0xe6a078,.8);g.beginPath();g.moveTo(sx-24,sy-19);g.lineTo(sx-24,sy+15);g.moveTo(sx+24,sy-19);g.lineTo(sx+24,sy+15);g.strokePath();
-    // Upper hay loft and cross-braced double doors.
-    g.fillStyle(0x49372b,1);g.fillRoundedRect(sx-10,sy-34,20,12,2);
-    g.fillStyle(0xe7c58a,1);g.fillTriangle(sx-7,sy-25,sx,sy-32,sx+7,sy-25);
-    g.fillStyle(0x71372c,1);g.fillRect(sx-15,sy-1,30,22);
-    g.lineStyle(3,0xe3b17c,1);g.strokeRect(sx-15,sy-1,30,22);
-    g.beginPath();g.moveTo(sx-14,sy);g.lineTo(sx+14,sy+20);g.moveTo(sx+14,sy);g.lineTo(sx-14,sy+20);g.moveTo(sx,sy);g.lineTo(sx,sy+20);g.strokePath();
-    g.fillStyle(0xffd77a,1);g.fillCircle(sx-3,sy+10,1.5);g.fillCircle(sx+3,sy+10,1.5);
-    g.fillStyle(0x9ed9e9,1);g.fillRect(sx-24,sy-13,8,9);g.fillStyle(0xf8e8c9,1);g.lineStyle(1,0xf8e8c9,1);g.strokeRect(sx-24,sy-13,8,9);g.beginPath();g.moveTo(sx-20,sy-13);g.lineTo(sx-20,sy-4);g.strokePath();
-    g.fillStyle(0xd5b16c,1);g.fillEllipse(sx+21,sy+17,17,6);
-    if(level>=3){g.fillStyle(0xe8d2a0,1);g.fillRect(sx-31,sy+14,62,4);g.fillStyle(0x6d9b4d,1);g.fillEllipse(sx-29,sy+12,8,5);g.fillEllipse(sx+29,sy+12,8,5);}
-    if(level>=5){g.fillStyle(0xf2dfb6,1);g.fillRect(sx-34,sy-25,4,40);g.fillRect(sx+30,sy-25,4,40);}
-    this.sceneryLabels.push(this.add.text(x,y+size.height/2+7,'DAIRY BARN · LVL '+level,{fontFamily:'Arial',fontSize:'8px',fontStyle:'bold',color:'#526c39'}).setOrigin(.5));
-  }
-
-  private drawChickenRun(g:Phaser.GameObjects.Graphics,x:number,y:number):void{
-    const size=this.paddockSize('hen'),level=this.buildings.coopLevel;
-    this.drawPaddockFence(g,x,y,size.width,size.height,'hen');
-    // Timber hen house with a warm tiled roof, round vent, ramp and visible nesting boxes.
-    const sx=x-size.width*.23,sy=y-size.height*.2;
-    g.fillStyle(0x5b422e,.22);g.fillEllipse(sx+2,sy+18,49,12);
-    g.fillStyle(0xe5d0a2,1);g.fillRoundedRect(sx-20,sy-5,40,24,3);
-    g.fillStyle(0xc9a879,1);g.fillRect(sx-17,sy-2,34,18);
-    g.fillStyle(0x914a38,1);g.fillTriangle(sx-25,sy-5,sx,sy-25,sx+25,sy-5);
-    g.fillStyle(0xb96a4c,1);g.fillTriangle(sx-19,sy-7,sx,sy-22,sx+19,sy-7);
-    g.lineStyle(1,0xe9b98a,.9);g.beginPath();g.moveTo(sx-12,sy-13);g.lineTo(sx-5,sy-18);g.moveTo(sx+1,sy-17);g.lineTo(sx+9,sy-11);g.strokePath();
-    g.fillStyle(0x68432e,1);g.fillRoundedRect(sx-6,sy+4,12,15,2);
-    g.fillStyle(0x4c3728,1);g.fillCircle(sx,sy-10,4);g.fillStyle(0xf3dfb5,1);g.fillCircle(sx,sy-10,2);
-    g.fillStyle(0x8a6139,1);g.fillTriangle(sx+7,sy+17,sx+23,sy+17,sx+17,sy+30);
-    // Nesting boxes and eggs become more prominent as the coop is upgraded.
-    g.fillStyle(0x8b5a35,1);g.fillRoundedRect(sx+13,sy+4,17,11,2);g.fillStyle(0xf5e8c8,1);g.fillEllipse(sx+21,sy+5,5,6);
-    if(level>=2){g.fillStyle(0x8b5a35,1);g.fillRoundedRect(sx-30,sy+4,15,11,2);g.fillStyle(0xf5e8c8,1);g.fillEllipse(sx-22,sy+5,5,6);}
-    if(level>=4){g.fillStyle(0xe7d4a8,1);g.fillRect(sx-22,sy-2,44,3);g.fillStyle(0x6d9b4d,1);g.fillEllipse(sx-22,sy+18,7,4);g.fillEllipse(sx+22,sy+18,7,4);}
-    g.lineStyle(3,0x8a6139,1);g.beginPath();g.moveTo(x+size.width*.1,y+size.height*.12);g.lineTo(x+size.width*.34,y+size.height*.12);g.strokePath();
-    this.sceneryLabels.push(this.add.text(x,y+size.height/2+7,'CHICKEN COOP · LVL '+level,{fontFamily:'Arial',fontSize:'8px',fontStyle:'bold',color:'#79502e'}).setOrigin(.5));
   }
 
   private createAnimalAnimations(): void {
@@ -560,7 +487,8 @@ export class FarmScene extends Phaser.Scene {
       const cow=animal.id==='cow';
       const kindIndex=kindIndexes[animal.id]++;
       const center=cow?cowPos:henPos;
-      const bounds=this.paddockSize(animal.id);
+      // Give each animal a free-roaming area roughly two tiles out from its home.
+      const bounds={width:TILE_W*4,height:TILE_H*4};
       const cols=cow?3:4;
       const spacingX=Math.min(cow?25:14,(bounds.width-32)/(cols-1));
       const spacingY=cow?19:15;
@@ -601,7 +529,7 @@ export class FarmScene extends Phaser.Scene {
       const chickSprite=this.add.sprite(0,-1,'animal-chick').setDisplaySize(18,16.4);chick.add(chickSprite);this.animalSprites.set(chick,chickSprite);
       this.animalActors.push(chick);
       chickSprite.play('chick-idle');this.animateAnimalIdle(chick,chickSprite,false,250);
-      this.wanderAnimal(chick,henPos.x,henPos.y,Math.max(5,this.paddockSize('hen').width/2-15),Math.max(5,this.paddockSize('hen').height/2-15),false);
+      this.wanderAnimal(chick,henPos.x,henPos.y,TILE_W*2-15,TILE_H*2-15,false);
     }
   }
 
