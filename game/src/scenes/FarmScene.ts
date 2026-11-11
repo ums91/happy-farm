@@ -69,7 +69,6 @@ export class FarmScene extends Phaser.Scene {
   private movingPlotKey: string | null = null;
   private movingPreviewTile: {col:number;row:number}|null = null;
   private movingPreviewValid = false;
-  private lastMoveWarning='';
   private harvests = 0;
   private claimedQuests: string[] = [];
   private randomQuests: Array<{id:string;title:string;description:string;target:number;coins:number;xp:number;icon:string;metric:'harvests'|'hens'|'cows'|'eggs'|'milk'}> = [];
@@ -681,7 +680,7 @@ export class FarmScene extends Phaser.Scene {
     }
   }
 
-  private placementFootprint(id:string):Array<{dc:number;dr:number}> {
+  private placementFootprint(_id:string):Array<{dc:number;dr:number}> {
     // Every currently placeable farm asset occupies one isometric cell.
     // Keeping this central makes larger multi-cell footprints straightforward to add later.
     return [{dc:0,dr:0}];
@@ -763,7 +762,7 @@ export class FarmScene extends Phaser.Scene {
       }else this.toast('Invalid position. Item returned to its original cell.');
     }
     this.movingDecor=null;this.movingPlotKey=null;this.movingPreviewTile=null;this.movingPreviewValid=false;
-    this.lastMoveWarning='';this.drawPlacementOverlay();
+    this.drawPlacementOverlay();
   }
 
   private bindWorldInput(): void {
@@ -867,15 +866,6 @@ export class FarmScene extends Phaser.Scene {
       }
     }
     return null;
-  }
-
-  private canPlaceDecor(tile:{col:number;row:number},movingId:string):boolean {
-    const target=this.plots.get(this.key(tile.col,tile.row));if(!target||target.state!=='grass')return false;
-    return !Object.entries(this.decor).some(([id,pos])=>id!==movingId&&pos.col===tile.col&&pos.row===tile.row);
-  }
-  private canMovePlot(sourceKey:string,tile:{col:number;row:number}):boolean {
-    const source=this.plots.get(sourceKey),target=this.plots.get(this.key(tile.col,tile.row));if(!source||!target||source===target||target.state!=='grass')return false;
-    return !Object.values(this.decor).some(pos=>pos.col===tile.col&&pos.row===tile.row);
   }
 
   private createCropHoverTooltip():void {
