@@ -51,6 +51,7 @@ export class FarmScene extends Phaser.Scene {
   private selected: Plot | null = null;
   private cropHoverTooltip: HTMLDivElement|null = null;
   private hoveredCropPlot: Plot|null = null;
+  private hoveredFruitTreeId: string|null = null;
   private hoverPointer = {x:0,y:0};
   private activeTool: Tool = 'select';
   private coins = 250;
@@ -331,7 +332,7 @@ export class FarmScene extends Phaser.Scene {
       if(!this.fruitTreeReadyAt[id]){this.fruitTreeReadyAt[id]=now+this.fruitConfig(kind).interval;changed=true;}
       const remaining=this.fruitTreeReadyAt[id]!-now;const badge=this.fruitTreeBadges[id];if(!badge)return;const treePos=this.decor[id]!;const treeWorld=this.toWorld(treePos.col,treePos.row);badge.setPosition(treeWorld.x+26,treeWorld.y-91);
       if(remaining<=0){badge.setText(this.fruitConfig(kind).emoji+' Ready!').setVisible(true).setBackgroundColor('#397b27');}
-      else {const mins=Math.ceil(remaining/60000);badge.setText(this.fruitConfig(kind).emoji+' '+mins+'m').setVisible(true).setBackgroundColor('#315b2b');}
+      else {badge.setVisible(false);}
     });
     if(changed)this.saveFarm();
   }
@@ -891,20 +892,42 @@ export class FarmScene extends Phaser.Scene {
   }
   private updateCropHover(pointer:Phaser.Input.Pointer):void {
     if(!this.cropHoverTooltip)return;
-    const world=this.cameras.main.getWorldPoint(pointer.x,pointer.y),tile=this.toTile(world.x,world.y);
-    const plot=tile?this.plots.get(this.key(tile.col,tile.row)):undefined;
+    const world=this.cameras.main.getWorldPoint(pointer.x,pointer.y);
+    const fruitTreeHit=Object.keys(this.decor).find(id=>this.fruitKind(id)!==null&&(()=>{
+      const p=this.toWorld(this.decor[id]!.col,this.decor[id]!.row);
+      return Phaser.Math.Distance.Between(world.x,world.y-38,p.x,p.y-49)<48;
+    })());
+    if(fruitTreeHit){
+      this.hoveredCropPlot=null;this.hoveredFruitTreeId=fruitTreeHit;
+      this.hoverPointer={x:pointer.x,y:pointer.y};this.refreshCropHoverTooltip();return;
+    }
+    this.hoveredFruitTreeId=null;
+    const tile=this.toTile(world.x,world.y),plot=tile?this.plots.get(this.key(tile.col,tile.row)):undefined;
     if(!plot||!['growing','ready','withered'].includes(plot.state)){this.hoveredCropPlot=null;this.cropHoverTooltip.style.display='none';return;}
     this.hoveredCropPlot=plot;this.hoverPointer={x:pointer.x,y:pointer.y};this.refreshCropHoverTooltip();
   }
   private refreshCropHoverTooltip():void {
-    const tip=this.cropHoverTooltip,plot=this.hoveredCropPlot;if(!tip||!plot)return;
+    const tip=this.cropHoverTooltip;if(!tip)return;
+    if(this.hoveredFruitTreeId){
+      const id=this.hoveredFruitTreeId,kind=this.fruitKind(id),readyAt=this.fruitTreeReadyAt[id]||0;
+      if(!kind){this.hoveredFruitTreeId=null;tip.style.display='none';return;}
+      const cfg=this.fruitConfig(kind),remaining=readyAt-Date.now();
+      let status='Ready to harvest!';
+      if(remaining>0){
+        const totalSeconds=Math.ceil(remaining/1000),hours=Math.floor(totalSeconds/3600),minutes=Math.floor((totalSeconds%3600)/60),seconds=totalSeconds%60;
+        status='Harvest in '+(hours>0?hours+'h ':'')+(minutes>0?minutes+'m ':'')+seconds+'s';
+      }
+      tip.innerHTML='<strong>'+cfg.emoji+' '+cfg.name+' tree</strong><span>'+status+'</span>';
+      tip.style.left=Math.min(this.scale.width-180,this.hoverPointer.x+14)+'px';tip.style.top=Math.max(8,this.hoverPointer.y-48)+'px';tip.style.display='flex';return;
+    }
+    const plot=this.hoveredCropPlot;if(!plot)return;
     if(!['growing','ready','withered'].includes(plot.state)){tip.style.display='none';this.hoveredCropPlot=null;return;}
     const crop=CROPS[plot.crop];let status='';
     if(plot.state==='ready')status='Ready to harvest!';
     else if(plot.state==='withered')status='Withered · Plow to clear';
-    else {const ms=Math.max(0,plot.readyAt-Date.now()),seconds=Math.ceil(ms/1000),mins=Math.floor(seconds/60),secs=seconds%60;status='Harvest in '+(mins>0?mins+'m ':'')+secs+'s';}
+    else {const ms=Math.max(0,plot.readyAt-Date.now()),totalSeconds=Math.ceil(ms/1000),hours=Math.floor(totalSeconds/3600),mins=Math.floor((totalSeconds%3600)/60),secs=totalSeconds%60;status='Harvest in '+(hours>0?hours+'h ':'')+(mins>0?mins+'m ':'')+secs+'s';}
     tip.innerHTML='<strong>'+crop.emoji+' '+crop.name+'</strong><span>'+status+'</span>';
-    tip.style.left=Math.min(this.scale.width-160,this.hoverPointer.x+14)+'px';tip.style.top=Math.max(8,this.hoverPointer.y-48)+'px';tip.style.display='flex';
+    tip.style.left=Math.min(this.scale.width-180,this.hoverPointer.x+14)+'px';tip.style.top=Math.max(8,this.hoverPointer.y-48)+'px';tip.style.display='flex';
   }
 
   private applyTool(plot: Plot): void {
