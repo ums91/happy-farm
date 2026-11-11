@@ -211,20 +211,48 @@ export class FarmScene extends Phaser.Scene {
   }
 
   private drawWorld(): void {
-    this.plotGraphics.clear();this.drawForestBorder();
+    this.plotGraphics.clear();
+    this.drawForestBorder();
     const meadow=this.add.graphics().setDepth(-10);
-    meadow.fillStyle(0x477f3e,1);meadow.fillEllipse(0,245,1120,590);
-    meadow.fillStyle(0x75b84d,1);meadow.fillEllipse(0,240,1040,520);
-    meadow.fillStyle(0xb2dc79,0.22);meadow.fillEllipse(-120,110,420,150);meadow.fillEllipse(210,340,420,130);
-    for(let i=0;i<110;i++){const x=((i*137)%1040)-520,y=((i*83)%500)-5;meadow.fillStyle(i%4===0?0xe1ee9c:0x356f37,i%4===0?0.18:0.1);meadow.fillEllipse(x,y,16+(i%5)*5,5+(i%3)*2);}
-    // Pond, stepping stones, rocks and wildflower clusters dress the valley beyond the fence.
-    meadow.fillStyle(0x355f39,0.22);meadow.fillEllipse(355,230,184,92);
-    meadow.fillStyle(0x6eaeae,1);meadow.fillEllipse(350,218,166,75);
-    meadow.fillStyle(0x9bd8cf,0.8);meadow.fillEllipse(326,204,76,23);
-    meadow.lineStyle(3,0x4b8748,0.9);meadow.strokeEllipse(350,218,174,82);
-    meadow.fillStyle(0x9a8052,1);[[-75,315],[-48,327],[-18,336],[16,343]].forEach(([x,y])=>meadow.fillEllipse(x!,y!,25,12));
-    [[260,300],[285,314],[405,286],[430,270],[-360,260],[-330,278]].forEach(([x,y],i)=>{meadow.fillStyle(i%2?0x8a9a74:0x9b9a7d,1);meadow.fillEllipse(x!,y!,22+(i%3)*5,13+(i%2)*4);meadow.fillStyle(0xc7c7a4,0.7);meadow.fillEllipse(x!-4,y!-3,9,4);});
-    [[280,160],[430,190],[300,330],[455,340],[-390,160],[-420,360]].forEach(([x,y],i)=>{meadow.fillStyle(0x356d37,1);meadow.fillEllipse(x!,y!+5,26,9);meadow.fillStyle([0xf5a8c5,0xffe18a,0xffffff,0xd8a8ee][i%4]!,1);meadow.fillCircle(x!,y!,5);meadow.fillCircle(x!-5,y!+2,3);meadow.fillCircle(x!+5,y!+2,3);meadow.fillStyle(0xf4c94e,1);meadow.fillCircle(x!,y!+1,2);});
+
+    // Rolling green valley beyond the farm boundary.
+    meadow.fillStyle(0x477f3e,1);meadow.fillEllipse(0,248,1260,720);
+    meadow.fillStyle(0x75b84d,1);meadow.fillEllipse(0,232,1150,630);
+    meadow.fillStyle(0x9bcf69,0.55);meadow.fillEllipse(-350,160,360,210);meadow.fillEllipse(350,335,420,190);
+    meadow.fillStyle(0xb9dc78,0.28);meadow.fillEllipse(-150,60,420,120);meadow.fillEllipse(245,395,470,120);
+
+    // Distant layered hills and a winding country lane.
+    meadow.fillStyle(0x4d8c45,1);meadow.fillEllipse(-390,30,410,190);meadow.fillEllipse(390,65,470,210);
+    meadow.fillStyle(0x6fae4e,1);meadow.fillEllipse(-390,18,360,145);meadow.fillEllipse(390,50,410,155);
+    const lane:Array<{x:number;y:number}>=[];
+    for(let i=0;i<=36;i++){const t=i/36;lane.push({x:-560+t*1120,y:390-95*Math.sin(t*Math.PI*1.35)+30*Math.sin(t*Math.PI*3)});}
+    meadow.lineStyle(34,0x80623d,0.82);meadow.beginPath();meadow.moveTo(lane[0]!.x,lane[0]!.y);lane.slice(1).forEach(p=>meadow.lineTo(p.x,p.y));meadow.strokePath();
+    meadow.lineStyle(25,0xc5a16a,1);meadow.beginPath();meadow.moveTo(lane[0]!.x,lane[0]!.y-2);lane.slice(1).forEach(p=>meadow.lineTo(p.x,p.y-2));meadow.strokePath();
+    meadow.lineStyle(2,0xe4c58a,0.7);meadow.beginPath();meadow.moveTo(lane[0]!.x,lane[0]!.y-10);lane.slice(1).forEach(p=>meadow.lineTo(p.x,p.y-10));meadow.strokePath();
+
+    // A landscaped pond with a little island, reeds, lily pads and a timber footbridge.
+    meadow.fillStyle(0x355f39,0.25);meadow.fillEllipse(350,215,220,126);
+    meadow.fillStyle(0x648b49,1);meadow.fillEllipse(350,207,205,112);
+    meadow.fillStyle(0x579fa0,1);meadow.fillEllipse(350,198,184,91);
+    meadow.fillStyle(0x83c9bd,1);meadow.fillEllipse(326,181,105,28);
+    meadow.fillStyle(0xb2e2d3,0.75);meadow.fillEllipse(300,178,48,9);meadow.fillEllipse(385,210,35,7);
+    meadow.lineStyle(3,0x3f7847,1);meadow.strokeEllipse(350,198,194,99);
+    meadow.fillStyle(0x79ad50,1);meadow.fillEllipse(382,198,42,22);
+    meadow.fillStyle(0x4d8b42,1);meadow.fillEllipse(382,194,30,15);
+    [[315,196],[365,175],[405,208],[338,216]].forEach(([x,y],i)=>{meadow.fillStyle(0x397f56,1);meadow.fillEllipse(x!,y!,18,8);meadow.fillStyle(0xb5d96a,1);meadow.fillEllipse(x!+2,y!-2,7,3);});
+    meadow.fillStyle(0x527c3e,1);[[260,178],[274,188],[425,170],[438,182],[278,226],[423,226]].forEach(([x,y])=>{meadow.fillEllipse(x!,y!,5,17);meadow.fillCircle(x!,y!-8,5);});
+    meadow.fillStyle(0x9b7546,1);meadow.fillRoundedRect(430,190,74,15,4);meadow.fillStyle(0xd6b77a,1);meadow.fillRoundedRect(430,186,74,7,3);
+    meadow.lineStyle(3,0x704a2c,1);meadow.beginPath();meadow.moveTo(432,184);meadow.lineTo(502,184);meadow.moveTo(438,179);meadow.lineTo(438,197);meadow.moveTo(496,179);meadow.lineTo(496,197);meadow.strokePath();
+
+    // Pebbled stream bank, stepping stones and scattered boulders.
+    [[-380,260],[-350,278],[-320,294],[-290,307],[-260,316],[470,280],[490,300],[510,316]].forEach(([x,y],i)=>{meadow.fillStyle(i%2?0x8c9b78:0xaaa58a,1);meadow.fillEllipse(x!,y!,25+(i%3)*5,13+(i%2)*4);meadow.fillStyle(0xd5cfaa,0.8);meadow.fillEllipse(x!-5,y!-4,9,4);});
+    [[-80,315],[-48,327],[-18,336],[16,343]].forEach(([x,y])=>{meadow.fillStyle(0x98764d,1);meadow.fillEllipse(x!,y!,25,12);meadow.fillStyle(0xc7a16a,0.8);meadow.fillEllipse(x!-4,y!-3,10,3);});
+
+    // Meadow texture: clover, tiny daisies, buttercups and soft grass patches.
+    for(let i=0;i<175;i++){const x=((i*137)%1120)-560,y=((i*83)%610)-45;meadow.fillStyle(i%5===0?0xe1ee9c:0x356f37,i%5===0?0.22:0.1);meadow.fillEllipse(x,y,12+(i%5)*5,4+(i%3)*2);}
+    for(let i=0;i<48;i++){const x=((i*173)%1080)-540,y=((i*97)%570)-15;const color=[0xf5d86d,0xf4a6bf,0xffffff,0xd9b4ed][i%4]!;meadow.fillStyle(0x397d3e,0.9);meadow.fillEllipse(x,y+5,11,4);meadow.fillStyle(color,1);meadow.fillCircle(x,y,3.5);meadow.fillCircle(x-4,y+2,2.5);meadow.fillCircle(x+4,y+2,2.5);meadow.fillStyle(0xf4c94e,1);meadow.fillCircle(x,y+1,1.8);}
+    for(let i=0;i<13;i++){const x=-500+i*82,y=285+Math.sin(i*0.8)*95;meadow.fillStyle(0x3c7839,0.9);meadow.fillEllipse(x,y+5,32,11);meadow.fillStyle(i%2?0x5e9b45:0x6da94c,1);meadow.fillCircle(x-8,y,12);meadow.fillCircle(x+5,y-4,14);meadow.fillCircle(x+15,y+2,10);}
+
     for(let row=0;row<ROWS;row++)for(let col=0;col<COLS;col++)if(!this.plots.has(this.key(col,row)))this.plots.set(this.key(col,row),{col,row,state:'grass',watered:false,growth:0,crop:'wheat',readyAt:0,witherAt:0});
     this.redrawFarmTiles();
   }
@@ -244,17 +272,32 @@ export class FarmScene extends Phaser.Scene {
 
   private drawForestBorder(): void {
     const forest=this.add.graphics();
-    const trees:Array<[number,number]>=[];
-    for(let i=0;i<20;i++){trees.push([-545+i*57,-12-(i%3)*17],[-545+i*57,535+(i%4)*13]);}
-    for(let i=0;i<14;i++){trees.push([-565,35+i*38],[565,35+i*38]);}
-    trees.forEach(([x,y],i)=>{
-      const r=27+(i%4)*4;
-      forest.fillStyle(0x244b2c,0.4);forest.fillEllipse(x+5,y+13,r*2.2,r*.65);
-      forest.fillStyle(0x68452c,1);forest.fillRoundedRect(x-5,y-5,10,34,4);
-      forest.fillStyle([0x285b32,0x326b37,0x3d783b,0x28552e][i%4]!,1);
-      forest.fillCircle(x,y-23,r);forest.fillCircle(x-r*.55,y-13,r*.72);forest.fillCircle(x+r*.55,y-14,r*.75);
-      forest.fillStyle(0x79a94e,0.72);forest.fillCircle(x-r*.3,y-35,r*.28);forest.fillCircle(x+r*.35,y-26,r*.22);
+    // Deep woodland layers create a continuous, varied tree line rather than a flat hedge.
+    const trees:Array<[number,number,number]>=[];
+    for(let i=0;i<23;i++){
+      const x=-620+i*56;
+      trees.push([x,-78-(i%4)*16,27+(i%3)*5],[x+19,620+(i%5)*12,28+(i%4)*4]);
+    }
+    for(let i=0;i<17;i++){
+      const y=-10+i*39;
+      trees.push([-635-(i%3)*9,y,25+(i%4)*5],[635+(i%3)*9,y+8,26+(i%3)*5]);
+    }
+    trees.forEach(([x,y,r],i)=>{
+      forest.fillStyle(0x244b2c,0.38);forest.fillEllipse(x+5,y+14,r*2.25,r*.68);
+      forest.fillStyle(0x68452c,1);forest.fillRoundedRect(x-5,y-5,10,38,4);
+      forest.fillStyle([0x285b32,0x326b37,0x3d783b,0x28552e,0x477e3c][i%5]!,1);
+      forest.fillCircle(x,y-24,r);forest.fillCircle(x-r*.58,y-13,r*.73);forest.fillCircle(x+r*.57,y-15,r*.77);
+      forest.fillStyle([0x79a94e,0x8cba58,0x6fa34a][i%3]!,0.78);
+      forest.fillCircle(x-r*.3,y-36,r*.28);forest.fillCircle(x+r*.35,y-27,r*.23);forest.fillCircle(x+2,y-9,r*.16);
+      if(i%4===0){forest.fillStyle(0xe2a94f,1);forest.fillCircle(x-r*.28,y-17,3);forest.fillCircle(x+r*.3,y-34,3);}
     });
+    // Low shrubs and flowering bushes soften the edge between woods and meadow.
+    for(let i=0;i<18;i++){
+      const x=-590+i*69,y=(i%2===0?500:40)+(i%3)*12;
+      forest.fillStyle(0x285a32,1);forest.fillEllipse(x,y+8,46,18);
+      forest.fillStyle(i%2?0x4b8b3d:0x609b45,1);forest.fillCircle(x-12,y,12);forest.fillCircle(x+2,y-5,15);forest.fillCircle(x+15,y+1,11);
+      forest.fillStyle(0xf0d16a,1);forest.fillCircle(x-7,y-3,2);forest.fillStyle(0xf2a7bd,1);forest.fillCircle(x+10,y-7,2);
+    }
     forest.setDepth(-20);
   }
 
