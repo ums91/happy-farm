@@ -322,7 +322,7 @@ export class FarmScene extends Phaser.Scene {
   private fruitKind(id:string):'apples'|'pears'|'cherries'|'oranges'|null {
     const asset=this.decorAssetForId(id)||'';
     if(id.startsWith('appleTree')||asset.startsWith('apple_tree'))return 'apples';
-    if(id.startsWith('pearTree')||asset==='pear_tree')return 'pears';
+    if(id.startsWith('pearTree')||id.startsWith('decor_pear_tree')||asset==='pear_tree')return 'pears';
     if(id.startsWith('cherryTree')||asset.startsWith('pink_blossom_tree'))return 'cherries';
     if(asset.startsWith('orange_fruit_tree')||asset.startsWith('orange_tree')||id.startsWith('decor_orange_fruit_tree')||id.startsWith('decor_orange_tree'))return 'oranges';
     return null;
@@ -375,7 +375,7 @@ export class FarmScene extends Phaser.Scene {
   private decorAssetForId(id:string):string|null {
     if(['farmhouse','barn','coop','silo','bakery','greenhouse','windmill','stable','well','workshop','waterTower'].includes(id))return null;
     if(id.startsWith('appleTree'))return 'apple_tree';
-    if(id.startsWith('pearTree')||id==='decor_pear_tree')return 'small_green_tree';
+    if(id.startsWith('pearTree')||id.startsWith('decor_pear_tree'))return 'small_green_tree';
     if(id.startsWith('cherryTree'))return 'pink_blossom_tree';
     if(id.startsWith('flowerbed'))return 'round_flowerbed';
     if(id.startsWith('fountain'))return 'tiered_stone_fountain';
