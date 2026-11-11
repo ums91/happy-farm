@@ -677,7 +677,7 @@ export class FarmScene extends Phaser.Scene {
       if(this.canMovePlot(this.movingPlotKey,tile)){
         const saved={state:target.state,watered:target.watered,growth:target.growth,crop:target.crop,readyAt:target.readyAt,witherAt:target.witherAt};
         Object.assign(target,{state:source.state,watered:source.watered,growth:source.growth,crop:source.crop,readyAt:source.readyAt,witherAt:source.witherAt});
-        Object.assign(source,saved);this.redrawPlot(source);this.redrawPlot(target);this.selected=target;this.refreshSelection();this.drawSelection();
+        Object.assign(source,saved);this.redrawPlot(source);this.redrawPlot(target);this.movingPlotKey=this.key(tile.col,tile.row);this.selected=target;this.refreshSelection();this.drawSelection();
       }else this.warnMoveBlocked('Fields can only be moved onto empty grass tiles.');
     }
   }
