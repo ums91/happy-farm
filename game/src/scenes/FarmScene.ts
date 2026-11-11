@@ -38,6 +38,7 @@ export class FarmScene extends Phaser.Scene {
   private plots = new Map<string, Plot>();
   private plotOverlays = new Map<string, Phaser.GameObjects.Graphics>();
   private tomatoSprites = new Map<string, Phaser.GameObjects.Image>();
+  private cropSprites = new Map<string, Phaser.GameObjects.Image>();
   private growthTimers = new Map<string, Phaser.Time.TimerEvent>();
   private plotGraphics!: Phaser.GameObjects.Graphics;
   private overlay!: Phaser.GameObjects.Graphics;
@@ -105,6 +106,9 @@ export class FarmScene extends Phaser.Scene {
     this.load.spritesheet('animal-chick', `${import.meta.env.BASE_URL}assets/animals/chick.png`, { frameWidth: 44, frameHeight: 40 });
     for (let stage = 1; stage <= 5; stage += 1) {
       this.load.image(`crop-tomato-${stage}`, `${import.meta.env.BASE_URL}assets/crops/tomato/tomato-stage-${stage}-${['seeds','sprout','young','flowering','ripe'][stage - 1]}.png`);
+    }
+    for (const crop of ['wheat','carrot','corn','strawberry','pumpkin'] as const) {
+      this.load.spritesheet(`crop-${crop}`, `${import.meta.env.BASE_URL}assets/crops/${crop}/${crop}-growth.png`, { frameWidth: 160, frameHeight: 160 });
     }
     this.load.once(Phaser.Loader.Events.COMPLETE, () => {this.createAnimalAnimations();this.redrawFarmTiles();this.renderOwnedAnimals();window.dispatchEvent(new Event('happyfarm:ready'));});
     this.load.start();
@@ -1034,7 +1038,7 @@ export class FarmScene extends Phaser.Scene {
         const total = CROPS[plot.crop].growMs / (plot.watered ? 2 : 1);
         const remaining = Math.max(0, plot.readyAt - now);
         const progress = Math.min(99, Math.floor((1 - remaining / total) * 100));
-        const stageStep = plot.crop === 'tomato' ? 20 : 25;
+        const stageStep = ['tomato','wheat','carrot','corn','strawberry','pumpkin'].includes(plot.crop) ? 20 : 25;
         const previousStage = Math.floor(plot.growth / stageStep);
         plot.growth = progress;
         if (Math.floor(progress / stageStep) !== previousStage) {
@@ -1061,6 +1065,8 @@ export class FarmScene extends Phaser.Scene {
     this.plotOverlays.delete(id);
     this.tomatoSprites.get(id)?.destroy();
     this.tomatoSprites.delete(id);
+    this.cropSprites.get(id)?.destroy();
+    this.cropSprites.delete(id);
     if (plot.state === 'grass') return;
     const p = this.toWorld(plot.col, plot.row);
     const g = this.add.graphics();
@@ -1078,6 +1084,11 @@ export class FarmScene extends Phaser.Scene {
       const sprite = this.add.image(p.x, p.y - 13, `crop-tomato-${stage}`);
       sprite.setDisplaySize(76, 76).setDepth(p.y + 2);
       this.tomatoSprites.set(id, sprite);
+    } else if (['wheat','carrot','corn','strawberry','pumpkin'].includes(plot.crop) && (plot.state === 'growing' || plot.state === 'ready') && this.textures.exists(`crop-${plot.crop}`)) {
+      const stage = plot.state === 'ready' ? 4 : Math.min(4, Math.floor(plot.growth / 20));
+      const sprite = this.add.image(p.x, p.y - 13, `crop-${plot.crop}`, stage);
+      sprite.setDisplaySize(76, 76).setDepth(p.y + 2);
+      this.cropSprites.set(id, sprite);
     } else if (plot.state === 'growing' || plot.state === 'ready' || plot.state === 'withered') {
       this.drawCrop(g, p.x, p.y, plot);
     }
