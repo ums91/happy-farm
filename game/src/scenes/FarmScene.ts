@@ -518,12 +518,12 @@ export class FarmScene extends Phaser.Scene {
       const startX=center.x-(rowWidth-1)*spacingX/2+col*spacingX;
       const startY=center.y-(totalRows-1)*spacingY/2+row*spacingY;
       const actor=this.add.container(startX,startY);actor.setDepth(startY+index);
-      const scale=cow?0.82:0.66;
+      const scale=cow?0.74:0.58;
       actor.setScale(scale);
-      actor.add(this.add.ellipse(0,7,cow?38:26,8,0x263e25,0.22));
+      actor.add(this.add.ellipse(0,6,cow?32:22,7,0x263e25,0.18));
       const texture=cow?'animal-cow':'animal-hen';
       if(this.textures.exists(texture)){
-        const sprite=this.add.image(0,-2,texture).setDisplaySize(cow?60:42,cow?60:42);
+        const sprite=this.add.image(0,-2,texture).setDisplaySize(cow?50:34,cow?50:34);
         actor.add(sprite);
         this.animalSprites.set(actor,sprite);
         this.animateAnimalIdle(actor,sprite,cow,index*110);
@@ -545,7 +545,7 @@ export class FarmScene extends Phaser.Scene {
     if(this.animals.some(a=>a.id==='hen')&&this.textures.exists('animal-chick')){
       const chick=this.add.container(henPos.x+15,henPos.y+13);chick.setDepth(henPos.y+14);
       chick.add(this.add.ellipse(0,4,15,4,0x263e25,0.18));
-      const chickSprite=this.add.image(0,-1,'animal-chick').setDisplaySize(22,22);chick.add(chickSprite);this.animalSprites.set(chick,chickSprite);
+      const chickSprite=this.add.image(0,-1,'animal-chick').setDisplaySize(18,18);chick.add(chickSprite);this.animalSprites.set(chick,chickSprite);
       this.animalActors.push(chick);
       this.animateAnimalIdle(chick,chickSprite,false,250);
       this.wanderAnimal(chick,henPos.x,henPos.y,Math.max(5,this.paddockSize('hen').width/2-15),Math.max(5,this.paddockSize('hen').height/2-15),false);
@@ -567,15 +567,15 @@ export class FarmScene extends Phaser.Scene {
     const duration=Phaser.Math.Between(cow?2600:1500,cow?4300:2800);
     if(sprite){this.tweens.killTweensOf(sprite);sprite.setAngle(0);this.tweens.add({targets:sprite,y:-5,angle:cow?-2:2,duration:260,yoyo:true,repeat:-1,ease:'Sine.inOut'});}
     this.tweens.add({targets:actor,x:targetX,y:targetY,duration,ease:'Sine.inOut',
-      onStart:()=>actor.setScale((cow?1.04:0.72)*(targetX<actor.x?-1:1),cow?1.04:0.72),
-      onComplete:()=>{if(actor.active){actor.setScale(cow?1.04:0.72,cow?1.04:0.72);if(sprite)this.animateAnimalIdle(actor,sprite,cow);this.time.delayedCall(Phaser.Math.Between(1100,2600),()=>this.wanderAnimal(actor,cx,cy,limitX,limitY,cow));}}
+      onStart:()=>actor.setScale((cow?0.88:0.62)*(targetX<actor.x?-1:1),cow?0.88:0.62),
+      onComplete:()=>{if(actor.active){actor.setScale(cow?0.88:0.62,cow?0.88:0.62);if(sprite)this.animateAnimalIdle(actor,sprite,cow);this.time.delayedCall(Phaser.Math.Between(1100,2600),()=>this.wanderAnimal(actor,cx,cy,limitX,limitY,cow));}}
     });
   }
 
   private playFeedingAnimation(actor:Phaser.GameObjects.Container):void{
     if(!actor.active)return;
     const baseScale=Math.abs(actor.scaleY),sprite=this.animalSprites.get(actor);
-    if(sprite){this.tweens.killTweensOf(sprite);this.tweens.add({targets:sprite,angle:-12,y:3,duration:260,yoyo:true,repeat:3,ease:'Sine.inOut',onComplete:()=>{if(actor.active)this.animateAnimalIdle(actor,sprite,Math.abs(baseScale)>0.9);}});}
+    if(sprite){this.tweens.killTweensOf(sprite);this.tweens.add({targets:sprite,angle:-12,y:3,duration:260,yoyo:true,repeat:3,ease:'Sine.inOut',onComplete:()=>{if(actor.active)this.animateAnimalIdle(actor,sprite,sprite.texture.key==='animal-cow');}});}
     this.tweens.add({targets:actor,scaleY:baseScale*0.94,duration:220,yoyo:true,repeat:2,ease:'Sine.inOut',
       onComplete:()=>{if(!actor.active)return;actor.setScale(actor.scaleX<0?-baseScale:baseScale,baseScale);const feed=this.add.text(actor.x,actor.y-25,'🌿',{fontSize:'13px'}).setOrigin(.5).setDepth(actor.depth+10);this.tweens.add({targets:feed,y:feed.y-15,alpha:0,duration:850,onComplete:()=>feed.destroy()});}
     });
