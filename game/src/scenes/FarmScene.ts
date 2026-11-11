@@ -361,8 +361,11 @@ export class FarmScene extends Phaser.Scene {
     const readyAt=this.fruitTreeReadyAt[id]||0;const cfg=this.fruitConfig(kind);
     if(Date.now()<readyAt){const remaining=readyAt-Date.now();const mins=Math.floor(remaining/60000),secs=Math.ceil((remaining%60000)/1000);this.toast(cfg.name+' tree is growing fruit · '+mins+':'+String(secs).padStart(2,'0')+' remaining.');return;}
     this.fruitInventory[kind]+=1;this.fruitTreeReadyAt[id]=Date.now()+cfg.interval;
+    const reward=kind==='apples'?32:kind==='pears'?36:42;
+    const treePos=this.toWorld(this.decor[id]!.col,this.decor[id]!.row);
+    this.showHarvestReward(treePos.x,treePos.y-72,reward);
     this.saveFarm();this.refreshHud();this.updateFruitTrees();
-    this.toast('Harvested 1 '+cfg.name+' · next fruit in '+Math.round(cfg.interval/60000)+' minutes.');
+    this.toast('Harvested 1 '+cfg.name+' · sell value '+reward+' coins · next fruit in '+Math.round(cfg.interval/60000)+' minutes.');
   }
 
   private drawScenery(): void {
@@ -839,7 +842,7 @@ export class FarmScene extends Phaser.Scene {
         if (plot.state === 'growing' && !plot.watered) { plot.watered = true; this.scheduleGrowth(plot, Math.max(1500, Math.ceil((plot.readyAt - Date.now()) / 2))); }
         break;
       case 'harvest':
-        if (plot.state === 'ready') { const crop=CROPS[plot.crop]; plot.state='tilled'; plot.growth=0; plot.readyAt=0; plot.witherAt=0; plot.watered=false; this.growthTimers.get(this.key(plot.col,plot.row))?.remove(false); this.growthTimers.delete(this.key(plot.col,plot.row)); this.harvestedCrops[plot.crop]++; this.xp+=crop.xp; this.harvests += 1; this.toast(`${crop.emoji} ${crop.name} harvested · added to Sell inventory`); }
+        if (plot.state === 'ready') { const crop=CROPS[plot.crop]; const reward=this.toWorld(plot.col,plot.row); plot.state='tilled'; plot.growth=0; plot.readyAt=0; plot.witherAt=0; plot.watered=false; this.growthTimers.get(this.key(plot.col,plot.row))?.remove(false); this.growthTimers.delete(this.key(plot.col,plot.row)); this.harvestedCrops[plot.crop]++; this.xp+=crop.xp; this.harvests += 1; this.showHarvestReward(reward.x,reward.y-28,crop.reward); this.toast(`${crop.emoji} ${crop.name} harvested · sell value ${crop.reward} coins · added to Sell inventory`); }
         break;
       case 'select':
         break;
@@ -1346,6 +1349,10 @@ export class FarmScene extends Phaser.Scene {
     }
     const level=Math.floor(this.xp/100)+1;host.innerHTML=(Object.entries(CROPS) as Array<[CropId,typeof CROPS[CropId]]>).map(([id,crop])=>{const locked=level<crop.unlockLevel;return `<article class="market-item ${locked?'crop-locked':''}"><div class="market-art">${crop.emoji}</div><div class="market-copy"><strong>${crop.name}</strong><small>${locked?'Unlocks at level '+crop.unlockLevel:Math.round(crop.growMs/1000)+'s grow · '+Math.round(Math.max(300000,crop.growMs*2)/1000)+'s harvest window'} · reward ${crop.reward} coins · +${crop.xp} XP · bag: ${this.inventory[id]}</small></div><button class="market-buy" data-buy-seed="${id}" ${locked||this.coins<crop.cost?'disabled':''}>${locked?'🔒 Level '+crop.unlockLevel:'🪙 '+crop.cost+' · Buy'}</button></article>`;}).join('');
     host.querySelectorAll<HTMLButtonElement>('[data-buy-seed]').forEach(btn=>btn.addEventListener('click',()=>{const id=btn.dataset.buySeed as CropId;const crop=CROPS[id];if(!crop||Math.floor(this.xp/100)+1<crop.unlockLevel||this.coins<crop.cost)return;this.coins-=crop.cost;this.inventory[id]++;this.saveFarm();this.refreshHud();this.refreshSelection();this.toast(`${crop.emoji} ${crop.name} seeds added to your bag`);}));
+  }
+  private showHarvestReward(x:number,y:number,amount:number):void {
+    const reward=this.add.text(x,y,'🪙 +'+amount,{fontFamily:'Arial',fontSize:'22px',fontStyle:'bold',color:'#fff5a8',stroke:'#704516',strokeThickness:5,shadow:{offsetX:1,offsetY:2,color:'#3b2a12',blur:4,fill:true}}).setOrigin(.5).setDepth(30000);
+    this.tweens.add({targets:reward,y:y-58,alpha:0,scale:1.18,duration:1250,ease:'Cubic.easeOut',onComplete:()=>reward.destroy()});
   }
   private toast(message:string): void {const el=document.getElementById('game-toast');if(!el)return;el.textContent=message;el.classList.add('show');window.setTimeout(()=>el.classList.remove('show'),2200);}
 
