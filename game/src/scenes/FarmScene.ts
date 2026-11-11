@@ -1562,7 +1562,7 @@ export class FarmScene extends Phaser.Scene {
         for(const tile of save.landTiles){if(typeof tile!=='string')continue;const [col,row]=tile.split(':').map(Number);if(Number.isInteger(col)&&Number.isInteger(row)&&col>=0&&row>=0&&col<MAX_FARM_SIZE&&row<MAX_FARM_SIZE)this.landTiles.add(this.key(col,row));}
       }else{
         this.landExpansionCountValue=0;
-        const legacySize=([5,9,11,13][Phaser.Math.Clamp(Number.isInteger(save.farmExpansionLevel)?save.farmExpansionLevel:3,0,3)]||13);
+        const legacySize=([7,9,11,13][Phaser.Math.Clamp(Number.isInteger(save.farmExpansionLevel)?save.farmExpansionLevel:3,0,3)]||13);
         for(let row=0;row<legacySize;row++)for(let col=0;col<legacySize;col++)this.landTiles.add(this.key(col,row));
       }
       if(this.landTiles.size===0)for(let row=0;row<INITIAL_FARM_SIZE;row++)for(let col=0;col<INITIAL_FARM_SIZE;col++)this.landTiles.add(this.key(col,row));
