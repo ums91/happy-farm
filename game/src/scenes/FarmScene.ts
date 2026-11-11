@@ -91,7 +91,6 @@ export class FarmScene extends Phaser.Scene {
   private eventClaimed=false;
   private claimedMilestones:number[]=[];
   private ordersCompleted: Record<string,number> = {};
-  private woodlandBackdrop: Phaser.GameObjects.Image|null = null;
   private cameraDragging = false;
   private dragPoint = new Phaser.Math.Vector2();
   private readonly saveKey = 'happyFarmPhaserSaveV1';
@@ -120,7 +119,7 @@ export class FarmScene extends Phaser.Scene {
     for (const crop of ['wheat','carrot','corn','strawberry','pumpkin'] as const) {
       this.load.spritesheet(`crop-${crop}`, `${import.meta.env.BASE_URL}assets/crops/${crop}/${crop}-growth.png`, { frameWidth: 160, frameHeight: 160 });
     }
-    this.load.once(Phaser.Loader.Events.COMPLETE, () => {this.createAnimalAnimations();this.redrawFarmTiles();this.drawScenery();this.renderOwnedAnimals();window.dispatchEvent(new Event('happyfarm:ready'));this.load.image('enchanted-woodland', `${import.meta.env.BASE_URL}assets/environment/Lush%20Forest%20Farm%20Border%20Scene.png`);this.load.once(Phaser.Loader.Events.COMPLETE,()=>this.renderWoodlandBackdrop());this.load.start();});
+    this.load.once(Phaser.Loader.Events.COMPLETE, () => {this.createAnimalAnimations();this.redrawFarmTiles();this.drawScenery();this.renderOwnedAnimals();window.dispatchEvent(new Event('happyfarm:ready'));});
     this.load.start();
     this.loadFarm();
     this.redrawFarmTiles();
@@ -194,7 +193,7 @@ export class FarmScene extends Phaser.Scene {
     const spanY=Math.max(TILE_H,(this.farmSize-1)*TILE_H+24);
     const fitX=(width-56)/spanX;
     const fitY=(height-(height<700?178:110))/spanY;
-    camera.setZoom(Phaser.Math.Clamp(Math.min(1.05,fitX,fitY),0.55,1.05));
+    camera.setZoom(Phaser.Math.Clamp(Math.min(1.28,fitX*1.12,fitY*1.12),0.55,1.28));
     camera.centerOn(0,ORIGIN_Y+(this.farmSize-1)*TILE_H/2);
   }
 
@@ -234,19 +233,6 @@ export class FarmScene extends Phaser.Scene {
     g.closePath();
     g.fillPath();
     g.strokePath();
-  }
-
-  private renderWoodlandBackdrop(): void {
-    if (!this.textures.exists('enchanted-woodland')) return;
-    this.woodlandBackdrop?.destroy();
-    const source=this.textures.get('enchanted-woodland').getSourceImage() as HTMLImageElement;
-    const targetWidth=1540;
-    const scale=targetWidth/source.width;
-    this.woodlandBackdrop=this.add.image(0,230,'enchanted-woodland')
-      .setOrigin(0.5,0.5)
-      .setDisplaySize(source.width*scale,source.height*scale)
-      .setDepth(-21)
-      .setAlpha(0.92);
   }
 
   private drawWorld(): void {
