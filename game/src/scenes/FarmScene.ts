@@ -68,6 +68,8 @@ export class FarmScene extends Phaser.Scene {
   private sceneryGraphics: Phaser.GameObjects.Graphics[] = [];
   private sceneryLabels: Phaser.GameObjects.Text[] = [];
   private farmExpansionLevel=0;
+  private displayedLevel=1;
+  private farmhouseVisualLevel=1;
   private decor: Record<string,{col:number;row:number}> = {farmhouse:{col:3,row:1}};
   private fruitInventory:Record<'apples'|'pears'|'cherries',number>={apples:0,pears:0,cherries:0};
   private harvestedCrops:Record<CropId,number>={wheat:0,carrot:0,corn:0,strawberry:0,tomato:0,pumpkin:0,blueberry:0,watermelon:0};
@@ -1591,6 +1593,7 @@ export class FarmScene extends Phaser.Scene {
       this.claimedQuests = Array.isArray(save.claimedQuests) ? save.claimedQuests.filter((id:string)=>(['first-harvest','busy-farmer','first-hen','first-cow','better-coop','bigger-silo'].includes(id) || this.randomQuests.some(q=>q.id===id))) : [];
       this.ordersCompleted = save.version >= 9 && save.ordersCompleted && typeof save.ordersCompleted === 'object' ? Object.fromEntries(Object.entries(save.ordersCompleted).map(([id,count])=>[id,Math.max(0,Math.floor(Number(count)||0))]).filter(([id])=>['egg-crate','milk-run','farm-breakfast'].includes(String(id)))) : {};
       this.xp = Math.max(0, Math.floor(save.xp));
+      this.displayedLevel=this.farmerLevel;
       if(save.decor && typeof save.decor==='object' && !Array.isArray(save.decor)) {
         const restored:Record<string,{col:number;row:number}>={};
         for(const [id,value] of Object.entries(save.decor as Record<string,unknown>)) {
@@ -1675,6 +1678,8 @@ export class FarmScene extends Phaser.Scene {
     const xp = document.getElementById('xp');
     if (coins) coins.textContent = String(this.coins);
     const level = this.farmerLevel;
+    if(level>this.displayedLevel){const bonus=level*50;this.coins+=bonus;this.displayedLevel=level;this.toast('Level '+level+' reached! Farmhouse upgraded · +'+bonus+' coins.');}
+    if(level!==this.farmhouseVisualLevel){this.farmhouseVisualLevel=level;this.drawScenery();}
     if (xp) xp.textContent = `Level ${level} · ${this.xp} XP`;
     const levelBadge = document.getElementById('farmer-level');
     if (levelBadge) levelBadge.textContent = `LEVEL ${level}`;
