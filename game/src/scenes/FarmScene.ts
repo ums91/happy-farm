@@ -2448,8 +2448,8 @@ export class FarmScene extends Phaser.Scene {
     if(level!==this.displayedLevel||level!==this.farmhouseVisualLevel)this.redrawFarmTiles();
     if(level!==this.farmhouseVisualLevel){this.farmhouseVisualLevel=level;this.drawScenery();}
     if (xp) xp.textContent = `Level ${level} · ${this.xp} XP`;
-    const levelBadge = document.getElementById('farmer-level');
-    if (levelBadge) levelBadge.textContent = `LEVEL ${level}`;
+    const xpLevelLabel=document.getElementById('xp-level-label');
+    if(xpLevelLabel)xpLevelLabel.textContent=`LEVEL ${level}`;
     const farmerName=document.getElementById('farmer-name');if(farmerName)farmerName.textContent=this.farmerName;
     const farmLabel=document.getElementById('farm-name-label');if(farmLabel)farmLabel.textContent=this.farmName.toUpperCase();
     const farmerSub = document.querySelector<HTMLElement>('.profile-card small');
