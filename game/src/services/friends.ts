@@ -46,6 +46,7 @@ export function initializeFriends():void{
  if(initialized)return;initialized=true;
  el('top-friends')?.addEventListener('click',show);el('friends-close')?.addEventListener('click',hide);
  el('friends-modal')?.addEventListener('click',e=>{if(e.target===e.currentTarget)hide();});
+ el('copy-friend-code')?.addEventListener('click',async()=>{const code=el('my-friend-code')?.textContent||'';if(!code||code==='--------')return;try{await navigator.clipboard.writeText(code);setMessage('Friend Code copied. Share it with your neighbour!');}catch{setMessage('Your Friend Code is '+code);}});
  document.querySelectorAll<HTMLButtonElement>('[data-friends-tab]').forEach(b=>b.addEventListener('click',()=>setTab(b.dataset.friendsTab as 'friends'|'add'|'requests')));
  client=getCloudSupabaseClient();
  userId=getCloudUserId();
