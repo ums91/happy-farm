@@ -996,7 +996,7 @@ export class FarmScene extends Phaser.Scene {
     tip.addEventListener('click',event=>{
       const button=(event.target as HTMLElement).closest<HTMLButtonElement>('[data-water-plot]');
       if(!button)return;
-      const plot=this.cropActionPlot;
+      const plot=this.cropActionPlot||this.hoveredCropPlot;
       if(!plot||plot.state!=='growing'||plot.watered||this.waterUnits<1)return;
       this.waterPlot(plot);this.showCropActionPopup(plot,this.hoverPointer.x,this.hoverPointer.y);
     });
@@ -1014,8 +1014,18 @@ export class FarmScene extends Phaser.Scene {
     if(plot.state!=='growing'||plot.watered){this.toast(plot.watered?'This field has already been watered.':'Only growing crops can be watered.');return;}
     if(this.waterUnits<1){this.toast('No water available. Collect water from your Well.');return;}
     this.waterUnits-=1;plot.watered=true;this.scheduleGrowth(plot,Math.max(1500,Math.ceil((plot.readyAt-Date.now())/2)));
-    this.redrawPlot(plot);this.saveFarm();this.refreshHud();this.refreshSelection();this.toast(CROPS[plot.crop].name+' watered · 1 water used · remaining growth time halved.');
+    this.playWateringEffect(plot);this.redrawPlot(plot);this.saveFarm();this.refreshHud();this.refreshSelection();this.toast(CROPS[plot.crop].name+' watered · 1 water used · remaining growth time halved.');
   }
+  private playWateringEffect(plot:Plot):void {
+    const p=this.toWorld(plot.col,plot.row);
+    for(let i=0;i<7;i++){
+      const drop=this.add.ellipse(p.x+Phaser.Math.Between(-22,22),p.y-28-Phaser.Math.Between(0,12),5,9,0x75d8f2,0.95).setDepth(p.y+18);
+      this.tweens.add({targets:drop,x:drop.x+Phaser.Math.Between(-9,9),y:p.y+Phaser.Math.Between(-2,10),alpha:0,scaleX:0.35,scaleY:0.35,duration:480,onComplete:()=>drop.destroy()});
+    }
+    const splash=this.add.ellipse(p.x,p.y+2,18,5,0x8bdcf0,0.65).setDepth(p.y+17);
+    this.tweens.add({targets:splash,scaleX:3.2,scaleY:2.1,alpha:0,duration:520,onComplete:()=>splash.destroy()});
+  }
+
   private updateCropHover(pointer:Phaser.Input.Pointer):void {
     if(!this.cropHoverTooltip)return;
     const world=this.cameras.main.getWorldPoint(pointer.x,pointer.y);
@@ -1052,8 +1062,10 @@ export class FarmScene extends Phaser.Scene {
     if(plot.state==='ready')status='Ready to harvest!';
     else if(plot.state==='withered')status='Withered · Plow to clear';
     else {const ms=Math.max(0,plot.readyAt-Date.now()),totalSeconds=Math.ceil(ms/1000),hours=Math.floor(totalSeconds/3600),mins=Math.floor((totalSeconds%3600)/60),secs=totalSeconds%60;status='Harvest in '+(hours>0?hours+'h ':'')+(mins>0?mins+'m ':'')+secs+'s';}
-    tip.innerHTML='<strong>'+crop.emoji+' '+crop.name+'</strong><span>'+status+'</span>';
-    tip.style.left=Math.min(this.scale.width-180,this.hoverPointer.x+14)+'px';tip.style.top=Math.max(8,this.hoverPointer.y-48)+'px';tip.style.display='flex';tip.style.pointerEvents='none';this.cropActionPlot=null;
+    this.cropActionPlot=plot;
+    const waterAction=plot.state==='growing'?(plot.watered?'<span>💧 Watered · growth boosted</span>':this.waterUnits>0?'<button type="button" class="crop-water-action" data-water-plot>💧 Water · 1</button>':'<span>💧 No water available</span>'):'';
+    tip.innerHTML='<strong>'+crop.emoji+' '+crop.name+'</strong><span>'+status+'</span>'+waterAction;
+    tip.style.left=Math.max(8,Math.min(this.scale.width-190,this.hoverPointer.x+14))+'px';tip.style.top=Math.max(8,this.hoverPointer.y-58)+'px';tip.style.display='flex';tip.style.pointerEvents='auto';
   }
 
   private applyTool(plot: Plot): void {
