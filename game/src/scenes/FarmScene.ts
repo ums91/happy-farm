@@ -1297,15 +1297,15 @@ export class FarmScene extends Phaser.Scene {
       const stage = plot.state === 'ready' ? 5 : Math.min(5, Math.floor(plot.growth / 20) + 1);
       const size=plot.state==='ready'?78:38+stage*8;
       g.fillStyle(0x342a20,0.2);g.fillEllipse(p.x,p.y-2,size*0.48,size*0.16);
-      const sprite = this.add.image(p.x, p.y - 13, `crop-tomato-${stage}`);
-      sprite.setDisplaySize(size, size).setDepth(p.y + 24);
+      const sprite = this.add.image(p.x, p.y + 2, `crop-tomato-${stage}`);
+      sprite.setOrigin(0.5,0.82).setDisplaySize(size, size).setDepth(p.y + 24);
       this.tomatoSprites.set(id, sprite);
     } else if (['wheat','carrot','corn','strawberry','pumpkin'].includes(plot.crop) && (plot.state === 'growing' || plot.state === 'ready') && this.textures.exists(`crop-${plot.crop}`)) {
       const stage = plot.state === 'ready' ? 4 : Math.min(4, Math.floor(plot.growth / 20));
       const size=plot.state==='ready'?78:34+stage*11;
       g.fillStyle(0x342a20,0.2);g.fillEllipse(p.x,p.y-2,size*0.48,size*0.16);
-      const sprite = this.add.image(p.x, p.y - 13, `crop-${plot.crop}`, stage);
-      sprite.setDisplaySize(size, size).setDepth(p.y + 24);
+      const sprite = this.add.image(p.x, p.y + 2, `crop-${plot.crop}`, stage);
+      sprite.setOrigin(0.5,0.82).setDisplaySize(size, size).setDepth(p.y + 24);
       this.cropSprites.set(id, sprite);
     } else if (plot.state === 'growing' || plot.state === 'ready' || plot.state === 'withered') {
       this.drawCrop(g, p.x, p.y, plot);
@@ -1728,7 +1728,8 @@ export class FarmScene extends Phaser.Scene {
   private closeMarket(): void {this.activeBuilding=null;document.getElementById('market-modal')?.classList.remove('open','field-seed-mode');const panel=document.querySelector<HTMLElement>('#market-modal .market-window');if(panel){panel.style.left='';panel.style.top='';}document.getElementById('market-modal')?.setAttribute('aria-hidden','true');document.getElementById('market-modal')?.querySelector('.market-tabs')?.classList.remove('inventory-hidden');}
   private marketArtImage(path:string,alt:string,fallback:string):string {
     const src=import.meta.env.BASE_URL+'assets/'+path;
-    return '<div class="market-art"><img class="market-thumb" src="'+src+'" alt="'+alt+'" loading="lazy" onerror="this.style.display=\'none\';this.parentElement.textContent=\''+fallback+'\';"></div>';
+    const animal=path==='animals/cow.png'?' cow-atlas':path==='animals/hen.png'?' hen-atlas':'';
+    return '<div class="market-art'+animal+'"><img class="market-thumb" src="'+src+'" alt="'+alt+'" loading="lazy" onerror="this.style.display=\'none\';this.parentElement.textContent=\''+fallback+'\';"></div>';
   }
 
   private renderMarket(category='seeds'): void {
