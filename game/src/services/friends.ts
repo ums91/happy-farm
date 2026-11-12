@@ -2,6 +2,8 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { getCloudSupabaseClient, getCloudUserId } from './cloudSave';
 
 const SAVE_KEY='happyFarmPhaserSaveV1';
+const VISITOR_BACKUP_KEY='happyFarmVisitorOriginalSaveV1';
+const VISITOR_MODE_KEY='happyFarmVisitorModeV1';
 type Farmer={friend_code:string;farmer_name:string;farm_name:string;level:number;xp?:number};
 type Friend=Farmer&{friend_user_id:string;friends_since?:string};
 type Request=Farmer&{request_id:string;direction:'incoming'|'outgoing';created_at:string};
@@ -12,6 +14,23 @@ let activeTab:'friends'|'add'|'requests'='friends';
 const el=(id:string)=>document.getElementById(id);
 function escapeHtml(value:unknown):string{return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]||ch));}
 function getLocalProfile(){try{const s=JSON.parse(localStorage.getItem(SAVE_KEY)||'{}');const xp=Math.max(0,Number(s.xp)||0);let level=1,total=0;while(level<100){const next=120+14*(level-1)*(level-1);if(xp<total+next)break;total+=next;level++;}return{farmerName:String(s.farmerName||'New Farmer').slice(0,24),farmName:String(s.farmName||'My Farm').slice(0,28),level,xp};}catch{return{farmerName:'New Farmer',farmName:'My Farm',level:1,xp:0};}}
+async function visitFriend(friend:Friend,button:HTMLButtonElement){
+ if(!client||!userId){setMessage('Sign in before visiting a neighbour.',true);return;}
+ if(sessionStorage.getItem(VISITOR_MODE_KEY)){setMessage('You are already visiting a neighbour.',true);return;}
+ button.disabled=true;button.textContent='Loading farm…';
+ try{
+  const {data,error}=await client.rpc('hf_get_friend_farm',{p_friend_user_id:friend.friend_user_id});
+  if(error)throw error;
+  const save=(Array.isArray(data)?data[0]:data) as Record<string,unknown>|null;
+  if(!save||!Array.isArray(save.plots)||!Array.isArray(save.animals)||!save.inventory||!save.feed)throw new Error('This neighbour farm save is incomplete or unavailable.');
+  const ownSave=localStorage.getItem(SAVE_KEY);
+  if(!ownSave)throw new Error('Your local farm save could not be found. Visit cancelled to protect your farm.');
+  localStorage.setItem(VISITOR_BACKUP_KEY,ownSave);
+  sessionStorage.setItem(VISITOR_MODE_KEY,JSON.stringify({farmerName:friend.farmer_name,farmName:friend.farm_name,level:friend.level}));
+  localStorage.setItem(SAVE_KEY,JSON.stringify(save));
+  window.location.reload();
+ }catch(e){button.disabled=false;button.textContent='🏡 Visit Farm';setMessage(e instanceof Error?e.message:String(e),true);}
+}
 function setMessage(message:string,error=false){const node=el('friends-status');if(node){node.textContent=message;node.classList.toggle('is-error',error);}}
 function show(){el('friends-modal')?.classList.add('open');el('friends-modal')?.setAttribute('aria-hidden','false');void render();}
 function hide(){el('friends-modal')?.classList.remove('open');el('friends-modal')?.setAttribute('aria-hidden','true');}
@@ -30,8 +49,9 @@ async function render(){
   if(activeTab==='friends'){
    const {data,error}=await api.rpc('hf_list_friends');if(error)throw error;
    const friends=(data||[]) as Friend[];
-   host.innerHTML=friends.length?'<div class="friends-list">'+friends.map(f=>'<article class="friend-card"><div class="friend-avatar">👨‍🌾</div><div class="friend-info"><strong>'+escapeHtml(f.farmer_name)+'</strong><small>'+escapeHtml(f.farm_name)+' · Level '+f.level+'</small><small>Friend Code: '+escapeHtml(f.friend_code)+'</small></div><button type="button" class="friend-remove" data-remove-friend="'+escapeHtml(f.friend_user_id)+'" title="Remove neighbour">✕</button></article>').join('')+'</div>':'<div class="friends-empty"><div class="friends-big-icon">🌻</div><strong>Your neighbour list is waiting!</strong><p>Add farmers using their Friend Code to start building your neighbourhood.</p><button type="button" id="friends-add-first">＋ Add your first friend</button></div>';
+   host.innerHTML=friends.length?'<div class="friends-list">'+friends.map(f=>'<article class="friend-card"><div class="friend-avatar">👨‍🌾</div><div class="friend-info"><strong>'+escapeHtml(f.farmer_name)+'</strong><small>'+escapeHtml(f.farm_name)+' · Level '+f.level+'</small><small>Friend Code: '+escapeHtml(f.friend_code)+'</small></div><button type="button" class="friend-visit" data-visit-friend="'+escapeHtml(f.friend_user_id)+'">🏡 Visit Farm</button><button type="button" class="friend-remove" data-remove-friend="'+escapeHtml(f.friend_user_id)+'" title="Remove neighbour">✕</button></article>').join('')+'</div>':'<div class="friends-empty"><div class="friends-big-icon">🌻</div><strong>Your neighbour list is waiting!</strong><p>Add farmers using their Friend Code to start building your neighbourhood.</p><button type="button" id="friends-add-first">＋ Add your first friend</button></div>';
    host.querySelector('#friends-add-first')?.addEventListener('click',()=>setTab('add'));
+   host.querySelectorAll<HTMLButtonElement>('[data-visit-friend]').forEach(b=>b.addEventListener('click',()=>{const friend=friends.find(f=>f.friend_user_id===b.dataset.visitFriend);if(friend)void visitFriend(friend,b);}));
    host.querySelectorAll<HTMLButtonElement>('[data-remove-friend]').forEach(b=>b.addEventListener('click',async()=>{if(!confirm('Remove this neighbour from your friends list?'))return;try{const {error}=await api.rpc('hf_remove_friend',{p_friend_user_id:b.dataset.removeFriend});if(error)throw error;setMessage('Neighbour removed.');await render();}catch(e){setMessage(e instanceof Error?e.message:String(e),true);}}));
   }else if(activeTab==='add'){
    host.innerHTML='<form class="friends-add-form" id="friends-search-form"><label for="friend-code-input">Enter a Farmer Friend Code</label><div class="friends-code-row"><input id="friend-code-input" maxlength="8" minlength="8" autocomplete="off" placeholder="e.g. A1B2C3D4" required/><button type="submit">Search</button></div><p>Ask your friend to share the 8-character code shown on their Friends panel.</p></form><div id="friends-search-result"></div>';
