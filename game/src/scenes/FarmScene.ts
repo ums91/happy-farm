@@ -948,8 +948,15 @@ export class FarmScene extends Phaser.Scene {
       });
       if(!hit){this.toast('Tap a farm item to '+(this.activeTool==='store'?'store':'remove')+' it.');return;}
       if(hit==='farmhouse'){this.toast('Your farmhouse cannot be stored or removed.');return;}
-      if(this.activeTool==='store'){this.storedDecor.push(hit);delete this.decor[hit];delete this.fruitTreeReadyAt[hit];this.drawScenery();this.renderOwnedAnimals();this.renderFruitTreeBadges();this.saveFarm();this.refreshHud();this.toast(hit+' stored in Inventory. You can place it again anytime.');}
-      else{delete this.decor[hit];delete this.fruitTreeReadyAt[hit];this.drawScenery();this.renderOwnedAnimals();this.renderFruitTreeBadges();this.saveFarm();this.refreshHud();this.toast(hit+' removed from your farm permanently.');}
+      const itemName=hit.replace(/([A-Z])/g,' $1').replace(/^./,letter=>letter.toUpperCase());
+      if(this.activeTool==='store'){
+        if(!window.confirm('Store '+itemName+' in Inventory?\n\nYou can place it on your farm again later.'))return;
+        this.storedDecor.push(hit);delete this.decor[hit];delete this.fruitTreeReadyAt[hit];this.drawScenery();this.renderOwnedAnimals();this.renderFruitTreeBadges();this.saveFarm();this.refreshHud();this.toast(hit+' stored in Inventory. You can place it again anytime.');
+      }
+      else{
+        if(!window.confirm('Are you sure you want to permanently remove '+itemName+'?\n\nThis cannot be undone. Choose Cancel to keep it on your farm.'))return;
+        delete this.decor[hit];delete this.fruitTreeReadyAt[hit];this.drawScenery();this.renderOwnedAnimals();this.renderFruitTreeBadges();this.saveFarm();this.refreshHud();this.toast(hit+' removed from your farm permanently.');
+      }
       return;
     }
     if(this.activeTool==='move'){
