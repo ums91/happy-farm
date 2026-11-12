@@ -2001,3 +2001,47 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
   .farmer-meta .xp-line{flex:0 1 48%;width:48%!important;min-width:38px;grid-column:auto!important}
   .farmer-meta #progress-text{flex:1;min-width:0;text-align:right;white-space:nowrap;font-size:7px!important;color:#f8e8c8;line-height:1}
 }
+
+/* Friends & Neighbours social panel */
+.friends-toolbar-button{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:7px 10px;border:2px solid #b78a49;border-radius:18px;background:linear-gradient(#fff6d9,#e8c783);color:#684521;font-weight:1000;font-size:11px;white-space:nowrap;box-shadow:0 2px 0 #8c632f}
+.friends-modal-backdrop{display:none;position:fixed;inset:0;z-index:1200;align-items:center;justify-content:center;padding:16px;background:#172719b8;backdrop-filter:blur(5px)}
+.friends-modal-backdrop.open{display:flex}
+.friends-modal-card{width:min(590px,96vw);max-height:min(760px,92dvh);overflow:auto;padding:17px;border:5px ridge #c69a5d;border-radius:20px;background:linear-gradient(145deg,#fffdf3,#f0dfbc);box-shadow:0 8px 0 #75502d,0 18px 45px #0006;color:#684a2b}
+.friends-modal-card>header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:11px;border-bottom:2px solid #e5d1a5}
+.friends-modal-card>header small{font-size:9px;letter-spacing:1.6px;font-weight:900;color:#a17b43}
+.friends-modal-card>header h2{margin:3px 0 0;font-size:clamp(20px,4vw,27px);color:#628b3e}
+.friends-modal-card>header>button{width:36px;height:36px;border:2px solid #d1b47e;border-radius:50%;background:#fff6df;color:#76532e;font-size:24px;line-height:1}
+.my-farmer-code{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:12px 0;padding:11px 13px;border:1px solid #d7c18f;border-radius:13px;background:linear-gradient(110deg,#f8edce,#e8d4a7)}
+.my-farmer-code>div{display:grid;gap:2px}
+.my-farmer-code small{font-size:8px;letter-spacing:1.2px;font-weight:900;color:#94703e}
+.my-farmer-code strong{font-size:22px;letter-spacing:3px;color:#634522}
+.my-farmer-code span{font-size:10px;color:#8d7652}
+.my-farmer-code button,.friends-content button{border:1px solid #6d9a45;border-radius:9px;padding:8px 11px;background:linear-gradient(#b9df82,#83b74d);color:#345b26;font-size:11px;font-weight:1000;cursor:pointer}
+.friends-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:11px 0}
+.friends-tabs button{min-height:38px;border:1px solid #d4bd8d;border-radius:9px;background:#f8efd9;color:#80633d;font-size:11px;font-weight:900}
+.friends-tabs button.active{border-color:#7ea94e;background:linear-gradient(#d9edb7,#a9d179);color:#365e2a;box-shadow:0 2px 0 #7b9d4c}
+.friends-status{min-height:18px;margin:4px 0 8px;font-size:10px;color:#668e42}
+.friends-status.is-error,.friends-error{color:#ad4e38!important}
+.friends-content{min-height:180px}
+.friends-loading,.friends-empty{display:grid;justify-items:center;gap:8px;padding:28px 12px;text-align:center;color:#92764d}
+.friends-empty strong{font-size:15px;color:#6b512e}
+.friends-empty p,.friends-add-form p{max-width:380px;margin:0;font-size:11px;line-height:1.5;color:#947c59}
+.friends-big-icon{font-size:34px}
+.friends-list{display:grid;gap:8px}
+.friend-card{display:flex;align-items:center;gap:10px;min-width:0;padding:9px;border:1px solid #e0cda7;border-radius:12px;background:#fffaf0;box-shadow:0 2px 0 #e4d2ac}
+.friend-avatar{display:grid;place-items:center;flex:0 0 42px;width:42px;height:42px;border-radius:12px;background:linear-gradient(#f7e9bc,#e4cf99);font-size:25px}
+.friend-info{display:grid;flex:1;min-width:0;gap:2px}
+.friend-info strong{font-size:12px;color:#674a2c;overflow-wrap:anywhere}
+.friend-info small{font-size:9px;color:#987e59;overflow-wrap:anywhere}
+.friend-card .friend-remove{flex:0 0 30px;width:30px;height:30px;padding:0;border-color:#d6bda0;background:#f8e8d8;color:#925d3e}
+.friend-request-actions{display:flex;flex-wrap:wrap;gap:5px}
+.friend-request-actions button{padding:7px 8px;font-size:10px}
+.friend-request-actions button[data-decline-request]{border-color:#caa18a;background:linear-gradient(#f4dfd1,#e7c3ad);color:#794a32}
+.friends-add-form{display:grid;gap:9px;padding:14px;border:1px solid #e0cda7;border-radius:13px;background:#fffaf0}
+.friends-add-form label{font-size:12px;font-weight:1000;color:#6a4d2d}
+.friends-code-row{display:flex;gap:7px}
+.friends-code-row input{flex:1;min-width:0;padding:10px;border:1px solid #cfb98d;border-radius:9px;background:white;color:#60472a;font-weight:900;letter-spacing:2px;text-transform:uppercase}
+.friends-code-row button{min-width:82px}
+.friends-success{padding:10px;border-radius:9px;background:#e7f2d8;color:#4c7935;font-size:12px;font-weight:900}
+.friends-footnote{display:block;margin-top:12px;padding-top:9px;border-top:1px solid #e7d6b5;color:#9a825f;font-size:9px;line-height:1.4}
+@media(max-width:650px){.friends-toolbar-button{padding:5px 7px;font-size:9px}.friends-modal-card{padding:12px;border-width:4px;max-height:94dvh}.friends-modal-card>header h2{font-size:20px}.my-farmer-code strong{font-size:19px}.friends-tabs button{font-size:9px;padding:5px 2px}.friend-card{gap:7px;padding:7px}.friend-avatar{flex-basis:36px;width:36px;height:36px;font-size:22px}.friend-info strong{font-size:11px}.friend-request-actions{flex-direction:column}}
