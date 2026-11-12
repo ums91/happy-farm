@@ -1988,3 +1988,16 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
  #market-modal.market-mode .market-buy{font-size:9px!important;padding:5px 8px!important}
  #market-modal.inventory-mode .inventory-grid,#market-modal.inventory-mode .quest-list{grid-template-columns:1fr!important}
 }
+
+
+/* Compact farmer XP row: shorter bar leaves room for both level progress and lifetime XP. */
+@media(min-width:701px){
+  .farmer-meta .xp-progress-row{grid-column:1/-1;display:flex;align-items:center;gap:9px;min-width:0;width:100%}
+  .farmer-meta .xp-line{flex:0 1 62%;width:62%!important;min-width:72px;grid-column:auto!important}
+  .farmer-meta #progress-text{flex:1;min-width:0;text-align:right;white-space:nowrap;font-size:9px;letter-spacing:-.1px;color:#f8e8c8;line-height:1}
+}
+@media(max-width:700px){
+  .farmer-meta .xp-progress-row{grid-column:1/-1;display:flex;align-items:center;gap:6px;min-width:0;width:100%}
+  .farmer-meta .xp-line{flex:0 1 48%;width:48%!important;min-width:38px;grid-column:auto!important}
+  .farmer-meta #progress-text{flex:1;min-width:0;text-align:right;white-space:nowrap;font-size:7px!important;color:#f8e8c8;line-height:1}
+}
