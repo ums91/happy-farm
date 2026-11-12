@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { initializeCloudSaves, queueCloudSave } from '../services/cloudSave';
 
-type Tool = 'select' | 'plow' | 'plant' | 'harvest' | 'move' | 'store' | 'remove';
+type Tool = 'select' | 'plow' | 'plant' | 'harvest' | 'move' | 'store' | 'remove' | 'feed-hen' | 'feed-cow';
 type PlotState = 'grass' | 'tilled' | 'growing' | 'ready' | 'withered';
 type CropId = 'wheat' | 'carrot' | 'corn' | 'strawberry' | 'tomato' | 'pumpkin' | 'blueberry' | 'watermelon';
 interface Plot { col: number; row: number; state: PlotState; watered: boolean; growth: number; crop: CropId; readyAt: number; witherAt: number }
@@ -78,6 +78,7 @@ export class FarmScene extends Phaser.Scene {
   private animalSprites = new Map<Phaser.GameObjects.Container, Phaser.GameObjects.Sprite>();
   private animalReservedCells=new Set<string>();
   private animalTroughs=new Map<AnimalId,Phaser.GameObjects.Container>();
+  private animalHungryBadges=new Map<number,Phaser.GameObjects.Text>();
   private sceneryGraphics: Phaser.GameObjects.Graphics[] = [];
   private sceneryLabels: Phaser.GameObjects.Text[] = [];
   private landTiles = new Set<string>();
@@ -160,7 +161,7 @@ export class FarmScene extends Phaser.Scene {
     this.bindDailyReward();
     initializeCloudSaves();
     this.refreshSelection();
-    this.time.addEvent({ delay: 1000, loop: true, callback: () => { if((this.questRefreshAt>0&&Date.now()>=this.questRefreshAt)||(this.eventStartedAt>0&&Date.now()-this.eventStartedAt>=604800000)){this.ensureQuestAndEventCycles();this.renderSideRail();} this.updateCropLifecycle(); this.updateProduction(); this.updateFruitTrees(); this.refreshCropHoverTooltip(); if(this.activeBuilding==='coop'||this.activeBuilding==='barn')this.renderBuildingPanel(this.activeBuilding);else if(this.activeBuilding)this.renderGenericBuildingPanel(this.activeBuilding); } });
+    this.time.addEvent({ delay: 1000, loop: true, callback: () => { if((this.questRefreshAt>0&&Date.now()>=this.questRefreshAt)||(this.eventStartedAt>0&&Date.now()-this.eventStartedAt>=604800000)){this.ensureQuestAndEventCycles();this.renderSideRail();} this.updateCropLifecycle(); this.updateProduction(); this.updateFruitTrees(); this.updateAnimalHungryIndicators(); this.refreshCropHoverTooltip(); if(this.activeBuilding==='coop'||this.activeBuilding==='barn')this.renderBuildingPanel(this.activeBuilding);else if(this.activeBuilding)this.renderGenericBuildingPanel(this.activeBuilding); } });
     this.input.on('wheel', (_pointer: Phaser.Input.Pointer, _objects: unknown[], _dx: number, dy: number) => {
       const camera=this.cameras.main;const anchor=camera.getWorldPoint(_pointer.x,_pointer.y);camera.setZoom(Phaser.Math.Clamp(camera.zoom-dy*0.0015,this.minFarmZoom,1.8));const after=camera.getWorldPoint(_pointer.x,_pointer.y);camera.scrollX+=anchor.x-after.x;camera.scrollY+=anchor.y-after.y;
     });
@@ -558,7 +559,7 @@ export class FarmScene extends Phaser.Scene {
   }
 
   private renderOwnedAnimals(): void {
-    this.animalActors.forEach(actor=>{this.tweens.killTweensOf(actor);const sprite=this.animalSprites.get(actor);if(sprite)this.tweens.killTweensOf(sprite);actor.destroy();});this.animalActors=[];this.animalSprites.clear();this.animalReservedCells.clear();this.animalTroughs.forEach(t=>t.destroy());this.animalTroughs.clear();
+    this.animalActors.forEach(actor=>{this.tweens.killTweensOf(actor);const sprite=this.animalSprites.get(actor);if(sprite)this.tweens.killTweensOf(sprite);actor.destroy();});this.animalActors=[];this.animalSprites.clear();this.animalReservedCells.clear();this.animalTroughs.forEach(t=>t.destroy());this.animalTroughs.clear();this.animalHungryBadges.forEach(b=>b.destroy());this.animalHungryBadges.clear();
     // Resolve animal home anchors defensively: older saves may contain animals before
     // their matching building decor has been restored or placed.
     const farmhouse=this.decor.farmhouse||{col:3,row:1};
@@ -783,6 +784,12 @@ export class FarmScene extends Phaser.Scene {
 
   private handleWorldTap(pointer: Phaser.Input.Pointer): void {
     const world=this.cameras.main.getWorldPoint(pointer.x,pointer.y);
+    if(this.activeTool==='feed-hen'||this.activeTool==='feed-cow'){
+      const kind:AnimalId=this.activeTool==='feed-hen'?'hen':'cow';
+      const index=this.animals.findIndex((animal,i)=>{const actor=this.animalActors[i];return animal.id===kind&&!!actor?.active&&Phaser.Math.Distance.Between(world.x,world.y,actor.x,actor.y)<(kind==='cow'?34:27);});
+      if(index>=0){this.feedAnimalAt(index,kind);return;}
+      this.toast('Tap a '+(kind==='hen'?'hen':'cow')+' to feed it.');return;
+    }
     // Newly purchased trees/decor remain in hand until the player chooses a valid tile.
     if(this.pendingDecorId){
       const tile=this.toTile(world.x,world.y);
@@ -1527,6 +1534,26 @@ export class FarmScene extends Phaser.Scene {
   private animalProductionDuration(kind:AnimalId):number{return kind==='hen'?10*60*1000:30*60*1000;}
   private productionCapacity(kind:AnimalId):number{return 10+((kind==='hen'?this.buildings.coopLevel:this.buildings.barnLevel)-1)*5+(this.buildings.warehouseLevel-1)*10;}
   private collectAndFeed(kind:AnimalId):{collected:number;fed:number;waiting:number}{let collected=0,fed=0,waiting=0;const now=Date.now();const field=kind==='hen'?'eggs':'milk';for(const animal of this.animals.filter(a=>a.id===kind&&a.assigned!==false)){if(animal.readyAt>0&&animal.readyAt<=now){if(this.produce[field]<this.productionCapacity(kind)){this.produce[field]++;animal.readyAt=0;collected++;}else{waiting++;continue;}}if(animal.readyAt===0){if(this.feed[kind]>0){this.feed[kind]--;animal.readyAt=now+this.animalProductionDuration(kind);fed++;const actor=this.animalActors[this.animals.indexOf(animal)];if(actor)this.moveAnimalToTrough(actor,kind,fed-1);this.animateAnimalTrough(kind);}else waiting++;}}return{collected,fed,waiting};}
+  private updateAnimalHungryIndicators():void{
+    this.animals.forEach((animal,index)=>{
+      const actor=this.animalActors[index],hungry=animal.assigned!==false&&animal.readyAt===0&&!!actor?.active;
+      let badge=this.animalHungryBadges.get(index);
+      if(!hungry){if(badge){badge.destroy();this.animalHungryBadges.delete(index);}return;}
+      if(!badge){badge=this.add.text(actor.x,actor.y-34,'🥣',{fontFamily:'Arial',fontSize:'18px',backgroundColor:'#fff4c9',padding:{x:3,y:2}}).setOrigin(.5).setDepth(30001);this.animalHungryBadges.set(index,badge);this.tweens.add({targets:badge,y:badge.y-4,duration:650,yoyo:true,repeat:-1,ease:'Sine.inOut'});}
+      badge.setPosition(actor.x,actor.y-34).setDepth(actor.depth+30);
+    });
+  }
+  private feedAnimalAt(index:number,kind:AnimalId):void{
+    const animal=this.animals[index],actor=this.animalActors[index];
+    if(!animal||animal.id!==kind||animal.assigned===false){this.toast('Select a '+(kind==='hen'?'hen':'cow')+' to feed.');return;}
+    if(animal.readyAt>0){this.toast('This animal has already been fed.');return;}
+    if(this.feed[kind]<=0){this.toast('No '+(kind==='hen'?'hen':'cow')+' feed in storage. Visit the Market to buy feed.');return;}
+    this.feed[kind]--;animal.readyAt=Date.now()+this.animalProductionDuration(kind);
+    if(actor)this.moveAnimalToTrough(actor,kind,this.animals.slice(0,index).filter(a=>a.id===kind).length);
+    this.animateAnimalTrough(kind);this.saveFarm();this.refreshHud();this.updateAnimalHungryIndicators();
+    this.toast((kind==='hen'?'Hen':'Cow')+' fed · '+(kind==='hen'?'Egg':'Milk')+' production started.');
+    if(this.activeBuilding===(kind==='hen'?'coop':'barn'))this.renderBuildingPanel(kind==='hen'?'coop':'barn');
+  }
   private animateAnimalCollection(actor:Phaser.GameObjects.Container,kind:AnimalId):void{
     if(!actor.active)return;
     const sprite=this.animalSprites.get(actor),cow=kind==='cow';
@@ -1929,7 +1956,7 @@ export class FarmScene extends Phaser.Scene {
       return;
     }
     const names: Record<PlotState, string> = { grass: 'Open grassland', tilled: 'Freshly plowed soil', growing: 'Growing crop', ready: 'Ready to harvest', withered: 'Withered crop · plow to clear' };
-    const actions: Record<Tool, string> = { select: 'Choose a tool to work this plot.', plow: 'Plow open or withered land to prepare the soil.', plant: `Plant ${CROPS[this.selectedCrop].name} · ${CROPS[this.selectedCrop].cost} coins per field.`, harvest: this.selected.state === 'withered' ? 'This crop has withered. Select Plow to clear the plot.' : 'Harvest ripe crops before their harvest window closes.', move: 'Drag a tree, farmhouse, barn, silo or animal pen to a new grid position.', store: 'Tap a placed tree, decoration or building to move it into your inventory.', remove: 'Tap a placed tree, decoration or building to permanently remove it.' };
+    const actions: Record<Tool, string> = { select: 'Choose a tool to work this plot.', plow: 'Plow open or withered land to prepare the soil.', plant: `Plant ${CROPS[this.selectedCrop].name} · ${CROPS[this.selectedCrop].cost} coins per field.`, harvest: this.selected.state === 'withered' ? 'This crop has withered. Select Plow to clear the plot.' : 'Harvest ripe crops before their harvest window closes.', move: 'Drag a tree, farmhouse, barn, silo or animal pen to a new grid position.', store: 'Tap a placed tree, decoration or building to move it into your inventory.', remove: 'Tap a placed tree, decoration or building to permanently remove it.', 'feed-hen':'Select Hen Feed, then tap a hungry hen to feed it.', 'feed-cow':'Select Cow Feed, then tap a hungry cow to feed it.' };
     host.innerHTML = `<span class="selection-kicker">LAND · ${this.selected.col + 1}, ${this.selected.row + 1}</span><strong>${names[this.selected.state]}</strong><p>${actions[this.activeTool]}</p>`;
   }
 }
