@@ -574,7 +574,7 @@ export class FarmScene extends Phaser.Scene {
       const homeTile=this.nearestAnimalCell(home);
       if(!homeTile){this.toast('No clear grass tile available for an animal. Move a building or field first.');return;}
       const center=this.toWorld(homeTile.col,homeTile.row);
-      if(!this.animalTroughs.has(animal.id))this.createAnimalTrough(animal.id,center.x+(cow?24:17),center.y+12);
+      if(!this.animalTroughs.has(animal.id))this.createAnimalTrough(animal.id,center.x+(cow?20:17),center.y+12);
       const bounds={width:TILE_W*4,height:TILE_H*4};
       const actor=this.add.container(center.x,center.y);actor.setDepth(center.y+24+index*0.01);
       this.animalReservedCells.add(this.animalCellKey(homeTile));
@@ -582,9 +582,11 @@ export class FarmScene extends Phaser.Scene {
       // multiplier (0.275) was applied on top of setDisplaySize and made cows
       // disproportionately tiny beside hens and buildings.
       actor.setScale(1);
-      const animalWidth=animal.id==='chick'?17:cow?(baby?28:44):27;
-      const animalHeight=animal.id==='chick'?16:cow?(baby?20:30):26;
-      actor.add(this.add.ellipse(0,6,cow?(baby?28:40):animal.id==='chick'?17:24,cow?(baby?6:8):6,0x263e25,0.2));
+      // Adult cows should read only modestly larger than hens in the isometric view;
+      // calves remain visibly smaller. Keep sprite dimensions explicit (no container multiplier).
+      const animalWidth=animal.id==='chick'?17:cow?(baby?23:34):27;
+      const animalHeight=animal.id==='chick'?16:cow?(baby?17:24):26;
+      actor.add(this.add.ellipse(0,6,cow?(baby?21:31):animal.id==='chick'?17:24,cow?(baby?5:7):6,0x263e25,0.2));
       const texture=animal.id==='chick'?'animal-chick':cow?'animal-cow':'animal-hen';
       if(this.textures.exists(texture)){
         const sprite=this.add.sprite(0,-2,texture).setDisplaySize(animalWidth,animalHeight).setAlpha(1).setVisible(true);
