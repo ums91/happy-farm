@@ -5,8 +5,8 @@ type Tool = 'select' | 'plow' | 'plant' | 'harvest' | 'move' | 'store' | 'remove
 type PlotState = 'grass' | 'tilled' | 'growing' | 'ready' | 'withered';
 type CropId = 'wheat' | 'carrot' | 'corn' | 'strawberry' | 'tomato' | 'pumpkin' | 'blueberry' | 'watermelon';
 interface Plot { col: number; row: number; state: PlotState; watered: boolean; growth: number; crop: CropId; readyAt: number; witherAt: number }
-type AnimalId = 'hen' | 'cow';
-interface Animal { id: AnimalId; readyAt: number; assigned?: boolean }
+type AnimalId = 'hen' | 'cow' | 'chick' | 'calf';
+interface Animal { id: AnimalId; readyAt: number; assigned?: boolean; growthFeedings?: number }
 interface BuildingProgress { coopLevel: number; barnLevel: number; warehouseLevel: number }
 interface AnimalProduce { eggs: number; milk: number }
 type BuildingId = 'coop'|'barn'|'silo'|'bakery'|'greenhouse'|'windmill'|'stable'|'well'|'workshop'|'waterTower';
@@ -63,7 +63,7 @@ export class FarmScene extends Phaser.Scene {
   private inventory: Record<CropId,number> = {wheat:3,carrot:0,corn:0,strawberry:0,tomato:0,pumpkin:0,blueberry:0,watermelon:0};
   private selectedCrop: CropId = 'wheat';
   private animals: Animal[] = [];
-  private feed: Record<AnimalId, number> = { hen: 0, cow: 0 };
+  private feed: Record<AnimalId, number> = { hen: 0, cow: 0, chick: 0, calf: 0 };
   private buildings: BuildingProgress = { coopLevel: 0, barnLevel: 0, warehouseLevel: 0 };
   private produce: AnimalProduce = { eggs: 0, milk: 0 };
   private activeBuilding: BuildingId|null = null;
@@ -567,7 +567,7 @@ export class FarmScene extends Phaser.Scene {
     const barnHome=this.decor.barn||{col:Math.min(COLS-1,farmhouse.col+3),row:Math.min(ROWS-1,farmhouse.row+3)};
     const cowHome=barnHome;
     this.animals.forEach((animal,index)=>{
-      const cow=animal.id==='cow';
+      const cow=animal.id==='cow'||animal.id==='calf',baby=this.isBabyAnimal(animal.id);
       const home=cow?cowHome:henHome;
       const homeTile=this.nearestAnimalCell(home);
       if(!homeTile){this.toast('No clear grass tile available for an animal. Move a building or field first.');return;}
@@ -576,16 +576,16 @@ export class FarmScene extends Phaser.Scene {
       const bounds={width:TILE_W*4,height:TILE_H*4};
       const actor=this.add.container(center.x,center.y);actor.setDepth(center.y+24+index*0.01);
       this.animalReservedCells.add(this.animalCellKey(homeTile));
-      const scale=cow?0.275:1;
+      const scale=cow?(baby?0.19:0.275):1;
       actor.setScale(scale);
       actor.add(this.add.ellipse(0,6,cow?40:26,cow?8:6,0x263e25,0.2));
-      const texture=cow?'animal-cow':'animal-hen';
+      const texture=animal.id==='chick'?'animal-chick':cow?'animal-cow':'animal-hen';
       if(this.textures.exists(texture)){
-        const sprite=this.add.sprite(0,-2,texture).setDisplaySize(cow?46:30,cow?31:30).setAlpha(1).setVisible(true);
+        const sprite=this.add.sprite(0,-2,texture).setDisplaySize(animal.id==='chick'?22:cow?46:30,animal.id==='chick'?20:cow?31:30).setAlpha(1).setVisible(true);
         sprite.setDepth(2);
         actor.add(sprite);
         this.animalSprites.set(actor,sprite);
-        this.animateAnimalIdle(actor,sprite);
+        if(animal.id==='chick')sprite.play('chick-idle',true);else this.animateAnimalIdle(actor,sprite);
       }else{
         // Keep the original vector animal as a graceful fallback while artwork loads.
         const body=this.add.graphics();
@@ -601,7 +601,7 @@ export class FarmScene extends Phaser.Scene {
       if(animal.assigned===false){const sprite=this.animalSprites.get(actor);if(sprite){sprite.setAngle(0).setY(1).play(cow?'cow-rest':'hen-rest',true);this.tweens.add({targets:sprite,y:2,duration:cow?1900:1250,yoyo:true,repeat:-1,ease:'Sine.inOut'});}}else this.time.delayedCall(Phaser.Math.Between(2200,5200),()=>this.wanderAnimal(actor,center.x,center.y,marginX,marginY,cow));
     });
     // A small chick companion brings life to an occupied chicken run without changing save data.
-    if(this.animals.some(a=>a.id==='hen')&&this.textures.exists('animal-chick')){
+    if(this.animals.some(a=>a.id==='hen'||a.id==='chick')&&this.textures.exists('animal-chick')){
       const chickTile=this.nearestAnimalCell(henHome);
       if(!chickTile)return;
       const chickPos=this.toWorld(chickTile.col,chickTile.row);
@@ -712,7 +712,7 @@ export class FarmScene extends Phaser.Scene {
   }
   private moveAnimalToTrough(actor:Phaser.GameObjects.Container,kind:AnimalId,index:number):void{
     const trough=this.animalTroughs.get(kind);if(!actor.active||!trough?.active)return;
-    const cow=kind==='cow',spacing=cow?10:8;
+    const cow=kind==='cow'||kind==='calf',spacing=cow?10:8;
     const offset=(index%3-1)*spacing;
     const targetX=trough.x+offset,targetY=trough.y+(Math.floor(index/3)%2)*7+8;
     const sprite=this.animalSprites.get(actor);
@@ -786,9 +786,9 @@ export class FarmScene extends Phaser.Scene {
     const world=this.cameras.main.getWorldPoint(pointer.x,pointer.y);
     if(this.activeTool==='feed-hen'||this.activeTool==='feed-cow'){
       const kind:AnimalId=this.activeTool==='feed-hen'?'hen':'cow';
-      const index=this.animals.findIndex((animal,i)=>{const actor=this.animalActors[i];return animal.id===kind&&!!actor?.active&&Phaser.Math.Distance.Between(world.x,world.y,actor.x,actor.y)<(kind==='cow'?34:27);});
-      if(index>=0){this.feedAnimalAt(index,kind);return;}
-      this.toast('Tap a '+(kind==='hen'?'hen':'cow')+' to feed it.');return;
+      const index=this.animals.findIndex((animal,i)=>{const actor=this.animalActors[i];return (animal.id===kind||(kind==='hen'&&animal.id==='chick')||(kind==='cow'&&animal.id==='calf'))&&!!actor?.active&&Phaser.Math.Distance.Between(world.x,world.y,actor.x,actor.y)<(kind==='cow'?34:27);});
+      if(index>=0){this.feedAnimalAt(index,this.animals[index]!.id);return;}
+      this.toast('Tap a hungry '+(kind==='hen'?'chick or hen':'calf or cow')+' to feed it.');return;
     }
     // Newly purchased trees/decor remain in hand until the player chooses a valid tile.
     if(this.pendingDecorId){
@@ -1532,6 +1532,9 @@ export class FarmScene extends Phaser.Scene {
   }
   private careForAnimals(): void { if(!this.animals.length){this.openMarket();document.querySelector<HTMLButtonElement>('[data-market-tab=animals]')?.click();return;}let collected=0,fed=0,waiting=0;for(const kind of ['hen','cow'] as AnimalId[]){const result=this.collectAndFeed(kind);collected+=result.collected;fed+=result.fed;waiting+=result.waiting;}this.saveFarm();this.refreshHud();this.toast('Stored '+collected+' product(s) · fed '+fed+' · waiting for feed: '+waiting+'.');}
   private animalProductionDuration(kind:AnimalId):number{return kind==='hen'?10*60*1000:30*60*1000;}
+  private animalFeedType(kind:AnimalId):'hen'|'cow'{return kind==='chick'?'hen':kind==='calf'?'cow':kind;}
+  private isBabyAnimal(kind:AnimalId):boolean{return kind==='chick'||kind==='calf';}
+  private matureAnimal(index:number):void{const animal=this.animals[index];if(!animal||!this.isBabyAnimal(animal.id))return;animal.id=animal.id==='chick'?'hen':'cow';animal.readyAt=0;animal.growthFeedings=undefined;this.renderOwnedAnimals();this.saveFarm();this.refreshHud();this.toast(animal.id==='hen'?'Your chick has grown into a hen!':'Your calf has grown into a cow!');}
   private productionCapacity(kind:AnimalId):number{return 10+((kind==='hen'?this.buildings.coopLevel:this.buildings.barnLevel)-1)*5+(this.buildings.warehouseLevel-1)*10;}
   private collectAndFeed(kind:AnimalId):{collected:number;fed:number;waiting:number}{let collected=0,fed=0,waiting=0;const now=Date.now();const field=kind==='hen'?'eggs':'milk';for(const animal of this.animals.filter(a=>a.id===kind&&a.assigned!==false)){if(animal.readyAt>0&&animal.readyAt<=now){if(this.produce[field]<this.productionCapacity(kind)){this.produce[field]++;animal.readyAt=0;collected++;}else{waiting++;continue;}}if(animal.readyAt===0){if(this.feed[kind]>0){this.feed[kind]--;animal.readyAt=now+this.animalProductionDuration(kind);fed++;const actor=this.animalActors[this.animals.indexOf(animal)];if(actor)this.moveAnimalToTrough(actor,kind,fed-1);this.animateAnimalTrough(kind);}else waiting++;}}return{collected,fed,waiting};}
   private updateAnimalHungryIndicators():void{
@@ -1546,9 +1549,17 @@ export class FarmScene extends Phaser.Scene {
   private feedAnimalAt(index:number,kind:AnimalId):void{
     const animal=this.animals[index],actor=this.animalActors[index];
     if(!animal||animal.id!==kind||animal.assigned===false){this.toast('Select a '+(kind==='hen'?'hen':'cow')+' to feed.');return;}
+    const feedType=this.animalFeedType(kind);
+    if(this.isBabyAnimal(kind)){
+      if(this.feed[feedType]<=0){this.toast('No '+feedType+' feed in storage. Visit the Market to buy feed.');return;}
+      this.feed[feedType]--;animal.growthFeedings=(animal.growthFeedings||0)+1;
+      if(actor){const sprite=this.animalSprites.get(actor);if(sprite)sprite.setScale(0.65+animal.growthFeedings/3*0.35);}
+      if(animal.growthFeedings>=3){this.matureAnimal(index);return;}
+      this.saveFarm();this.refreshHud();this.updateAnimalHungryIndicators();this.toast((kind==='chick'?'Chick':'Calf')+' fed · '+(3-animal.growthFeedings)+' more feedings to grow.');return;
+    }
     if(animal.readyAt>0){this.toast('This animal has already been fed.');return;}
-    if(this.feed[kind]<=0){this.toast('No '+(kind==='hen'?'hen':'cow')+' feed in storage. Visit the Market to buy feed.');return;}
-    this.feed[kind]--;animal.readyAt=Date.now()+this.animalProductionDuration(kind);
+    if(this.feed[feedType]<=0){this.toast('No '+feedType+' feed in storage. Visit the Market to buy feed.');return;}
+    this.feed[feedType]--;animal.readyAt=Date.now()+this.animalProductionDuration(kind);
     if(actor)this.moveAnimalToTrough(actor,kind,this.animals.slice(0,index).filter(a=>a.id===kind).length);
     this.animateAnimalTrough(kind);this.saveFarm();this.refreshHud();this.updateAnimalHungryIndicators();
     this.toast((kind==='hen'?'Hen':'Cow')+' fed · '+(kind==='hen'?'Egg':'Milk')+' production started.');
@@ -1850,7 +1861,7 @@ export class FarmScene extends Phaser.Scene {
       }
       if(this.landTiles.size===0)for(let row=0;row<INITIAL_FARM_SIZE;row++)for(let col=0;col<INITIAL_FARM_SIZE;col++)this.landTiles.add(this.key(col,row));
       if (save.version >= 2 && save.inventory) this.inventory = {...this.inventory,...save.inventory};
-      if (save.version >= 4 && save.feed) this.feed = {...this.feed,...save.feed};
+      if (save.version >= 4 && save.feed) this.feed = {...this.feed,hen:save.feed.hen||0,cow:save.feed.cow||0,chick:save.feed.hen||0,calf:save.feed.cow||0};
        if (save.version >= 6 && save.buildings) this.buildings = {...this.buildings,...save.buildings,warehouseLevel:save.buildings.warehouseLevel||1};
       if(save.fruitInventory)this.fruitInventory={...this.fruitInventory,...save.fruitInventory};
       if(save.harvestedCrops)this.harvestedCrops={...this.harvestedCrops,...save.harvestedCrops};
@@ -1858,8 +1869,8 @@ export class FarmScene extends Phaser.Scene {
       if(save.version>=12){if(save.productionJobs)for(const id of ['bakery','greenhouse','windmill','workshop'] as BuildingId[])this.productionJobs[id]=save.productionJobs[id]||null;if(save.crafted)this.crafted={...this.crafted,...save.crafted};}
       this.buildingLevels.coop=Math.max(this.buildingLevels.coop,this.buildings.coopLevel);this.buildingLevels.barn=Math.max(this.buildingLevels.barn,this.buildings.barnLevel);this.buildingLevels.silo=Math.max(this.buildingLevels.silo,this.buildings.warehouseLevel);this.waterUnits=Math.min(this.waterUnits,this.waterCapacity);
        if (save.version >= 6 && save.produce) this.produce = {...this.produce,...save.produce};
-      this.animals=this.animals.map(a=>({...a,assigned:a.assigned!==false}));
-      if (save.version >= 3) { this.animals = Array.isArray(save.animals) ? save.animals.map((a:Animal)=>({...a,assigned:a.assigned!==false})) : []; this.harvests = Number(save.harvests) || 0; }
+      this.animals=this.animals.map(a=>({...a,assigned:a.assigned!==false,growthFeedings:Math.max(0,Math.min(3,Number(a.growthFeedings)||0))}));
+      if (save.version >= 3) { this.animals = Array.isArray(save.animals) ? save.animals.map((a:Animal)=>({...a,assigned:a.assigned!==false,growthFeedings:Math.max(0,Math.min(3,Number(a.growthFeedings)||0))})) : []; this.harvests = Number(save.harvests) || 0; }
       for (const saved of save.plots) {
         const plot = this.plots.get(this.key(saved.col, saved.row));
         if (!plot || !['grass', 'tilled', 'growing', 'ready', 'withered'].includes(saved.state)) continue;
