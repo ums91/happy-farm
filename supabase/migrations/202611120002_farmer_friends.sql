@@ -138,3 +138,14 @@ grant execute on function public.hf_list_friend_requests() to authenticated;
 grant execute on function public.hf_respond_friend_request(uuid,boolean) to authenticated;
 grant execute on function public.hf_list_friends() to authenticated;
 grant execute on function public.hf_remove_friend(uuid) to authenticated;
+
+-- Keep all RPC entry points private to authenticated players; direct table access stays revoked.
+revoke all on function public.hf_make_friend_code() from public, anon, authenticated;
+revoke all on function public.hf_ensure_farmer_profile() from public, anon, authenticated;
+revoke all on function public.hf_sync_my_farmer_profile(text,text,integer,bigint) from public, anon;
+revoke all on function public.hf_search_farmer(text) from public, anon;
+revoke all on function public.hf_send_friend_request(text) from public, anon;
+revoke all on function public.hf_list_friend_requests() from public, anon;
+revoke all on function public.hf_respond_friend_request(uuid,boolean) from public, anon;
+revoke all on function public.hf_list_friends() from public, anon;
+revoke all on function public.hf_remove_friend(uuid) from public, anon;
