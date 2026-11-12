@@ -807,8 +807,8 @@ export class FarmScene extends Phaser.Scene {
       // Water icons are lightweight tap targets above eligible growing crops.
       if(this.waterUnits>0){
         const waterHit=[...this.cropWaterBadges.entries()].find(([key,badge])=>{
-          const [col,row]=key.split(':').map(Number);
-          return badge.active&&Phaser.Math.Distance.Between(world.x,world.y,badge.x,badge.y)<20&&!!this.plots.get(key)&&this.plots.get(key)!.state==='growing'&&!this.plots.get(key)!.watered;
+          const plot=this.plots.get(key);
+          return badge.active&&Phaser.Math.Distance.Between(world.x,world.y,badge.x,badge.y)<20&&plot?.state==='growing'&&!plot.watered;
         });
         if(waterHit){const plot=this.plots.get(waterHit[0]);if(plot){this.waterPlot(plot);return;}}
       }
