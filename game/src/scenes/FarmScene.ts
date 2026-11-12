@@ -666,6 +666,14 @@ export class FarmScene extends Phaser.Scene {
           this.time.delayedCall(Phaser.Math.Between(cow?2200:1100,cow?4200:2100),()=>{
             if(!actor.active||!sprite.active)return;
             // Hens occasionally pause to cluck after pecking; chicks keep their shorter peck cycle.
+            // Cows occasionally lift their heads and give a cheerful tail-up reaction;
+            // hens cluck after pecking, while chicks keep their quick little peck cycle.
+            const happyCow=cow&&Math.random()<0.22;
+            if(happyCow){sprite.play('cow-happy');this.time.delayedCall(900,()=>{
+              if(!actor.active||!sprite.active)return;
+              this.animateAnimalIdle(actor,sprite);
+              this.time.delayedCall(Phaser.Math.Between(2600,5200),()=>this.wanderAnimal(actor,cx,cy,limitX,limitY,cow));
+            });return;}
             const cluck=!cow&&!isChick&&Math.random()<0.32;
             if(cluck){sprite.play('hen-cluck');this.time.delayedCall(650,()=>{
               if(!actor.active||!sprite.active)return;
