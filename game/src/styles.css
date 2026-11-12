@@ -1535,3 +1535,106 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 #market-modal.field-seed-mode .field-seed-card.locked{opacity:.78;background:#f7f3e9!important}
 #market-modal.field-seed-mode .market-footer{display:none}
 @media(max-width:520px){#market-modal.field-seed-mode{padding:8px!important;align-items:center!important}#market-modal.field-seed-mode .market-window{max-height:88dvh!important;padding:12px!important;border-width:3px!important}#market-modal.field-seed-mode .market-header h2{font-size:21px!important}#market-modal.field-seed-mode .seed-picker-grid{grid-template-columns:1fr}#market-modal.field-seed-mode .field-seed-card{grid-template-columns:52px minmax(0,1fr)!important;padding:9px!important}#market-modal.field-seed-mode .field-seed-card .market-art{width:52px!important;height:52px!important;font-size:31px!important}}
+
+/* Top HUD layout correction: stable three-part desktop bar and compact, non-clipping mobile rows. */
+.topbar{
+  display:grid!important;
+  grid-template-columns:minmax(220px, .9fr) minmax(300px, 1fr) minmax(300px, auto)!important;
+  align-items:center!important;
+  gap:12px!important;
+  width:100%!important;
+  min-width:0!important;
+  height:auto!important;
+  min-height:88px!important;
+  padding:10px 14px!important;
+}
+.farmer-hud{min-width:0!important;width:100%!important}
+.farmer-meta{min-width:0!important}
+.resources{min-width:0!important;width:100%!important;justify-content:center!important;gap:8px!important}
+.resources .resource{min-width:0!important;flex:1 1 0!important}
+.top-actions{
+  min-width:0!important;width:100%!important;
+  display:flex!important;align-items:center!important;justify-content:flex-end!important;
+  flex-wrap:nowrap!important;gap:6px!important;overflow:visible!important;
+}
+.top-actions>button{flex:0 0 40px!important;width:40px!important;height:40px!important}
+.top-actions>#cloud-account{flex:0 0 auto!important;width:auto!important;min-width:76px!important;height:38px!important;padding:0 8px!important;font-size:10px!important}
+.top-actions .music-controls{min-width:0!important;flex:1 1 170px!important;gap:5px!important;padding:5px 6px!important}
+.top-actions .music-controls input{width:48px!important;min-width:35px!important}
+@media(max-width:1180px){
+  .topbar{
+    grid-template-columns:minmax(190px,1fr) minmax(0,1.35fr)!important;
+    row-gap:8px!important;padding:9px 12px!important;
+  }
+  .resources{grid-column:1/-1!important;grid-row:2!important}
+  .top-actions{grid-column:2!important;grid-row:1!important;gap:5px!important}
+  .top-actions>button{flex-basis:36px!important;width:36px!important;height:36px!important}
+  .top-actions .music-controls{flex:0 1 150px!important}
+  .top-actions .music-controls label{display:none!important}
+}
+@media(max-width:700px){
+  .topbar{
+    grid-template-columns:minmax(0,1fr) auto!important;
+    grid-template-rows:auto auto auto!important;
+    gap:7px!important;
+    min-height:0!important;
+    padding:8px 9px!important;
+    border-radius:0 0 15px 15px!important;
+    overflow:visible!important;
+  }
+  .farmer-hud{grid-column:1!important;grid-row:1!important;gap:6px!important}
+  .farmer-hud .avatar{width:36px!important;height:36px!important;flex:0 0 36px!important;font-size:23px!important}
+  .farmer-title strong{max-width:34vw!important;font-size:13px!important}
+  .farmer-meta .level{font-size:8px!important}
+  .farmer-meta>small{font-size:8px!important}
+  .settings-mini{display:none!important}
+  .top-actions{
+    grid-column:2!important;grid-row:1!important;
+    display:grid!important;grid-template-columns:repeat(4,34px)!important;
+    justify-content:end!important;align-items:center!important;
+    gap:4px!important;max-width:none!important;overflow:visible!important;
+  }
+  .top-actions>button{
+    display:grid!important;place-items:center!important;
+    flex:initial!important;width:34px!important;height:34px!important;min-width:34px!important;
+    border-radius:10px!important;font-size:16px!important;padding:0!important;
+  }
+  .top-actions>#cloud-account{
+    grid-column:1/-1!important;grid-row:2!important;
+    display:flex!important;justify-content:center!important;
+    width:100%!important;min-width:0!important;height:29px!important;
+    border-radius:9px!important;font-size:10px!important;
+  }
+  .top-actions .music-controls{
+    grid-column:1/-1!important;grid-row:3!important;
+    display:flex!important;justify-content:space-between!important;
+    width:100%!important;min-width:0!important;gap:7px!important;
+    margin:0!important;padding:4px 7px!important;
+  }
+  .top-actions .music-controls label{display:none!important}
+  .top-actions .music-controls button{flex:0 0 auto!important;min-height:28px!important;font-size:10px!important}
+  .top-actions .music-controls input{flex:1 1 auto!important;width:auto!important;min-width:35px!important}
+  .top-actions .music-controls output{flex:0 0 30px!important;font-size:9px!important}
+  .resources{
+    grid-column:1/-1!important;grid-row:2!important;
+    display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    width:100%!important;gap:5px!important;margin:0!important;
+  }
+  .resources .resource{
+    min-width:0!important;width:100%!important;height:35px!important;
+    justify-content:center!important;gap:5px!important;padding:4px 5px!important;
+    border-radius:11px!important;
+  }
+  .resources .resource-icon{width:22px!important;height:22px!important;flex:0 0 22px!important;font-size:13px!important}
+  .resources .resource strong{min-width:0!important;font-size:11px!important;white-space:nowrap!important}
+}
+@media(max-width:390px){
+  .topbar{padding:7px 7px!important;gap:6px!important}
+  .top-actions{grid-template-columns:repeat(4,30px)!important;gap:3px!important}
+  .top-actions>button{width:30px!important;height:30px!important;min-width:30px!important;font-size:14px!important}
+  .farmer-hud .avatar{width:32px!important;height:32px!important;flex-basis:32px!important;font-size:21px!important}
+  .farmer-title strong{font-size:12px!important;max-width:31vw!important}
+  .resources .resource{gap:3px!important;padding-inline:3px!important}
+  .resources .resource-icon{width:19px!important;height:19px!important;flex-basis:19px!important;font-size:11px!important}
+  .resources .resource strong{font-size:10px!important}
+}
