@@ -373,25 +373,56 @@ export class FarmScene extends Phaser.Scene {
   }
 
   private decorDisplayName(asset:string):string {
-    const known:Record<string,string>={
-      apple_tree_variant2:'Wisteria Tree',
-      apple_tree_variant_sheet2:'Sunflower Cart'
+    // Names were checked against the actual PNG artwork, not inferred from file slugs.
+    const names:Record<string,string>={
+      apple_barrels_crate:'Hay Wagon',apple_barrels_crate_sheet2:'Hay Wagon (Alternate)',apple_barrels_variant:'Apple Barrel Display',
+      apple_tree:'Apple Tree',apple_tree_sheet1:'Apple Tree (Alternate)',apple_tree_variant:'Sunflower Wagon',apple_tree_variant2:'Wisteria Tree',apple_tree_variant_sheet2:'Sunflower Wagon (Alternate)',
+      bird_bath:'Bluebird Birdbath',bird_bath_sheet1:'Bluebird Birdbath (Alternate)',bird_bath_stone:'Apple Barrel Display',bird_bath_stone_sheet2:'Apple Barrel Display (Alternate)',bird_bath_variant:'Picnic Table',
+      birdhouse_post:'Garden Birdhouse',birdhouse_post_sheet1:'Garden Birdhouse (Alternate)',birdhouse_post_variant:'Flowering Birdhouse',birdhouse_post_variant2:'Wooden Park Bench',
+      campfire_circle:'Stone Campfire',campfire_stumps:'Farm Market Stall',campfire_stumps_sheet2:'Farm Market Stall (Alternate)',campfire_variant:'Flower Market Cart',
+      cushioned_swing:'Garden Birdhouse',double_lantern_post:'Farm Direction Sign',
+      evergreen_tree:'Pine Tree',evergreen_tree_sheet1:'Pine Tree (Alternate)',evergreen_tree_variant:'Golden Autumn Tree',evergreen_tree_variant_sheet2:'Golden Autumn Tree (Alternate)',
+      farm_direction_sign:'Scarecrow',farm_signpost:'Wooden Direction Sign',farm_signpost_sheet1:'Wooden Direction Sign (Alternate)',
+      festival_bunting:'Apple Tree',festival_bunting_sheet2:'Apple Tree (Alternate)',firewood_stack:'Firewood Stack',
+      flower_arch_bench:'Flower Arch Bench',flower_arch_bench_sheet1:'Flower Arch Bench (Alternate)',flower_arch_bench_variant:'Flower Garden Arch',
+      flower_archway:'Flower Archway',flower_archway_sheet2:'Flower Archway (Alternate)',flower_cart:'Hay Bales',flower_cart_sheet2:'Hay Bales (Alternate)',flower_cart_variant:'Wooden Windmill',
+      flower_fountain:'Flower Fountain',flower_gate_arch:'Flower Gate Arch',flower_gate_arch_sheet1:'Flower Gate Arch (Alternate)',flower_gate_arch_sheet3:'Flower Gate Entrance',
+      flower_market_cart:'Flower Market Cart',hollow_log_planter_sheet1:'Hollow Log Flower Planter',lamp_post_flower:'Flowering Lamp Post',
+      large_stone_fountain:'Large Stone Fountain',large_stone_fountain_sheet2:'Large Stone Fountain (Alternate)',lavender_bush:'Lavender Hedge',lavender_bush_sheet2:'Lavender Hedge (Alternate)',
+      lily_pond:'Picnic Table by the Pond',lily_pond_reeds:'Lily Pond',lily_pond_sheet2:'Picnic Table by the Pond (Alternate)',
+      mossy_rock_cluster:'Mossy Rock Cluster',mossy_rock_cluster_sheet2:'Mossy Rock Cluster (Alternate)',mossy_rock_variant:'Mossy Rock',
+      mossy_rocks:'Flowering Rock Cluster',mossy_rocks_sheet1:'Flowering Rock Cluster (Alternate)',mossy_rocks_variant2:'Stone Campfire',
+      orange_blossom_tree:'Lily Pond',orange_blossom_tree_sheet2:'Lily Pond (Alternate)',orange_fruit_tree:'Pink Blossom Tree',orange_fruit_tree_sheet2:'Pink Blossom Tree (Alternate)',orange_tree_variant2:'Green Fruit Tree',
+      ornate_lamp_post:'Ornate Lamp Post',ornate_lamp_post_sheet2:'Ornate Lamp Post (Alternate)',park_bench_variant:'Flower Cart',
+      pear_tree:'Pear Tree',picket_fence_flower:'Flowering Picket Fence',picnic_table:'Picnic Table',picnic_table_sheet2:'Picnic Table (Alternate)',picnic_table_variant:'Tiered Fountain',picnic_table_variant2:'Purple Flower Planter',
+      pine_tree_variant:'Hay Bales',pink_blossom_tree:'Pink Blossom Tree',pink_blossom_tree_sheet1:'Pink Blossom Tree (Alternate)',pink_blossom_tree_variant:'Lily Pond',pink_blossom_tree_variant2:'Orange Tree',pink_blossom_tree_variant_sheet2:'Garden Pond',
+      pink_flower_bush:'Pink Flower Bush',pink_flower_bush_sheet2:'Pink Flower Bush (Alternate)',pink_flower_bush_variant:'Pink Flower Border',
+      pink_flower_hedge:'Pink Flower Hedge',pink_flower_hedge_sheet1:'Pink Flower Hedge (Alternate)',purple_flower_bush:'Purple Lavender Bush',purple_flower_bush_sheet2:'Purple Lavender Bush (Alternate)',purple_flower_hedge:'Purple Flower Hedge',purple_flower_hedge_sheet1:'Purple Flower Hedge (Alternate)',purple_flower_pot:'Purple Flower Pot',
+      red_hand_pump:'Red Hand Water Pump',red_roof_gazebo:'Red Roof Gazebo',red_roof_well:'Red Roof Well',red_roof_well_sheet1:'Red Roof Well (Alternate)',red_roof_well_variant:'Stone Birdbath',red_roof_well_variant2:'Red Roof Well with Flowers',red_roof_well_variant_sheet2:'Rock Flowerbed',
+      rock_cluster:'Pink Flowerbed',rock_cluster_sheet2:'Pink Flowerbed (Alternate)',rock_flowerbed:'Flowering Rock Garden',rooster_signpost:'Rooster Direction Sign',rooster_signpost_sheet2:'Rooster Direction Sign (Alternate)',rope_fence:'Rope Fence',
+      rose_bush:'Stepping Stone Path',rose_bush_sheet2:'Stepping Stone Path (Alternate)',round_flowerbed:'Round Flowerbed',scarecrow:'Scarecrow',scarecrow_variant:'Wisteria Garden Swing',small_green_tree:'Firewood Logs',
+      stepping_stone_path:'Pine Tree',stepping_stone_path_sheet2:'Pine Tree (Alternate)',stone_birdbath:'Stone Birdbath',stone_lamp_wall:'Stone Wall with Lanterns',stone_wall:'Stone Wall',stone_wall_lamp:'Stone Wall Lantern Section',stone_wall_sheet1:'Stone Wall (Alternate)',stone_well_variant:'Red Roof Well',
+      string_lights:'Apple Tree',string_lights_sheet2:'Apple Tree (Alternate)',sunflower_cart:'Campfire with Stumps',sunflower_cart_sheet2:'Campfire with Stumps (Alternate)',sunflower_cart_variant:'Sunflower Wagon',sunflower_cart_variant_sheet4:'Flowering Rock Cluster',
+      tiered_fountain_variant:'Sunflower Flower Cart',tiered_stone_fountain:'Tiered Stone Fountain',tiered_stone_fountain_sheet1:'Tiered Stone Fountain (Alternate)',waterfall_pond:'Garden Swing',waterfall_pond_sheet2:'Garden Swing (Alternate)',
+      white_blossom_tree:'Mossy Rock Garden',white_picket_fence:'White Picket Fence',white_picket_fence_flowers:'Flowering White Picket Fence',white_picket_fence_flowers_sheet2:'Flowering White Picket Fence (Alternate)',white_picket_fence_sheet1:'White Picket Fence (Alternate)',white_picket_fence_sheet4:'White Picket Fence with Flowers',
+      wisteria_garden_arch:'Stepping Stone Garden Path',wisteria_swing:'Flower Cart',wisteria_swing_bench:'Wisteria Swing Bench',wisteria_swing_sheet2:'Flower Cart (Alternate)',wisteria_tree:'Leafy Green Tree',wisteria_trellis:'Orange Fruit Tree',
+      wooden_bridge:'Wooden Bridge',wooden_farm_gate:'Wooden Farm Gate',wooden_fence:'Wooden Fence',wooden_fence_sheet1:'Wooden Fence (Alternate)',wooden_park_bench:'Wooden Park Bench',wooden_park_bench_sheet2:'Wooden Park Bench (Alternate)',
+      wooden_windmill:'Wooden Windmill',wooden_windmill_sheet1:'Wooden Windmill (Alternate)',wooden_windmill_variant:'Windmill with Flower Cart',wooden_windmill_variant2:'Flowering Windmill Base',
+      yellow_flower_bush:'Yellow Rose Bush',yellow_flower_bush_sheet2:'Yellow Rose Bush (Alternate)',yellow_flower_hedge:'Yellow Flower Hedge',yellow_flower_hedge_sheet1:'Yellow Flower Hedge (Alternate)'
     };
-    if(known[asset])return known[asset];
-    const clean=asset.replace(/_sheet_?\d+$/i,'').replace(/_sheet\d+$/i,'').replace(/_variant_?\d*$/i,'').replace(/_variant\d+$/i,'');
-    return clean.split('_').filter(Boolean).map(word=>word[0].toUpperCase()+word.slice(1)).join(' ');
+    return names[asset]||asset.split('_').filter(w=>!/^sheet\\d*$/i.test(w)&&!/^variant\\d*$/i.test(w)).map(w=>w[0]?.toUpperCase()+w.slice(1)).join(' ');
   }
 
   private decorAssetForId(id:string):string|null {
     if(['farmhouse','barn','coop','silo','bakery','greenhouse','windmill','stable','well','workshop','waterTower'].includes(id))return null;
     if(id.startsWith('appleTree'))return 'apple_tree';
-    if(id.startsWith('pearTree')||id.startsWith('decor_pear_tree'))return 'small_green_tree';
+    if(id.startsWith('pearTree')||id.startsWith('decor_pear_tree'))return 'wisteria_tree';
     if(id.startsWith('cherryTree'))return 'pink_blossom_tree';
     if(id.startsWith('flowerbed'))return 'round_flowerbed';
     if(id.startsWith('fountain'))return 'tiered_stone_fountain';
     if(id.startsWith('scarecrow'))return 'scarecrow';
     if(id.startsWith('bench'))return 'wooden_park_bench';
-    if(id.startsWith('mangoTree')||id.startsWith('mango_tree'))return 'small_green_tree';
+    if(id.startsWith('mangoTree')||id.startsWith('mango_tree'))return 'wisteria_tree';
     if(id.startsWith('pineTree')||id.startsWith('pine_tree'))return 'pine_tree_variant';
     if(id.startsWith('tree'))return 'evergreen_tree';
     if(id.startsWith('decor_'))return id.slice(6).replace(/[0-9]+$/,'');
@@ -1515,7 +1546,7 @@ export class FarmScene extends Phaser.Scene {
       const legacyMap:Record<string,string>={apple_tree:'appleTree',pear_tree:'pearTree',pink_blossom_tree:'cherryTree',round_flowerbed:'flowerbed',tiered_stone_fountain:'fountain',scarecrow:'scarecrow',wooden_park_bench:'bench'};
       const decorMeta=(asset:string,index:number)=>{const tree=/tree/.test(asset);const small=/bush|hedge|flowerbed|flower_pot|rock|fence|path|stump|firewood|hay/.test(asset);const grand=/gazebo|arch|swing|windmill|fountain|well|pond|waterfall|bridge|cart|market|campfire/.test(asset);const unlock=Math.min(95,3+Math.floor(index*92/DECOR_ASSETS.length));const base=grand?4200:tree?1850:small?480:asset.includes('bench')||asset.includes('bird')||asset.includes('lamp')||asset.includes('sign')?1450:2600;const variant=asset.includes('variant')||asset.includes('sheet')?1.18:1;return {unlock,cost:Math.round(base*variant/10)*10};};
       const items=DECOR_ASSETS.map((asset,index)=>{const legacyId=legacyMap[asset];const meta=decorMeta(asset,index);const title=this.decorDisplayName(asset);const emoji=/apple/.test(asset)?'🍎':/pear/.test(asset)?'🍐':/orange/.test(asset)?'🍊':/tree|pine/.test(asset)?'🌳':/fountain|pond|waterfall|bird_bath|well/.test(asset)?'⛲':/flower|bush|hedge|rose|lavender/.test(asset)?'🌸':/bench|swing/.test(asset)?'🪑':/lamp|light/.test(asset)?'🏮':/fence|gate|wall/.test(asset)?'🪵':'🌿';return {id:legacyId||'decor_'+asset,asset,name:title,emoji,cost:legacyId==='appleTree'?650:legacyId==='pearTree'?700:legacyId==='cherryTree'?780:legacyId==='flowerbed'?260:legacyId==='fountain'?1250:legacyId==='scarecrow'?520:legacyId==='bench'?450:meta.cost,unlock:meta.unlock,desc:'Decorate your homestead with this handcrafted farm item.'};});
-      host.innerHTML=items.map(item=>{const locked=this.farmerLevel<item.unlock;const owned=Object.keys(this.decor).some(k=>k===item.id||k.startsWith(item.id));const artAsset=item.asset==='pear_tree'?'small_green_tree':item.asset;const art=this.marketArtImage('decor/'+artAsset+'.png',item.name,item.emoji);return '<article class="market-item">'+art+'<div class="market-copy"><strong>'+item.name+'</strong><small>'+item.desc+' · Unlocks at Level '+item.unlock+(owned?' · Already placed':'')+'</small></div><button class="market-buy" data-buy-decor="'+item.id+'" '+(locked||this.coins<item.cost?'disabled':'')+'>'+(locked?'🔒 Level '+item.unlock:'🪙 '+item.cost+' · Buy')+'</button></article>';}).join('');
+      host.innerHTML=items.map(item=>{const locked=this.farmerLevel<item.unlock;const owned=Object.keys(this.decor).some(k=>k===item.id||k.startsWith(item.id));const artAsset=item.asset==='pear_tree'?'wisteria_tree':item.asset;const art=this.marketArtImage('decor/'+artAsset+'.png',item.name,item.emoji);return '<article class="market-item">'+art+'<div class="market-copy"><strong>'+item.name+'</strong><small>'+item.desc+' · Unlocks at Level '+item.unlock+(owned?' · Already placed':'')+'</small></div><button class="market-buy" data-buy-decor="'+item.id+'" '+(locked||this.coins<item.cost?'disabled':'')+'>'+(locked?'🔒 Level '+item.unlock:'🪙 '+item.cost+' · Buy')+'</button></article>';}).join('');
       host.querySelectorAll<HTMLButtonElement>('[data-buy-decor]').forEach(btn=>btn.addEventListener('click',()=>{
         const item=items.find(x=>x.id===btn.dataset.buyDecor);if(!item||this.farmerLevel<item.unlock||this.coins<item.cost)return;
         const spot=this.findFreeDecorTile(true);
