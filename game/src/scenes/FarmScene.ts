@@ -1546,7 +1546,10 @@ export class FarmScene extends Phaser.Scene {
       host.querySelectorAll<HTMLButtonElement>('[data-farm-expand]').forEach(btn=>btn.addEventListener('click',()=>this.expandLand(Number(btn.dataset.farmExpand)===2?2:1)));
       host.querySelectorAll<HTMLButtonElement>('[data-building-buy]').forEach(btn=>btn.addEventListener('click',()=>{const id=btn.dataset.buildingBuy as BuildingId;const item=options.find(x=>x.id===id);if(!item||level<item.unlock||this.buildingLevels[id]>=5)return;const cost=this.buildingLevels[id]>0?this.buildingLevels[id]*900:item.cost;if(this.coins<cost)return;const placement=!this.decor[id]?this.findFreeDecorTile(false):null;if(!this.decor[id]&&!placement){this.toast('Your farm is full. Move or clear an object before building.');return;}this.coins-=cost;this.buildingLevels[id]=Math.max(1,this.buildingLevels[id]+1);if(placement)this.decor[id]=placement;if(id==='coop')this.buildings.coopLevel=this.buildingLevels.coop;if(id==='barn')this.buildings.barnLevel=this.buildingLevels.barn;if(id==='silo')this.buildings.warehouseLevel=this.buildingLevels.silo;this.drawScenery();this.saveFarm();this.refreshHud();this.renderMarket('buildings');this.toast(item.name+' upgraded to Level '+this.buildingLevels[id]+'.');}));return;
     }if(category==='trees'||category==='decor'){
-      const isTreeAsset=(asset:string)=>/(tree|pine|evergreen)/i.test(asset);
+      // Use an explicit artwork-verified list. Filename matching incorrectly pulled carts,
+      // ponds, logs and other non-tree props into Trees, while missing some true tree variants.
+      const TREE_ASSETS=new Set<string>(['apple_tree','evergreen_tree','evergreen_tree_variant','orange_tree_variant2','pear_tree','pink_blossom_tree','pink_blossom_tree_variant2','wisteria_tree','wisteria_trellis']);
+      const isTreeAsset=(asset:string)=>TREE_ASSETS.has(asset);
       const legacyTreeMap:Record<string,string>={apple_tree:'appleTree',pear_tree:'pearTree',pink_blossom_tree:'cherryTree'};
       const sourceAssets=DECOR_ASSETS.filter(asset=>isTreeAsset(asset)===(category==='trees'));
       const treeFruit=(asset:string)=>asset==='apple_tree'?'🍎':asset==='pear_tree'?'🍐':asset.includes('orange')?'🍊':asset.includes('pink_blossom')?'🍒':'🌳';
