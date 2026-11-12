@@ -52,6 +52,7 @@ export class FarmScene extends Phaser.Scene {
   private placementOverlay!: Phaser.GameObjects.Graphics;
   private selected: Plot | null = null;
   private cropHoverTooltip: HTMLDivElement|null = null;
+  private cropActionPlot: Plot|null = null;
   private hoveredCropPlot: Plot|null = null;
   private hoveredFruitTreeId: string|null = null;
   private hoverPointer = {x:0,y:0};
@@ -737,6 +738,7 @@ export class FarmScene extends Phaser.Scene {
       this.selected=plot;
       if(this.activeTool==='select'){
         if(plot.state==='tilled')this.openFieldSeedPicker();
+        else if(['growing','ready','withered'].includes(plot.state))this.showCropActionPopup(plot,pointer.x,pointer.y);
         this.refreshSelection();this.drawSelection();return;
       }
       if(this.activeTool==='plant'){
@@ -989,6 +991,27 @@ export class FarmScene extends Phaser.Scene {
   private createCropHoverTooltip():void {
     const host=document.getElementById('game');if(!host)return;
     const tip=document.createElement('div');tip.className='crop-hover-tooltip';tip.setAttribute('role','status');tip.style.display='none';host.appendChild(tip);this.cropHoverTooltip=tip;
+    tip.addEventListener('click',event=>{
+      const button=(event.target as HTMLElement).closest<HTMLButtonElement>('[data-water-plot]');
+      if(!button)return;
+      const plot=this.cropActionPlot;
+      if(!plot||plot.state!=='growing'||plot.watered)return;
+      this.waterPlot(plot);this.showCropActionPopup(plot,this.hoverPointer.x,this.hoverPointer.y);
+    });
+  }
+  private showCropActionPopup(plot:Plot,x:number,y:number):void{
+    const tip=this.cropHoverTooltip;if(!tip)return;
+    this.cropActionPlot=plot;this.hoveredCropPlot=plot;this.hoverPointer={x,y};
+    const crop=CROPS[plot.crop],remaining=Math.max(0,plot.readyAt-Date.now()),totalSeconds=Math.ceil(remaining/1000),hours=Math.floor(totalSeconds/3600),mins=Math.floor((totalSeconds%3600)/60),secs=totalSeconds%60;
+    const status=plot.state==='ready'?'Ready to harvest!':plot.state==='withered'?'Withered · Plow to clear':'Harvest in '+(hours>0?hours+'h ':'')+(mins>0?mins+'m ':'')+secs+'s';
+    const action=plot.state==='growing'?(plot.watered?'<span>💧 Already watered</span>':'<button type="button" class="crop-water-action" data-water-plot>💧 Water field</button>'):'';
+    tip.innerHTML='<strong>'+crop.emoji+' '+crop.name+'</strong><span>'+status+'</span>'+action;
+    tip.style.left=Math.max(8,Math.min(this.scale.width-190,x+14))+'px';tip.style.top=Math.max(8,Math.min(this.scale.height-100,y-48))+'px';tip.style.display='flex';tip.style.pointerEvents='auto';
+  }
+  private waterPlot(plot:Plot):void{
+    if(plot.state!=='growing'||plot.watered){this.toast(plot.watered?'This field has already been watered.':'Only growing crops can be watered.');return;}
+    plot.watered=true;this.scheduleGrowth(plot,Math.max(1500,Math.ceil((plot.readyAt-Date.now())/2)));
+    this.redrawPlot(plot);this.saveFarm();this.refreshHud();this.refreshSelection();this.toast(CROPS[plot.crop].name+' watered · remaining growth time halved.');
   }
   private updateCropHover(pointer:Phaser.Input.Pointer):void {
     if(!this.cropHoverTooltip)return;
@@ -1027,7 +1050,7 @@ export class FarmScene extends Phaser.Scene {
     else if(plot.state==='withered')status='Withered · Plow to clear';
     else {const ms=Math.max(0,plot.readyAt-Date.now()),totalSeconds=Math.ceil(ms/1000),hours=Math.floor(totalSeconds/3600),mins=Math.floor((totalSeconds%3600)/60),secs=totalSeconds%60;status='Harvest in '+(hours>0?hours+'h ':'')+(mins>0?mins+'m ':'')+secs+'s';}
     tip.innerHTML='<strong>'+crop.emoji+' '+crop.name+'</strong><span>'+status+'</span>';
-    tip.style.left=Math.min(this.scale.width-180,this.hoverPointer.x+14)+'px';tip.style.top=Math.max(8,this.hoverPointer.y-48)+'px';tip.style.display='flex';
+    tip.style.left=Math.min(this.scale.width-180,this.hoverPointer.x+14)+'px';tip.style.top=Math.max(8,this.hoverPointer.y-48)+'px';tip.style.display='flex';tip.style.pointerEvents='none';this.cropActionPlot=null;
   }
 
   private applyTool(plot: Plot): void {
@@ -1049,7 +1072,7 @@ export class FarmScene extends Phaser.Scene {
         if (plot.state === 'tilled') this.sowSelectedPlot();
         break;
       case 'water':
-        if (plot.state === 'growing' && !plot.watered) { plot.watered = true; this.scheduleGrowth(plot, Math.max(1500, Math.ceil((plot.readyAt - Date.now()) / 2))); }
+        this.waterPlot(plot);
         break;
       case 'harvest':
         if (plot.state === 'ready') { const crop=CROPS[plot.crop]; const reward=this.toWorld(plot.col,plot.row); plot.state='tilled'; plot.growth=0; plot.readyAt=0; plot.witherAt=0; plot.watered=false; this.growthTimers.get(this.key(plot.col,plot.row))?.remove(false); this.growthTimers.delete(this.key(plot.col,plot.row)); this.harvestedCrops[plot.crop]++; this.xp+=crop.xp; this.harvests += 1; this.showHarvestReward(reward.x,reward.y-28,crop.reward); this.toast(`${crop.emoji} ${crop.name} harvested · sell value ${crop.reward} coins · added to Sell inventory`); }
