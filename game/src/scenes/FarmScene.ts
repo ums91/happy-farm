@@ -600,7 +600,7 @@ export class FarmScene extends Phaser.Scene {
       const marginX=bounds.width/2-(cow?28:19),marginY=bounds.height/2-(cow?25:18);
       if(animal.assigned===false){const sprite=this.animalSprites.get(actor);if(sprite){sprite.setAngle(0).setY(1).play(cow?'cow-rest':'hen-rest',true);this.tweens.add({targets:sprite,y:2,duration:cow?1900:1250,yoyo:true,repeat:-1,ease:'Sine.inOut'});}}else this.time.delayedCall(Phaser.Math.Between(2200,5200),()=>this.wanderAnimal(actor,center.x,center.y,marginX,marginY,cow));
     });
-
+    this.updateAnimalHungryIndicators();
   }
 
   // FarmVille-style resting is genuinely still: hold a single idle frame so no legs cycle.
@@ -760,8 +760,17 @@ export class FarmScene extends Phaser.Scene {
       const texture = `building-${asset.folder}-${level}`;
       if (!this.textures.exists(texture)) continue;
       const source = this.textures.get(texture).getSourceImage() as HTMLImageElement;
-      const scale = Math.min(132 / source.width, 124 / source.height);
-      const sprite = this.add.image(p.x, p.y + 24, texture).setOrigin(0.5, 1).setScale(scale).setDepth(p.y + 30);
+      // Well level PNGs are sprite strips: the intended well is the middle band.
+      // Cropping to that band prevents neighbouring asset fragments appearing above/below it.
+      const wellCropY = source.height * 0.18;
+      const wellCropHeight = source.height * 0.64;
+      const displayHeight = id === 'well' ? wellCropHeight : source.height;
+      const scale = Math.min(132 / source.width, 124 / displayHeight);
+      const sprite = this.add.image(p.x, p.y + 24, texture)
+        .setOrigin(0.5, id === 'well' ? (wellCropY + wellCropHeight) / source.height : 1)
+        .setScale(scale)
+        .setDepth(p.y + 30);
+      if (id === 'well') sprite.setCrop(0, wellCropY, source.width, wellCropHeight);
       this.buildingAssetSprites.set(id, sprite);
     }
   }
@@ -1293,14 +1302,16 @@ export class FarmScene extends Phaser.Scene {
       const size=plot.state==='ready'?78:38+stage*8;
       g.fillStyle(0x342a20,0.2);g.fillEllipse(p.x,p.y-2,size*0.48,size*0.16);
       const sprite = this.add.image(p.x, p.y + 2, `crop-tomato-${stage}`);
-      sprite.setOrigin(0.5,0.82).setDisplaySize(size, size).setDepth(p.y + 24);
+      // Crop artwork is bottom-anchored at the exact centre of its diamond tile.
+      sprite.setOrigin(0.5, 1).setDisplaySize(size, size).setDepth(p.y + 24);
       this.tomatoSprites.set(id, sprite);
     } else if (['wheat','carrot','corn','strawberry','pumpkin'].includes(plot.crop) && (plot.state === 'growing' || plot.state === 'ready') && this.textures.exists(`crop-${plot.crop}`)) {
       const stage = plot.state === 'ready' ? 4 : Math.min(4, Math.floor(plot.growth / 20));
       const size=plot.state==='ready'?78:34+stage*11;
       g.fillStyle(0x342a20,0.2);g.fillEllipse(p.x,p.y-2,size*0.48,size*0.16);
       const sprite = this.add.image(p.x, p.y + 2, `crop-${plot.crop}`, stage);
-      sprite.setOrigin(0.5,0.82).setDisplaySize(size, size).setDepth(p.y + 24);
+      // Keep every growth stage on the same tile-centre baseline.
+      sprite.setOrigin(0.5, 1).setDisplaySize(size, size).setDepth(p.y + 24);
       this.cropSprites.set(id, sprite);
     } else if (plot.state === 'growing' || plot.state === 'ready' || plot.state === 'withered') {
       this.drawCrop(g, p.x, p.y, plot);
@@ -1526,11 +1537,15 @@ export class FarmScene extends Phaser.Scene {
   private productionCapacity(kind:AnimalId):number{return 10+((kind==='hen'?this.buildings.coopLevel:this.buildings.barnLevel)-1)*5+(this.buildings.warehouseLevel-1)*10;}
   private collectAndFeed(kind:AnimalId):{collected:number;fed:number;waiting:number}{let collected=0,fed=0,waiting=0;const now=Date.now();const field=kind==='hen'?'eggs':'milk';for(const animal of this.animals.filter(a=>a.id===kind&&a.assigned!==false)){if(animal.readyAt>0&&animal.readyAt<=now){if(this.produce[field]<this.productionCapacity(kind)){this.produce[field]++;animal.readyAt=0;collected++;}else{waiting++;continue;}}if(animal.readyAt===0){if(this.feed[kind]>0){this.feed[kind]--;animal.readyAt=now+this.animalProductionDuration(kind);fed++;const actor=this.animalActors[this.animals.indexOf(animal)];if(actor)this.moveAnimalToTrough(actor,kind,fed-1);this.animateAnimalTrough(kind);}else waiting++;}}return{collected,fed,waiting};}
   private updateAnimalHungryIndicators():void{
+    const now = Date.now();
     this.animals.forEach((animal,index)=>{
       const actor=this.animalActors[index],active=animal.assigned!==false&&!!actor?.active;
       const mature=animal.id==='hen'||animal.id==='cow';
-      const ready=active&&mature&&animal.readyAt>0&&animal.readyAt<=Date.now();
-      const hungry=active&&animal.readyAt===0;
+      const baby=this.isBabyAnimal(animal.id);
+      const ready=active&&mature&&animal.readyAt>0&&animal.readyAt<=now;
+      // Baby animals have a feeding interval too: the bowl disappears after feeding
+      // and returns only when the next growth feeding is due.
+      const hungry=active&&(animal.readyAt===0||(baby&&animal.readyAt<=now));
       const icon=ready?(animal.id==='hen'?'🥚':'🥛'):hungry?'🥣':'';
       let badge=this.animalHungryBadges.get(index);
       if(!icon){if(badge){badge.destroy();this.animalHungryBadges.delete(index);}return;}
@@ -1544,8 +1559,10 @@ export class FarmScene extends Phaser.Scene {
     if(!animal||animal.id!==kind||animal.assigned===false){this.toast('Select a '+(kind==='hen'?'hen':'cow')+' to feed.');return;}
     const feedType=this.animalFeedType(kind);
     if(this.isBabyAnimal(kind)){
+      if(animal.readyAt>Date.now()){this.toast('This young animal has been fed. It will need feed again later.');return;}
       if(this.feed[feedType]<=0){this.toast('No '+feedType+' feed in storage. Visit the Market to buy feed.');return;}
       this.feed[feedType]--;animal.growthFeedings=(animal.growthFeedings||0)+1;
+      animal.readyAt=Date.now()+this.animalProductionDuration(feedType);
       if(actor){this.moveAnimalToTrough(actor,kind,this.animals.slice(0,index).filter(a=>a.id===kind).length);const sprite=this.animalSprites.get(actor);if(sprite)sprite.setScale(0.65+animal.growthFeedings/3*0.35);}
       this.animateAnimalTrough(kind);
       if(animal.growthFeedings>=3){this.matureAnimal(index);return;}
