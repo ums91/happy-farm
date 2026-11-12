@@ -381,28 +381,44 @@ export class FarmScene extends Phaser.Scene {
   private drawLandExpansionPreview():void {
     this.landExpansionPreviewLabel?.destroy();
     this.landExpansionPreviewLabel=null;
+    const g=this.plotGraphics;
+
+    // Lightly mark every currently reachable expansion tile. This planning grid
+    // is visible at every farmer level; only the parcel the player can unlock
+    // now receives the stronger gold purchase outline.
+    const neighbours=[[-1,0],[1,0],[0,-1],[0,1]] as const;
+    for(let row=0;row<MAX_FARM_SIZE;row++)for(let col=0;col<MAX_FARM_SIZE;col++){
+      if(this.isFarmTile(col,row))continue;
+      const adjacent=neighbours.some(([dc,dr])=>this.isFarmTile(col+dc,row+dr));
+      if(!adjacent)continue;
+      const p=this.toWorld(col,row);
+      g.fillStyle(0xe8f1c9,0.10);
+      g.lineStyle(0.9,0xf2e6b9,0.48);
+      g.beginPath();g.moveTo(p.x,p.y-TILE_H/2+2);g.lineTo(p.x+TILE_W/2-2,p.y);g.lineTo(p.x,p.y+TILE_H/2-2);g.lineTo(p.x-TILE_W/2+2,p.y);g.closePath();g.fillPath();g.strokePath();
+    }
+
     const preferredSize=this.farmerLevel>=24?4:this.farmerLevel>=14?3:this.farmerLevel>=5?2:1;
     let expansion=this.nextLandExpansion(preferredSize);
     if(!expansion){
       for(let size=preferredSize-1;size>=1&&!expansion;size--)expansion=this.nextLandExpansion(size as 1|2|3);
     }
-    if(!expansion)return;
-    const g=this.plotGraphics;
+    // Do not advertise a locked parcel as purchasable. The pale grid above
+    // remains visible so players can see where future farm land can extend.
+    if(!expansion||this.farmerLevel<expansion.level)return;
+
     let centerX=0,centerY=0;
     expansion.cells.forEach(cell=>{
       const p=this.toWorld(cell.col,cell.row);centerX+=p.x;centerY+=p.y;
-      g.fillStyle(0xffd66b,0.22);g.lineStyle(2.6,0xffd45c,0.98);
+      g.fillStyle(0xffd66b,0.24);g.lineStyle(2.8,0xffd45c,1);
       g.beginPath();g.moveTo(p.x,p.y-TILE_H/2+2);g.lineTo(p.x+TILE_W/2-2,p.y);g.lineTo(p.x,p.y+TILE_H/2-2);g.lineTo(p.x-TILE_W/2+2,p.y);g.closePath();g.fillPath();g.strokePath();
-      g.lineStyle(1,0xfff2bd,0.8);g.beginPath();g.moveTo(p.x-15,p.y);g.lineTo(p.x+15,p.y);g.strokePath();
+      g.lineStyle(1,0xfff2bd,0.85);g.beginPath();g.moveTo(p.x-15,p.y);g.lineTo(p.x+15,p.y);g.strokePath();
     });
     centerX/=expansion.cells.length;centerY/=expansion.cells.length;
-    const locked=this.farmerLevel<expansion.level;
-    const label=(locked?'🔒 ':'🗺️ ')+expansion.size+' × '+expansion.size+' LAND\n'+(locked?'UNLOCK AT LEVEL '+expansion.level:'🪙 '+expansion.cost+' COINS');
+    const label='🗺️ '+expansion.size+' × '+expansion.size+' LAND\n🪙 '+expansion.cost+' COINS';
     const badge=this.add.text(centerX,centerY-TILE_H*0.72,label,{
       fontFamily:'Arial',fontSize:expansion.size>=3?'12px':'11px',fontStyle:'bold',
       color:'#fff8dc',align:'center',lineSpacing:2,
-      backgroundColor:locked?'#77694b':'#876022',
-      padding:{x:8,y:6},stroke:'#fff0b8',strokeThickness:1
+      backgroundColor:'#876022',padding:{x:8,y:6},stroke:'#fff0b8',strokeThickness:1
     }).setOrigin(0.5).setDepth(24000);
     badge.setInteractive({useHandCursor:true});
     badge.on('pointerdown',()=>{this.openMarket();this.renderMarket('buildings');document.querySelectorAll<HTMLButtonElement>('[data-market-tab]').forEach(tab=>tab.classList.toggle('active',tab.dataset.marketTab==='buildings'));});
@@ -2178,6 +2194,7 @@ export class FarmScene extends Phaser.Scene {
     if (coins) coins.textContent = String(this.coins);
     const level = this.farmerLevel;
     if(level>this.displayedLevel){const bonus=level*20;this.coins+=bonus;this.displayedLevel=level;this.toast('Level '+level+' reached! Farmhouse upgraded · +'+bonus+' coins.');}
+    if(level!==this.displayedLevel||level!==this.farmhouseVisualLevel)this.redrawFarmTiles();
     if(level!==this.farmhouseVisualLevel){this.farmhouseVisualLevel=level;this.drawScenery();}
     if (xp) xp.textContent = `Level ${level} · ${this.xp} XP`;
     const levelBadge = document.getElementById('farmer-level');
