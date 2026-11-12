@@ -258,6 +258,99 @@ export function queueCloudSave(): void {
   if (!syncInProgress && cloudReady) scheduleCloudSave();
 }
 
+type RecoveryEntry = { source: 'This device' | 'Cloud device copy' | 'Supabase history'; savedAt: number; save: Record<string, unknown> };
+
+function recoveryLevel(save: Record<string, unknown>): number {
+  return Math.max(1, Math.floor(Number(save.xp || 0) / 100) + 1);
+}
+
+async function showRecoveryHistory(): Promise<void> {
+  const panel = document.getElementById('recovery-history');
+  const list = document.getElementById('recovery-list');
+  const status = document.getElementById('recovery-status');
+  if (!panel || !list || !status) return;
+  panel.hidden = false;
+  list.replaceChildren();
+  status.textContent = 'Checking this device and cloud backups…';
+  const button = document.getElementById('cloud-recovery-open') as HTMLButtonElement | null;
+  if (button) button.disabled = true;
+  try {
+    const entries: RecoveryEntry[] = [];
+    const readLocal = (key: string, source: RecoveryEntry['source']) => {
+      try {
+        const raw = localStorage.getItem(key);
+        const backups = raw ? JSON.parse(raw) as Array<{savedAt?:number;updatedAt?:string|null;save?:Record<string,unknown>}> : [];
+        backups.forEach(item => {
+          if (item?.save && typeof item.save === 'object') entries.push({
+            source, savedAt: Number(item.savedAt || (item.updatedAt ? Date.parse(item.updatedAt) : 0)) || Date.now(), save: item.save
+          });
+        });
+      } catch (error) { console.warn('Could not read local recovery history:', error); }
+    };
+    readLocal('happyFarmRecoveryBackupsV1', 'This device');
+    readLocal('happyFarmCloudRecoveryBackupsV1', 'Cloud device copy');
+    if (client && currentUserId && navigator.onLine) {
+      const { data, error } = await client.from('farm_save_recovery')
+        .select('save_data, created_at').eq('user_id', currentUserId)
+        .order('created_at', { ascending: false }).limit(30);
+      if (error) throw error;
+      (data || []).forEach(row => {
+        if (row.save_data && typeof row.save_data === 'object') entries.push({
+          source: 'Supabase history', savedAt: Date.parse(row.created_at), save: row.save_data as Record<string,unknown>
+        });
+      });
+    }
+    entries.sort((a,b)=>b.savedAt-a.savedAt);
+    if (!entries.length) status.textContent = 'No recovery snapshots found yet. Snapshots will appear as your farm is saved.';
+    else {
+      status.textContent = entries.length + ' snapshots found. Choose one to inspect its date and restore it. Your current farm is backed up first.';
+      entries.forEach(entry => {
+        const card = document.createElement('article');
+        card.className = 'recovery-entry';
+        const details = document.createElement('div');
+        const heading = document.createElement('strong');
+        heading.textContent = entry.source + ' · Level ' + recoveryLevel(entry.save);
+        const meta = document.createElement('small');
+        meta.textContent = new Date(entry.savedAt).toLocaleString() + ' · ' +
+          Number(entry.save.coins || 0).toLocaleString() + ' coins · ' +
+          (Array.isArray(entry.save.animals) ? entry.save.animals.length : 0) + ' animals';
+        details.append(heading, meta);
+        const restore = document.createElement('button');
+        restore.type = 'button';
+        restore.textContent = 'Restore';
+        restore.addEventListener('click', () => {
+          const when = new Date(entry.savedAt).toLocaleString();
+          if (!window.confirm('Restore this ' + entry.source + ' snapshot from ' + when + '? Your current farm will first be saved as a recovery copy.')) return;
+          try {
+            const currentRaw = localStorage.getItem(SAVE_KEY);
+            if (currentRaw) {
+              const key = 'happyFarmRecoveryBackupsV1';
+              const current = JSON.parse(currentRaw) as Record<string,unknown>;
+              const old = JSON.parse(localStorage.getItem(key) || '[]') as Array<{savedAt:number;save:Record<string,unknown>}>;
+              if (!old.some(item => JSON.stringify(item.save) === currentRaw)) {
+                old.unshift({savedAt:Date.now(),save:current});
+                localStorage.setItem(key, JSON.stringify(old.slice(0,12)));
+              }
+            }
+            localStorage.setItem(SAVE_KEY, JSON.stringify(entry.save));
+            localStorage.setItem(LOCAL_UPDATED_KEY, String(Date.now()));
+            localStorage.setItem(LOCAL_DIRTY_KEY, 'true');
+            sessionStorage.removeItem('happyFarmCloudRestoreAttemptedV1');
+            status.textContent = 'Restoring selected snapshot…';
+            window.location.reload();
+          } catch (error) {
+            status.textContent = 'Restore failed: ' + (error instanceof Error ? error.message : String(error));
+          }
+        });
+        card.append(details, restore);
+        list.append(card);
+      });
+    }
+  } catch (error) {
+    status.textContent = 'Could not load recovery history: ' + (error instanceof Error ? error.message : String(error));
+  } finally { if (button) button.disabled = false; }
+}
+
 function showAccountModal(): void {
   document.getElementById('cloud-account-modal')?.classList.add('open');
   document.getElementById('cloud-account-modal')?.setAttribute('aria-hidden', 'false');
@@ -322,6 +415,7 @@ export function initializeCloudSaves(): void {
     else { currentUserId = null; currentUserEmail = null; cloudReady = false; setStatus('signed-out'); hideAccountModal(); }
   });
   document.getElementById('cloud-sync-now')?.addEventListener('click', () => { void syncWithCloud(); });
+  document.getElementById('cloud-recovery-open')?.addEventListener('click', () => { void showRecoveryHistory(); });
 
   if (!supabaseUrl || !supabaseKey) {
     setStatus('unconfigured', 'Add Supabase URL and publishable key to enable cloud saves.');
