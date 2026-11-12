@@ -1475,8 +1475,10 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 }
 
 /* Real item artwork in market thumbnails */
-.market-art{overflow:hidden;}
+.market-art{overflow:hidden;position:relative;}
 .market-art .market-thumb{display:block;width:100%;height:100%;max-width:100%;max-height:100%;object-fit:contain;padding:3px;box-sizing:border-box;filter:drop-shadow(0 2px 2px #4d402433);}
+.market-art.cow-atlas .market-thumb{width:400%;height:400%;max-width:none;max-height:none;object-fit:fill;padding:0;position:absolute;left:0;top:0;}
+.market-art.hen-atlas .market-thumb{width:600%;height:600%;max-width:none;max-height:none;object-fit:fill;padding:0;position:absolute;left:0;top:0;}
 
 .crop-hover-tooltip{pointer-events:none}.crop-hover-tooltip .crop-water-action{pointer-events:auto;align-self:flex-start;margin-top:3px;padding:5px 9px;border:1px solid #6e8e3d;border-radius:8px;background:linear-gradient(#b9dc78,#79a844);color:#263d1c;font:800 11px Nunito,Arial,sans-serif;box-shadow:0 2px 0 #52752e;cursor:pointer}.crop-hover-tooltip .crop-water-action:active{transform:translateY(1px);box-shadow:0 1px 0 #52752e}
 
