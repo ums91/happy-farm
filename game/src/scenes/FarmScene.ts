@@ -911,27 +911,23 @@ export class FarmScene extends Phaser.Scene {
 
   private handleWorldTap(pointer: Phaser.Input.Pointer): void {
     const world=this.cameras.main.getWorldPoint(pointer.x,pointer.y);
-    // In select mode, collect finished produce directly from the individual animal.
-    if(this.activeTool==='feed-hen'||this.activeTool==='feed-cow'){
-      const wanted=this.activeTool==='feed-hen'?'hen':'cow';
-      const hit=this.animals.findIndex((animal,index)=>{
-        const actor=this.animalActors[index];
-        const matches=wanted==='hen'?(animal.id==='hen'||animal.id==='chick'):(animal.id==='cow'||animal.id==='calf');
-        return matches&&animal.assigned!==false&&!!actor?.active&&Phaser.Math.Distance.Between(world.x,world.y,actor.x,actor.y)<(wanted==='cow'?42:34);
-      });
-      if(hit>=0){this.feedAnimalAt(hit,this.animals[hit]!.id);return;}
-      this.toast('Tap a hungry '+(wanted==='hen'?'hen or chick':'cow or calf')+' to use '+wanted+' feed.');
-      return;
-    }
     if(this.activeTool==='select'){
       // Ready water appears above the Well and is collected with one click.
       if(this.wellWaterBadge?.active&&Phaser.Math.Distance.Between(world.x,world.y,this.wellWaterBadge.x,this.wellWaterBadge.y)<26){this.collectWellWater();return;}
       // Finished goods can be collected from the floating badge above each production building.
       const productionHit=[...this.productionReadyBadges.entries()].find(([,badge])=>badge.active&&badge.visible&&Phaser.Math.Distance.Between(world.x,world.y,badge.x,badge.y)<28);
       if(productionHit){this.collectProduction(productionHit[0]);return;}
-      // Ready egg/milk icons sit above the coop/shed; one click collects the available batch.
-      const buildingHit=[...this.buildingProduceBadges.entries()].find(([,badge])=>badge.active&&Phaser.Math.Distance.Between(world.x,world.y,badge.x,badge.y)<24);
+      // Tap the ready egg/milk badge or the coop/shed itself to collect the whole ready batch.
+      const buildingHit=[...this.buildingProduceBadges.entries()].find(([id,badge])=>{
+        if(!badge.active)return false;
+        const pos=this.decor[id];if(!pos)return false;
+        const p=this.toWorld(pos.col,pos.row);
+        return Phaser.Math.Distance.Between(world.x,world.y,badge.x,badge.y)<28|| (Math.abs(world.x-p.x)<66&&Math.abs(world.y-p.y)<94);
+      });
       if(buildingHit){this.collectBuildingProduce(buildingHit[0]);return;}
+      // Tap the floating hungry bowl above an animal to feed it, using the matching feed in storage.
+      const hungryHit=[...this.animalHungryBadges.entries()].find(([index,badge])=>badge.active&&Phaser.Math.Distance.Between(world.x,world.y,badge.x,badge.y)<25);
+      if(hungryHit){const animal=this.animals[hungryHit[0]];if(animal)this.feedAnimalAt(hungryHit[0],animal.id);return;}
       // Water icons are lightweight tap targets above eligible growing crops.
       if(this.waterUnits>0){
         const waterHit=[...this.cropWaterBadges.entries()].find(([key,badge])=>{
@@ -940,11 +936,7 @@ export class FarmScene extends Phaser.Scene {
         });
         if(waterHit){const plot=this.plots.get(waterHit[0]);if(plot){this.waterPlot(plot);return;}}
       }
-      const readyIndex=this.animals.findIndex((animal,index)=>{
-        const actor=this.animalActors[index];
-        return (animal.id==='hen'||animal.id==='cow')&&animal.assigned!==false&&animal.readyAt>0&&animal.readyAt<=Date.now()&&!!actor?.active&&Phaser.Math.Distance.Between(world.x,world.y,actor.x,actor.y)<(animal.id==='cow'?36:29);
-      });
-      if(readyIndex>=0){this.collectAnimalAt(readyIndex);return;}
+
     }
     // Newly purchased trees/decor remain in hand until the player chooses a valid tile.
     if(this.pendingDecorId){
@@ -1800,19 +1792,7 @@ export class FarmScene extends Phaser.Scene {
         }
         hungryBadge.setPosition(actor.x,actor.y-34).setDepth(actor.depth+30);
       }
-      const producingAdult=(animal.id==='hen'||animal.id==='cow')&&active;
-      const ready=producingAdult&&animal.readyAt>0&&animal.readyAt<=now;
-      let produceBadge=this.animalProduceBadges.get(index);
-      if(!ready){if(produceBadge){produceBadge.destroy();this.animalProduceBadges.delete(index);}}
-      else{
-        const icon=animal.id==='hen'?'🥚':'🥛';
-        if(!produceBadge){
-          produceBadge=this.add.text(actor.x,actor.y-34,icon,{fontFamily:'Arial',fontSize:'19px',padding:{x:0,y:0},shadow:{offsetX:0,offsetY:1,color:'#5b4727',blur:2,fill:true}}).setOrigin(.5).setDepth(actor.depth+31);
-          this.animalProduceBadges.set(index,produceBadge);
-          this.tweens.add({targets:produceBadge,y:produceBadge.y-5,duration:600,yoyo:true,repeat:-1,ease:'Sine.inOut'});
-        }
-        produceBadge.setPosition(actor.x,actor.y-34).setDepth(actor.depth+31);
-      }
+
     });
     for(const [index,badge] of this.animalHungryBadges){if(index>=this.animals.length||!this.animalActors[index]?.active){badge.destroy();this.animalHungryBadges.delete(index);}}
     for(const [index,badge] of this.animalProduceBadges){if(index>=this.animals.length||!this.animalActors[index]?.active){badge.destroy();this.animalProduceBadges.delete(index);}}
