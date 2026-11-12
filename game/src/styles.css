@@ -1664,3 +1664,46 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 
 /* Fit the expanded nine-action toolbar without clipping the animal-feed tools. */
 @media(min-width:701px){.field-toolbar .tool-grid{gap:5px!important;flex-wrap:wrap}.field-toolbar .tool{width:70px;min-width:52px}}
+
+
+/* Keep the XP resource label on one line and give the farmer progress area enough vertical room. */
+.resources .xp-resource{
+  justify-content:flex-start!important;
+  gap:8px!important;
+  min-width:0!important;
+}
+.resources .xp-resource strong{
+  display:block!important;
+  min-width:0!important;
+  white-space:nowrap!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  font-size:clamp(13px,1.15vw,17px)!important;
+  line-height:1.1!important;
+}
+.farmer-hud{
+  height:auto!important;
+  min-height:62px!important;
+  overflow:visible!important;
+}
+.farmer-meta{
+  grid-template-columns:minmax(0,1fr)!important;
+  align-content:center!important;
+  row-gap:3px!important;
+  padding:1px 0!important;
+}
+.farmer-meta .level{grid-column:1!important}
+.xp-line{grid-column:1!important;width:100%!important}
+.farmer-meta>small{
+  grid-column:1!important;
+  display:block!important;
+  line-height:1.2!important;
+  padding-bottom:1px!important;
+}
+@media(max-width:1180px){
+  .resources .xp-resource strong{font-size:14px!important}
+}
+@media(max-width:700px){
+  .resources .xp-resource{gap:4px!important}
+  .resources .xp-resource strong{font-size:11px!important}
+}
