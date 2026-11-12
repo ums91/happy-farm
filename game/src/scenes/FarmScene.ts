@@ -990,6 +990,11 @@ export class FarmScene extends Phaser.Scene {
         return Phaser.Math.Distance.Between(world.x,world.y-38,p.x,p.y-49)<48;
       })());
       if(fruitTreeHit){this.harvestFruitTree(fruitTreeHit);return;}
+      const farmhousePos=this.decor.farmhouse;
+      if(farmhousePos){
+        const p=this.toWorld(farmhousePos.col,farmhousePos.row);
+        if(Math.abs(world.x-p.x)<68&&Math.abs(world.y-(p.y-30))<70){this.openInventory();return;}
+      }
       const buildingHit=(['coop','barn','silo','bakery','greenhouse','windmill','stable','well','workshop','waterTower'] as const).find(id=>{
         const pos=this.decor[id];if(!pos)return false;const p=this.toWorld(pos.col,pos.row);
         return Math.abs(world.x-p.x)<57&&Math.abs(world.y-(p.y-28))<62;
