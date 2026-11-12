@@ -2,8 +2,10 @@ import Phaser from 'phaser';
 import { FarmScene } from './scenes/FarmScene';
 import './styles.css';
 import { initializeMusicControls } from './services/music';
+import { initializeSfxControls } from './services/sfx';
 
 initializeMusicControls();
+initializeSfxControls();
 
 const loadingScreen=document.getElementById('loading-screen');
 const loadingFill=document.getElementById('loading-progress-fill');
