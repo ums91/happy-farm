@@ -46,6 +46,27 @@ function setStatus(next: CloudStatus, message?: string): void {
   }
 }
 
+function isPristineStarterSave(save: Record<string, unknown> | null): boolean {
+  if (!save) return false;
+  const decor = save.decor && typeof save.decor === 'object' ? save.decor as Record<string, unknown> : {};
+  const animals = Array.isArray(save.animals) ? save.animals : [];
+  const plots = Array.isArray(save.plots) ? save.plots as Array<Record<string, unknown>> : [];
+  const inventory = save.inventory && typeof save.inventory === 'object' ? save.inventory as Record<string, unknown> : {};
+  const starterInventory = Number(inventory.wheat) === 3 &&
+    ['carrot','corn','strawberry','tomato','pumpkin','blueberry','watermelon'].every(key => Number(inventory[key] || 0) === 0);
+  const starterPlots = plots.length > 0 && plots.every(plot =>
+    plot.state === 'grass' || plot.state === 'tilled'
+  ) && plots.filter(plot => plot.state === 'tilled').length <= 3;
+  return Number(save.coins) === 250 &&
+    Number(save.xp) === 0 &&
+    Number(save.harvests || 0) === 0 &&
+    Number(save.landExpansionCount || 0) === 0 &&
+    Object.keys(decor).every(key => key === 'farmhouse') &&
+    animals.length === 0 &&
+    starterInventory &&
+    starterPlots;
+}
+
 function localSnapshot(): Record<string, unknown> | null {
   try {
     const raw = localStorage.getItem(SAVE_KEY);
@@ -87,6 +108,8 @@ async function syncWithCloud(): Promise<void> {
     const latestLocalIsDirty = localStorage.getItem(LOCAL_DIRTY_KEY) === 'true';
     const localChangedDuringFetch = latestLocalUpdatedAt !== revisionAtRead;
     const remoteUpdatedAt = remote?.updated_at ? Date.parse(remote.updated_at) : 0;
+    // Restore an existing cloud farm if startup has produced only a pristine starter snapshot.
+    const localIsPristineStarter = isPristineStarterSave(localSnapshot());
 
     if (
       remote?.save_data &&
@@ -94,7 +117,7 @@ async function syncWithCloud(): Promise<void> {
       !dirtyAtRead &&
       !latestLocalIsDirty &&
       !localChangedDuringFetch &&
-      remoteUpdatedAt > localUpdatedAt
+      (remoteUpdatedAt > localUpdatedAt || localIsPristineStarter)
     ) {
       localStorage.setItem(SAVE_KEY, JSON.stringify(remote.save_data));
       localStorage.setItem(LOCAL_UPDATED_KEY, String(remoteUpdatedAt));
