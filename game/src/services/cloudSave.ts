@@ -149,6 +149,25 @@ async function syncWithCloud(): Promise<void> {
     // on the next page load.
     const latestLocal = localSnapshot();
     if (latestLocal) {
+      // Preserve the cloud snapshot locally before any upsert can replace it.
+      // This gives the browser a recovery copy even when a newer local revision wins.
+      if (remote?.save_data) {
+        try {
+          const backupKey = 'happyFarmCloudRecoveryBackupsV1';
+          const rawBackups = localStorage.getItem(backupKey);
+          const backups = rawBackups ? JSON.parse(rawBackups) as Array<{ savedAt: number; updatedAt: string | null; save: unknown }> : [];
+          const remoteJson = JSON.stringify(remote.save_data);
+          if (!backups.some(entry => JSON.stringify(entry.save) === remoteJson)) {
+            backups.unshift({ savedAt: Date.now(), updatedAt: remote.updated_at || null, save: remote.save_data });
+            localStorage.setItem(backupKey, JSON.stringify(backups.slice(0, 12)));
+          }
+        } catch (backupError) {
+          console.warn('Happy Farm could not archive the previous cloud save:', backupError);
+          setStatus('error', 'Could not create a cloud recovery copy · sync paused');
+          cloudReady = true;
+          return;
+        }
+      }
       const uploadedLocalUpdatedAt = Number(localStorage.getItem(LOCAL_UPDATED_KEY) || 0);
       const { data: saved, error: saveError } = await client.from('farm_saves')
         .upsert({
