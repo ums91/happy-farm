@@ -1877,3 +1877,114 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
  #market-modal.inventory-mode .market-item{padding:7px!important}
  #market-modal.inventory-mode .market-art{width:40px!important;height:40px!important;flex-basis:40px!important}
 }
+
+
+/* Classic FarmVille trading post layout: timber frame, category rail, item shelf. */
+#market-modal.market-mode .market-window{
+  display:grid!important;grid-template-columns:158px minmax(0,1fr)!important;
+  grid-template-rows:auto auto minmax(0,1fr) auto!important;column-gap:16px!important;
+  width:min(1120px,96vw)!important;height:min(760px,91dvh)!important;max-height:91dvh!important;
+  padding:17px 19px 14px!important;overflow:hidden!important;
+  border:10px solid #8a5a2d!important;border-radius:18px!important;
+  outline:3px solid #e6c78b;outline-offset:-5px;
+  background:
+    repeating-linear-gradient(90deg,#f8e9c7 0,#f8e9c7 16px,#f5e2b9 17px,#fff4d9 19px),
+    linear-gradient(#fff8e7,#ead5a9)!important;
+  box-shadow:inset 0 0 0 2px #fff4d6,inset 0 0 0 5px #bd8a4c,0 9px 0 #59391e,0 26px 75px #14210f99!important;
+}
+#market-modal.market-mode .market-header{grid-column:1/-1!important;grid-row:1!important;min-height:62px!important;padding:2px 8px 12px 70px!important;border-bottom:3px ridge #c99b5b!important}
+#market-modal.market-mode .market-tabs{
+  grid-column:1!important;grid-row:2/4!important;align-self:stretch!important;
+  display:flex!important;flex-direction:column!important;gap:7px!important;
+  margin:13px 0 0!important;padding:9px!important;overflow-y:auto!important;
+  border:3px ridge #c28b4c!important;border-radius:12px!important;
+  background:linear-gradient(135deg,#b77a3f,#8b572e)!important;
+  box-shadow:inset 0 1px 4px #57351c!important;
+}
+#market-modal.market-mode .market-tab{
+  display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:9px!important;
+  min-height:48px!important;padding:7px 9px!important;border:2px solid #d7b47b!important;border-radius:8px!important;
+  background:linear-gradient(#fff6df,#e9d3a7)!important;color:#79502c!important;
+  box-shadow:0 3px 0 #704522!important;font-size:11px!important;font-weight:900!important;text-align:left!important;
+}
+#market-modal.market-mode .market-tab.active{
+  border-color:#f4df9e!important;background:linear-gradient(#e9f6c8,#a8d16c)!important;color:#456d2e!important;
+  box-shadow:inset 0 0 0 2px #fff8d7,0 3px 0 #5e8136!important;transform:translateX(3px)!important;
+}
+#market-modal.market-mode .market-intro{
+  grid-column:2!important;grid-row:2!important;align-self:center!important;
+  margin:11px 0 8px!important;padding:9px 13px!important;border:1px solid #d8c18e!important;
+  border-left:5px solid #83ad4c!important;border-radius:8px!important;
+  background:linear-gradient(#fffdf4,#f0e4c7)!important;color:#81633d!important;font-size:11px!important;
+}
+#market-modal.market-mode .market-items{
+  grid-column:2!important;grid-row:3!important;display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;align-content:start!important;
+  gap:10px!important;min-height:0!important;overflow-y:auto!important;overscroll-behavior:contain!important;
+  padding:4px 8px 12px 2px!important;scrollbar-width:thin;scrollbar-color:#bd8a4c #f1e3c4;
+}
+#market-modal.market-mode .market-items>.inventory-section{grid-column:1/-1!important}
+#market-modal.market-mode .market-item{
+  display:grid!important;grid-template-columns:68px minmax(0,1fr)!important;grid-template-rows:auto auto!important;
+  align-items:center!important;gap:4px 10px!important;min-height:112px!important;padding:10px!important;
+  border:2px solid #ddc28e!important;border-radius:10px!important;
+  background:linear-gradient(145deg,#fffef6 0%,#f7edda 100%)!important;
+  box-shadow:inset 0 0 0 2px #fff,0 3px 0 #c6a16b,0 5px 10px #65401c18!important;
+}
+#market-modal.market-mode .market-art{grid-column:1!important;grid-row:1/3!important;width:66px!important;height:66px!important;flex-basis:66px!important;border-radius:8px!important;background:radial-gradient(circle,#fff 0,#e4efcf 72%,#c5d9a4 100%)!important;border:2px solid #d2dfb7!important}
+#market-modal.market-mode .market-copy{grid-column:2!important;grid-row:1!important;align-self:end!important;min-width:0!important}
+#market-modal.market-mode .market-copy strong{display:block!important;font-size:13px!important;color:#654322!important}
+#market-modal.market-mode .market-copy small{display:block!important;margin-top:4px!important;font-size:10px!important;line-height:1.35!important;color:#92734c!important}
+#market-modal.market-mode .market-buy{grid-column:2!important;grid-row:2!important;justify-self:start!important;min-height:29px!important;padding:6px 13px!important;border:2px solid #638c38!important;border-radius:7px!important;background:linear-gradient(#c6e88b,#83b94d)!important;color:#345b26!important;font-size:10px!important;font-weight:1000!important;box-shadow:0 3px 0 #5b8236!important}
+#market-modal.market-mode .market-buy:disabled{filter:grayscale(.7)!important;opacity:.6!important}
+#market-modal.market-mode .market-footer{
+  grid-column:1/-1!important;grid-row:4!important;position:relative!important;bottom:auto!important;
+  margin:10px 0 0!important;padding:10px 14px!important;border:2px ridge #c99b5b!important;border-radius:9px!important;
+  background:linear-gradient(#fff6df,#e8d2a6)!important;color:#80582e!important;font-weight:800!important;
+}
+#market-modal.inventory-mode .market-window{
+  display:grid!important;grid-template-columns:minmax(0,1fr)!important;grid-template-rows:auto auto minmax(0,1fr) auto!important;
+  width:min(1040px,96vw)!important;height:min(760px,91dvh)!important;max-height:91dvh!important;
+  padding:17px 20px 14px!important;overflow:hidden!important;
+  border:10px solid #8a5a2d!important;border-radius:18px!important;outline:3px solid #e6c78b;outline-offset:-5px;
+  background:repeating-linear-gradient(90deg,#f8e9c7 0,#f8e9c7 16px,#f5e2b9 17px,#fff4d9 19px)!important;
+  box-shadow:inset 0 0 0 2px #fff4d6,inset 0 0 0 5px #bd8a4c,0 9px 0 #59391e,0 26px 75px #14210f99!important;
+}
+#market-modal.inventory-mode .market-header{grid-column:1!important;grid-row:1!important;padding:2px 8px 12px 60px!important;border-bottom:3px ridge #c99b5b!important}
+#market-modal.inventory-mode .market-tabs{display:none!important}
+#market-modal.inventory-mode .market-intro{grid-column:1!important;grid-row:2!important;margin:10px 0!important;padding:9px 13px!important;border:1px solid #d8c18e!important;border-left:5px solid #83ad4c!important;border-radius:8px!important;background:#fff8e7!important;color:#81633d!important;font-size:11px!important}
+#market-modal.inventory-mode .market-items{
+  grid-column:1!important;grid-row:3!important;display:block!important;min-height:0!important;overflow-y:auto!important;
+  padding:2px 8px 12px 2px!important;overscroll-behavior:contain!important;scrollbar-width:thin;scrollbar-color:#bd8a4c #f1e3c4;
+}
+#market-modal.inventory-mode .inventory-section{margin:0 0 12px!important;padding:10px 12px!important;border:2px solid #ddc28e!important;border-radius:10px!important;background:linear-gradient(#fffdf5,#f6ebd5)!important;box-shadow:0 3px 0 #c6a16b!important}
+#market-modal.inventory-mode .inventory-section h3{margin:0 0 9px!important;padding:0 0 7px!important;border-bottom:2px solid #e6d4ad!important;color:#648b3e!important;font-size:14px!important;font-weight:1000!important}
+#market-modal.inventory-mode .inventory-grid,#market-modal.inventory-mode .quest-list{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px!important}
+#market-modal.inventory-mode .market-item{display:flex!important;flex-direction:row!important;min-height:66px!important;padding:8px!important;border:1px solid #e0c99d!important;border-radius:8px!important;background:#fffdf7!important;box-shadow:0 2px 0 #d3bb8e!important}
+#market-modal.inventory-mode .market-art{width:48px!important;height:48px!important;flex:0 0 48px!important;border-radius:7px!important;background:linear-gradient(#f4f8e9,#dce9c7)!important}
+#market-modal.inventory-mode .market-copy{flex:1!important;min-width:0!important}
+#market-modal.inventory-mode .market-copy strong{font-size:11px!important;color:#654322!important}
+#market-modal.inventory-mode .market-copy small{font-size:9px!important;color:#90734d!important;line-height:1.3!important}
+#market-modal.inventory-mode .inventory-quantity{padding:5px 8px!important;border:1px solid #c6d8a8!important;border-radius:7px!important;background:#e8f2d9!important;color:#527d35!important;font-size:11px!important;font-weight:1000!important}
+#market-modal.inventory-mode .market-footer{grid-column:1!important;grid-row:4!important;position:relative!important;bottom:auto!important;margin:8px 0 0!important;padding:10px 14px!important;border:2px ridge #c99b5b!important;border-radius:9px!important;background:linear-gradient(#fff6df,#e8d2a6)!important}
+@media(max-width:760px){
+ #market-modal.market-mode .market-window{grid-template-columns:112px minmax(0,1fr)!important;column-gap:9px!important;padding:10px!important}
+ #market-modal.market-mode .market-tabs{padding:6px!important}
+ #market-modal.market-mode .market-tab{min-height:43px!important;font-size:10px!important}
+ #market-modal.market-mode .market-items{grid-template-columns:1fr!important;padding-right:2px!important}
+ #market-modal.market-mode .market-item{min-height:88px!important;grid-template-columns:54px minmax(0,1fr)!important}
+ #market-modal.market-mode .market-art{width:52px!important;height:52px!important}
+ #market-modal.inventory-mode .inventory-grid,#market-modal.inventory-mode .quest-list{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media(max-width:480px){
+ #market-modal.market-mode .market-window{grid-template-columns:82px minmax(0,1fr)!important;column-gap:6px!important;padding:7px!important;border-width:6px!important}
+ #market-modal.market-mode .market-tabs{gap:5px!important;padding:4px!important}
+ #market-modal.market-mode .market-tab{justify-content:center!important;min-height:42px!important;padding:5px 2px!important;font-size:9px!important;text-align:center!important}
+ #market-modal.market-mode .market-items{grid-template-columns:1fr!important}
+ #market-modal.market-mode .market-item{grid-template-columns:44px minmax(0,1fr)!important;gap:3px 6px!important;padding:7px!important}
+ #market-modal.market-mode .market-art{width:42px!important;height:42px!important}
+ #market-modal.market-mode .market-copy strong{font-size:11px!important}
+ #market-modal.market-mode .market-copy small{font-size:9px!important}
+ #market-modal.market-mode .market-buy{font-size:9px!important;padding:5px 8px!important}
+ #market-modal.inventory-mode .inventory-grid,#market-modal.inventory-mode .quest-list{grid-template-columns:1fr!important}
+}
