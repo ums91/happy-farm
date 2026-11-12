@@ -118,6 +118,7 @@ export class FarmScene extends Phaser.Scene {
   private minFarmZoom = 0.55;
   private dragPoint = new Phaser.Math.Vector2();
   private readonly saveKey = 'happyFarmPhaserSaveV1';
+  private persistenceBlocked = false;
 
   constructor() { super('FarmScene'); }
 
@@ -2180,7 +2181,13 @@ export class FarmScene extends Phaser.Scene {
         return;
       }
       const save = JSON.parse(raw) as any;
-      if (![1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19].includes(save.version) || !Array.isArray(save.plots)) return;
+      if (![1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19].includes(save.version) || !Array.isArray(save.plots)) {
+        this.persistenceBlocked = true;
+        console.error('Happy Farm found an unsupported or incomplete save. Saving is disabled to protect the existing data.');
+        const status = document.getElementById('cloud-save-status');
+        if (status) status.textContent = 'Save needs recovery · automatic writes paused to protect your farm';
+        return;
+      }
       this.coins = Math.max(0, Math.floor(save.coins));
       this.farmerName=typeof save.farmerName==='string'&&save.farmerName.trim()?save.farmerName.slice(0,24):'New Farmer';
       this.farmName=typeof save.farmName==='string'&&save.farmName.trim()?save.farmName.slice(0,28):'My Farm';
@@ -2236,8 +2243,12 @@ export class FarmScene extends Phaser.Scene {
         if (plot.state === 'growing') { const remaining=plot.readyAt ? plot.readyAt-Date.now() : (plot.watered ? 5000 : CROPS[plot.crop].growMs); if (remaining<=0) {plot.state='ready';plot.growth=100;plot.readyAt=0;plot.witherAt=Date.now()+Math.max(300000,CROPS[plot.crop].growMs*2);this.scheduleWithering(plot);} else this.scheduleGrowth(plot,remaining); }
         this.redrawPlot(plot);
       }
-    } catch {
-      // Ignore malformed or unavailable browser storage and start a fresh farm.
+    } catch (error) {
+      // Never turn an unreadable existing save into a new starter farm automatically.
+      this.persistenceBlocked = true;
+      console.error('Happy Farm could not read its existing save. Automatic writes are paused to protect it:', error);
+      const status = document.getElementById('cloud-save-status');
+      if (status) status.textContent = 'Save unreadable · automatic writes paused to protect your farm';
     }
   }
 
@@ -2277,6 +2288,11 @@ export class FarmScene extends Phaser.Scene {
       })),
     };
     try {
+      if (this.persistenceBlocked) {
+        const status = document.getElementById('cloud-save-status');
+        if (status) status.textContent = 'Save protection active · no changes written';
+        return;
+      }
       // Keep a rolling recovery history before replacing the current local save.
       // The newest snapshot is written only after the previous one is safely archived.
       const backupKey = 'happyFarmRecoveryBackupsV1';
@@ -2293,14 +2309,22 @@ export class FarmScene extends Phaser.Scene {
             localStorage.setItem(backupKey, JSON.stringify(backups.slice(0, 12)));
           }
         } catch (backupError) {
-          console.warn('Happy Farm could not archive the previous local save:', backupError);
+          // Fail closed: never replace the only known-good save if its recovery copy failed.
+          this.persistenceBlocked = true;
+          console.error('Happy Farm could not create a local recovery copy; save overwrite blocked:', backupError);
+          const status = document.getElementById('cloud-save-status');
+          if (status) status.textContent = 'Recovery copy failed · save overwrite blocked to protect your farm';
+          return;
         }
       }
       localStorage.setItem(this.saveKey, JSON.stringify(save));
       localStorage.setItem('happyFarmLocalUpdatedAtV1', String(Math.max(Date.now(), Number(localStorage.getItem('happyFarmLocalUpdatedAtV1') || 0) + 1)));
       queueCloudSave();
-    } catch {
-      // Storage may be disabled or full; gameplay remains available for this session.
+    } catch (error) {
+      // Storage may be disabled or full. Keep the previous save untouched and warn visibly.
+      console.error('Happy Farm could not write the local save:', error);
+      const status = document.getElementById('cloud-save-status');
+      if (status) status.textContent = 'Local save failed · previous farm data preserved';
     }
   }
 
