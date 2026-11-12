@@ -2277,6 +2277,25 @@ export class FarmScene extends Phaser.Scene {
       })),
     };
     try {
+      // Keep a rolling recovery history before replacing the current local save.
+      // The newest snapshot is written only after the previous one is safely archived.
+      const backupKey = 'happyFarmRecoveryBackupsV1';
+      const previousRaw = localStorage.getItem(this.saveKey);
+      if (previousRaw) {
+        try {
+          const previous = JSON.parse(previousRaw) as Record<string, unknown>;
+          const backupsRaw = localStorage.getItem(backupKey);
+          const backups = backupsRaw ? JSON.parse(backupsRaw) as Array<{ savedAt: number; save: Record<string, unknown> }> : [];
+          const isDuplicate = backups.some(entry => JSON.stringify(entry.save) === previousRaw);
+          if (!isDuplicate) {
+            backups.unshift({ savedAt: Date.now(), save: previous });
+            // Keep up to 12 distinct previous snapshots, including developed farms.
+            localStorage.setItem(backupKey, JSON.stringify(backups.slice(0, 12)));
+          }
+        } catch (backupError) {
+          console.warn('Happy Farm could not archive the previous local save:', backupError);
+        }
+      }
       localStorage.setItem(this.saveKey, JSON.stringify(save));
       localStorage.setItem('happyFarmLocalUpdatedAtV1', String(Math.max(Date.now(), Number(localStorage.getItem('happyFarmLocalUpdatedAtV1') || 0) + 1)));
       queueCloudSave();
