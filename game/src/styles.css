@@ -2106,3 +2106,29 @@ body.visitor-mode .audio-dock{display:none!important}
   .top-actions{gap:5px!important}
   .top-actions>button{width:38px!important;height:38px!important;flex-basis:38px!important;font-size:20px!important}
 }
+
+
+/* Keep the cloud account and Friends controls readable in the desktop HUD.
+   The circular icon sizing must not squeeze the text-based Friends button. */
+@media(min-width:1181px){
+  .top-actions{display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:6px!important;min-width:max-content!important}
+  .top-actions>#cloud-account,
+  .top-actions>#top-friends{
+    flex:0 0 auto!important;
+    width:auto!important;
+    min-width:76px!important;
+    height:38px!important;
+    padding:0 9px!important;
+    border-radius:12px!important;
+    white-space:nowrap!important;
+    font-size:10px!important;
+    line-height:1!important;
+  }
+  .top-actions>#top-friends{min-width:82px!important;font-size:11px!important}
+  .top-actions>#top-quests,
+  .top-actions>#top-orders,
+  .top-actions>#top-inventory,
+  .top-actions>#top-settings{
+    flex:0 0 38px!important;width:38px!important;height:38px!important;
+  }
+}
