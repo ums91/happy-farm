@@ -45,6 +45,7 @@ export class FarmScene extends Phaser.Scene {
   private cropSprites = new Map<string, Phaser.GameObjects.Image>();
   private buildingAssetSprites = new Map<string, Phaser.GameObjects.Image>();
   private decorAssetSprites = new Map<string, Phaser.GameObjects.Image>();
+  private decorAssetShadows = new Map<string, Phaser.GameObjects.Ellipse>();
   private windmillRotorSprites = new Map<string, Phaser.GameObjects.Image>();
   private growthTimers = new Map<string, Phaser.Time.TimerEvent>();
   private plotGraphics!: Phaser.GameObjects.Graphics;
@@ -446,18 +447,27 @@ export class FarmScene extends Phaser.Scene {
   private renderDecorAssets():void {
     this.decorAssetSprites.forEach(sprite=>sprite.destroy());
     this.decorAssetSprites.clear();
+    this.decorAssetShadows.forEach(shadow=>shadow.destroy());
+    this.decorAssetShadows.clear();
     Object.entries(this.decor).forEach(([id,pos])=>{
       const asset=this.decorAssetForId(id),texture=asset?'decor-'+asset:'';
       if(!asset||!this.textures.exists(texture))return;
       const p=this.toWorld(pos.col,pos.row);
       const source=this.textures.get(texture).getSourceImage() as HTMLImageElement;
       const slug=asset;
-      let maxW=66,maxH=58;
-      if(/tree|pine|evergreen|blossom/.test(slug)){maxW=78;maxH=94;}
-      else if(/gazebo|arch|swing|windmill|fountain|well|pond|waterfall|bridge|cart|market/.test(slug)){maxW=88;maxH=82;}
-      else if(/hedge|bush|flower|fence|path|rock|stone|firewood|hay/.test(slug)){maxW=62;maxH=46;}
+      const tree=/tree|pine|evergreen|blossom/.test(slug);
+      const large=/gazebo|arch|swing|windmill|fountain|well|pond|waterfall|bridge|cart|market|campfire/.test(slug);
+      const low=/hedge|bush|flower|fence|path|rock|stone|firewood|hay/.test(slug);
+      // Scale by object class, not one shared box: trees stay tall, ground props stay grounded,
+      // and landmarks retain enough visual weight to read as buildings/features.
+      const maxW=tree?88:large?102:low?64:76;
+      const maxH=tree?112:large?88:low?48:66;
       const scale=Math.min(maxW/source.width,maxH/source.height);
+      const displayW=source.width*scale;
+      const shadow=this.add.ellipse(p.x,p.y+1,Math.max(24,displayW*0.66),tree?11:large?15:9,0x34502a,0.22)
+        .setDepth(p.y+39);
       const sprite=this.add.image(p.x,p.y+4,texture).setOrigin(0.5,1).setScale(scale).setDepth(p.y+45);
+      this.decorAssetShadows.set(id,shadow);
       this.decorAssetSprites.set(id,sprite);
     });
   }
