@@ -116,6 +116,9 @@ async function syncWithCloud(): Promise<void> {
     const remoteDiffersFromLocal = Boolean(remote?.save_data) &&
       JSON.stringify(remote?.save_data) !== JSON.stringify(latestLocalSnapshot);
 
+    const restoreAttemptKey = 'happyFarmCloudRestoreAttemptedV1';
+    const restoreAlreadyAttempted = sessionStorage.getItem(restoreAttemptKey) === 'true';
+
     if (
       remote?.save_data &&
       remoteDiffersFromLocal &&
@@ -125,6 +128,15 @@ async function syncWithCloud(): Promise<void> {
       !localChangedDuringFetch &&
       (remoteUpdatedAt > localUpdatedAt || localIsPristineStarter)
     ) {
+      // Limit automatic restore to one reload per browser tab. If the
+      // snapshots still differ after that, preserve both rather than looping
+      // or uploading the local starter snapshot over the cloud copy.
+      if (restoreAlreadyAttempted) {
+        setStatus('error', 'Cloud save differs from this device · automatic restore paused to protect your farm');
+        cloudReady = true;
+        return;
+      }
+      sessionStorage.setItem(restoreAttemptKey, 'true');
       localStorage.setItem(SAVE_KEY, JSON.stringify(remote.save_data));
       localStorage.setItem(LOCAL_UPDATED_KEY, String(remoteUpdatedAt));
       setStatus('synced', 'Cloud farm restored · refreshing game…');
