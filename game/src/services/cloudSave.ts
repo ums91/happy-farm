@@ -76,6 +76,99 @@ function localSnapshot(): Record<string, unknown> | null {
   }
 }
 
+
+// Export/import contains only the farm save payload. It never includes Supabase
+// credentials, auth tokens, email addresses, or browser storage contents.
+function validateFarmSave(value: unknown): value is Record<string, unknown> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  const save = value as Record<string, unknown>;
+  const validVersions = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19];
+  if (!validVersions.includes(Number(save.version)) || !Array.isArray(save.plots)) return false;
+  if (!Number.isFinite(Number(save.coins)) || Number(save.coins) < 0 ||
+      !Number.isFinite(Number(save.xp)) || Number(save.xp) < 0 ||
+      !Array.isArray(save.animals) || !save.inventory || typeof save.inventory !== 'object' ||
+      !save.feed || typeof save.feed !== 'object') return false;
+  if (save.plots.length > 1000 || save.animals.length > 500) return false;
+  return save.plots.every((plot: any) => plot && Number.isInteger(plot.col) &&
+    Number.isInteger(plot.row) && ['grass','tilled','growing','ready','withered'].includes(plot.state));
+}
+
+function farmProgressScore(save: Record<string, unknown> | null): number {
+  if (!save) return 0;
+  const animals = Array.isArray(save.animals) ? save.animals.length : 0;
+  const decor = save.decor && typeof save.decor === 'object' ? Object.keys(save.decor as object).length : 0;
+  const plots = Array.isArray(save.plots) ? save.plots.filter((p: any) => p && p.state !== 'grass').length : 0;
+  const land = Array.isArray(save.landTiles) ? save.landTiles.length : 0;
+  return Number(save.xp || 0) * 1000 + Number(save.harvests || 0) * 100 +
+    animals * 25 + decor * 10 + plots * 2 + land;
+}
+
+function archiveCurrentSaveBeforeReplacement(): boolean {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return true;
+    const current = JSON.parse(raw) as Record<string, unknown>;
+    const key = 'happyFarmRecoveryBackupsV1';
+    const backups = JSON.parse(localStorage.getItem(key) || '[]') as Array<{savedAt:number;save:Record<string,unknown>}>;
+    if (!backups.some(item => JSON.stringify(item.save) === raw)) {
+      backups.unshift({ savedAt: Date.now(), save: current });
+      localStorage.setItem(key, JSON.stringify(backups.slice(0, 12)));
+    }
+    return true;
+  } catch (error) {
+    console.error('Farm replacement blocked because the current save could not be archived:', error);
+    return false;
+  }
+}
+
+function exportFarmBackup(): void {
+  const save = localSnapshot();
+  if (!validateFarmSave(save)) {
+    window.alert('The current farm save could not be validated. No backup file was created.');
+    return;
+  }
+  const payload = { format: 'happy-farm-backup', formatVersion: 1, exportedAt: new Date().toISOString(), save };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = 'happy-farm-backup-' + new Date().toISOString().replace(/[:.]/g, '-') + '.json';
+  document.body.append(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(url);
+}
+
+async function importFarmBackup(file: File | null): Promise<void> {
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) {
+    window.alert('Backup file is larger than 5 MB. Import was cancelled.');
+    return;
+  }
+  try {
+    const parsed = JSON.parse(await file.text());
+    const save = parsed?.format === 'happy-farm-backup' ? parsed.save : parsed;
+    if (!validateFarmSave(save)) {
+      window.alert('This file is not a valid Happy Farm save. Your current farm was not changed.');
+      return;
+    }
+    const level = Math.max(1, Math.floor(Number(save.xp || 0) / 100) + 1);
+    if (!window.confirm('Import this backup (approximately Level ' + level + ', ' +
+      Number(save.coins).toLocaleString() + ' coins)? Your current farm will first be archived.')) return;
+    if (!archiveCurrentSaveBeforeReplacement()) {
+      window.alert('Import blocked: the current farm could not be safely archived.');
+      return;
+    }
+    localStorage.setItem(SAVE_KEY, JSON.stringify(save));
+    localStorage.setItem(LOCAL_UPDATED_KEY, String(Date.now()));
+    localStorage.setItem(LOCAL_DIRTY_KEY, 'true');
+    sessionStorage.removeItem('happyFarmCloudRestoreAttemptedV1');
+    window.location.reload();
+  } catch (error) {
+    window.alert('Could not import backup: ' + (error instanceof Error ? error.message : String(error)));
+  }
+}
+
 async function syncWithCloud(): Promise<void> {
   if (!client || !currentUserId || !navigator.onLine) return;
   if (syncInProgress) {
@@ -141,6 +234,16 @@ async function syncWithCloud(): Promise<void> {
       localStorage.setItem(LOCAL_UPDATED_KEY, String(remoteUpdatedAt));
       setStatus('synced', 'Cloud farm restored · refreshing game…');
       window.location.reload();
+      return;
+    }
+
+    // Never upload a clearly less-developed local farm over a stronger cloud farm
+    // just because timestamps or device clocks disagree. Require manual recovery review.
+    if (remote?.save_data && latestLocalSnapshot && !localIsPristineStarter &&
+        validateFarmSave(remote.save_data) &&
+        farmProgressScore(remote.save_data) > farmProgressScore(latestLocalSnapshot) * 1.15) {
+      setStatus('error', 'Cloud farm appears more developed than this device · sync paused to prevent progress loss');
+      cloudReady = true;
       return;
     }
 
@@ -416,6 +519,12 @@ export function initializeCloudSaves(): void {
   });
   document.getElementById('cloud-sync-now')?.addEventListener('click', () => { void syncWithCloud(); });
   document.getElementById('cloud-recovery-open')?.addEventListener('click', () => { void showRecoveryHistory(); });
+  document.getElementById('farm-backup-export')?.addEventListener('click', exportFarmBackup);
+  const importInput = document.getElementById('farm-backup-import') as HTMLInputElement | null;
+  importInput?.addEventListener('change', () => {
+    const file = importInput.files?.[0] || null;
+    void importFarmBackup(file).finally(() => { importInput.value = ''; });
+  });
 
   if (!supabaseUrl || !supabaseKey) {
     setStatus('unconfigured', 'Add Supabase URL and publishable key to enable cloud saves.');
