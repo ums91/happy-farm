@@ -2132,3 +2132,41 @@ body.visitor-mode .audio-dock{display:none!important}
     flex:0 0 38px!important;width:38px!important;height:38px!important;
   }
 }
+
+
+/* Medium desktop HUD: keep farmer, balances and action icons on one aligned row.
+   The previous 701–1180px rule pushed balances to a second row and squeezed
+   the action group out of view on laptop-sized screens. */
+@media(min-width:701px) and (max-width:1180px){
+  .topbar{
+    display:grid!important;
+    grid-template-columns:minmax(210px,.95fr) minmax(230px,1fr) minmax(300px,1.25fr)!important;
+    grid-template-rows:1fr!important;
+    align-items:center!important;
+    column-gap:10px!important;
+    row-gap:0!important;
+    height:72px!important;
+    min-height:72px!important;
+    padding:5px 9px!important;
+    overflow:visible!important;
+  }
+  .farmer-hud{grid-column:1!important;grid-row:1!important;min-width:0!important;height:48px!important;gap:6px!important;padding:3px 7px!important}
+  .farmer-hud .avatar{width:36px!important;height:36px!important;flex:0 0 36px!important;font-size:24px!important}
+  .farmer-title strong{font-size:14px!important}
+  .farmer-meta .level{font-size:8px!important}
+  .farmer-meta>small{font-size:7px!important}
+  .resources{grid-column:2!important;grid-row:1!important;display:flex!important;min-width:0!important;width:100%!important;gap:6px!important}
+  .resources .resource{min-width:0!important;flex:1 1 0!important;height:38px!important;padding:3px 6px!important;gap:5px!important}
+  .resources .resource-icon{width:23px!important;height:23px!important;flex:0 0 23px!important;font-size:16px!important}
+  .resources .resource strong{font-size:13px!important;white-space:nowrap!important}
+  .resources .resource button{width:22px!important;height:22px!important;flex:0 0 22px!important;font-size:16px!important}
+  .top-actions{
+    grid-column:3!important;grid-row:1!important;
+    display:flex!important;align-items:center!important;justify-content:flex-end!important;
+    width:100%!important;min-width:0!important;gap:4px!important;overflow:visible!important;
+  }
+  .top-actions>button{flex:0 0 32px!important;width:32px!important;height:32px!important;font-size:16px!important}
+  .top-actions>#cloud-account{flex:0 1 auto!important;width:auto!important;min-width:66px!important;height:32px!important;padding:0 6px!important;font-size:9px!important}
+  .top-actions>#top-friends{flex:0 1 auto!important;width:auto!important;min-width:70px!important;height:32px!important;padding:0 6px!important;font-size:9px!important}
+  .top-actions>#top-quests,.top-actions>#top-orders,.top-actions>#top-inventory,.top-actions>#top-settings{flex:0 0 32px!important;width:32px!important;height:32px!important}
+}
