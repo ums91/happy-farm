@@ -1638,3 +1638,18 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
   .resources .resource-icon{width:19px!important;height:19px!important;flex-basis:19px!important;font-size:11px!important}
   .resources .resource strong{font-size:10px!important}
 }
+
+
+/* Farm recovery history */
+.cloud-account-card .recovery-history{margin:12px 0;padding:12px;border:1px solid #d8c49a;border-radius:14px;background:#fffaf0;max-height:38vh;overflow:auto}
+.cloud-account-card .recovery-history[hidden]{display:none!important}
+.recovery-history h3{margin:0 0 7px;color:#5e813d;font-size:15px}
+.recovery-history>p{margin:0 0 9px;color:#75684f;font-size:11px;line-height:1.45}
+.recovery-list{display:grid;gap:8px}
+.recovery-entry{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px;border:1px solid #e5d5b4;border-radius:10px;background:#fff}
+.recovery-entry>div{display:grid;gap:4px;min-width:0}
+.recovery-entry strong{font-size:11px;color:#5b713e}
+.recovery-entry small{font-size:10px;line-height:1.4;color:#81745d}
+.recovery-entry button{flex:0 0 auto;border:0;border-radius:8px;padding:8px 11px;background:#4c8747;color:#fff;font-size:11px;font-weight:800;cursor:pointer}
+#cloud-recovery-open{display:block;width:100%;text-align:center;padding:9px;border-radius:9px;background:#edf5e9;text-decoration:none}
+@media(max-width:520px){.cloud-account-card .recovery-history{max-height:32vh;padding:9px}.recovery-entry{align-items:flex-start}.recovery-entry button{padding:7px 8px}}
