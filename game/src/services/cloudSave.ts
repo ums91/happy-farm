@@ -562,6 +562,7 @@ export function initializeCloudSaves(): void {
   client.auth.onAuthStateChange((_event, session) => {
     currentUserId = session?.user.id || null;
     currentUserEmail = session?.user.email || null;
+    window.dispatchEvent(new Event('happyfarm:auth-changed'));
     if (currentUserId) {
       cloudReady = false;
       window.setTimeout(() => { void syncWithCloud(); }, 0);
@@ -574,6 +575,7 @@ export function initializeCloudSaves(): void {
     if (error) { setStatus('error', error.message); return; }
     currentUserId = data.session?.user.id || null;
     currentUserEmail = data.session?.user.email || null;
+    window.dispatchEvent(new Event('happyfarm:auth-changed'));
     setStatus(currentUserId ? 'synced' : 'signed-out', currentUserId ? `Signed in as ${currentUserEmail || 'your account'} · checking cloud save…` : undefined);
     if (currentUserId) void syncWithCloud();
     else setStatus('signed-out');
