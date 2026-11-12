@@ -114,7 +114,7 @@ async function syncWithCloud(): Promise<void> {
     // Do not reload repeatedly when the cloud snapshot is already the exact
     // snapshot stored locally (notably when both contain the starter farm).
     const remoteDiffersFromLocal = Boolean(remote?.save_data) &&
-      JSON.stringify(remote.save_data) !== JSON.stringify(latestLocalSnapshot);
+      JSON.stringify(remote?.save_data) !== JSON.stringify(latestLocalSnapshot);
 
     if (
       remote?.save_data &&
