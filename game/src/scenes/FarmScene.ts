@@ -525,11 +525,11 @@ export class FarmScene extends Phaser.Scene {
       if(!homeTile){this.toast('No clear grass tile available for an animal. Move a building or field first.');return;}
       const center=this.toWorld(homeTile.col,homeTile.row);
       const bounds={width:TILE_W*4,height:TILE_H*4};
-      const actor=this.add.container(center.x,center.y);actor.setDepth(center.y+index);
+      const actor=this.add.container(center.x,center.y);actor.setDepth(center.y+index*0.01);
       this.animalReservedCells.add(this.animalCellKey(homeTile));
       const scale=cow?0.74:0.58;
       actor.setScale(scale);
-      actor.add(this.add.ellipse(0,6,cow?32:22,7,0x263e25,0.18));
+      actor.add(this.add.ellipse(0,6,cow?64:34,cow?13:8,0x263e25,0.2));
       const texture=cow?'animal-cow':'animal-hen';
       if(this.textures.exists(texture)){
         const sprite=this.add.sprite(0,-2,texture).setDisplaySize(cow?88:38,cow?59:38).setAlpha(1).setVisible(true);
@@ -557,8 +557,8 @@ export class FarmScene extends Phaser.Scene {
       if(!chickTile)return;
       const chickPos=this.toWorld(chickTile.col,chickTile.row);
       this.animalReservedCells.add(this.animalCellKey(chickTile));
-      const chick=this.add.container(chickPos.x,chickPos.y);chick.setDepth(chickPos.y+14);
-      chick.add(this.add.ellipse(0,4,15,4,0x263e25,0.18));
+      const chick=this.add.container(chickPos.x,chickPos.y);chick.setDepth(chickPos.y+0.02);
+      chick.add(this.add.ellipse(0,4,20,5,0x263e25,0.2));
       const chickSprite=this.add.sprite(0,-1,'animal-chick').setDisplaySize(18,16.4);chick.add(chickSprite);this.animalSprites.set(chick,chickSprite);
       this.animalActors.push(chick);
       chickSprite.play('chick-idle');this.animateAnimalIdle(chick,chickSprite);
@@ -571,8 +571,10 @@ export class FarmScene extends Phaser.Scene {
     if(!actor.active||!sprite.active)return;
     this.tweens.killTweensOf(sprite);
     sprite.anims.stop();
-    sprite.setAngle(0).setY(-2);
+    sprite.setAngle(0).setY(-2).setScale(1,1);
     sprite.setFrame(0);
+    // A restrained breathing motion keeps resting animals alive without cycling their legs.
+    this.tweens.add({targets:sprite,y:-2.7,scaleY:1.025,duration:1500,ease:'Sine.inOut',yoyo:true,repeat:-1});
   }
 
   private wanderAnimal(actor:Phaser.GameObjects.Container,cx:number,cy:number,limitX:number,limitY:number,cow:boolean):void{
