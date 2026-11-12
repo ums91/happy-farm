@@ -1854,7 +1854,6 @@ export class FarmScene extends Phaser.Scene {
   private renderGenericBuildingPanel(id:BuildingId):void {
     if(id==='bakery'||id==='greenhouse'||id==='windmill'){this.renderProductionPanel(id);return;}
     if(id==='workshop'){this.renderWorkshopPanel();return;}
-    if(id==='workshop'){this.renderWorkshopPanel();return;}
     const level=this.buildingLevels[id]||this.buildings.warehouseLevel;const cost=level*350;const names:Record<BuildingId,string>={coop:'Chicken Run',barn:'Cow Pasture',silo:'Grain Silo',bakery:'Village Bakery',greenhouse:'Greenhouse',windmill:'Windmill',stable:'Horse Stable',well:'Stone Well',workshop:'Farm Workshop',waterTower:'Water Tower'};
     const perks:Record<BuildingId,string>={coop:'Expands the chicken run, adding 2 hen spaces and 5 egg storage per level.',barn:'Expands the cow pasture, adding 2 cow spaces and 5 milk storage per level.',silo:'Adds 10 shared animal-product storage spaces per level.',bakery:'A growing production hub for baked-goods recipes.',greenhouse:'A glasshouse for advanced crops and specialist growing.',windmill:'A landmark mill that completes your homestead.',stable:'Unlocks the next chapter of farm companions and stable upgrades.',well:'A reliable water source for your growing homestead.',workshop:'Craft nutrient-rich compost from harvested crops and use it to speed up growing fields.',waterTower:'A landmark water system for your expanded farm.'};
     const host=document.getElementById('market-items');if(!host)return;
@@ -2234,7 +2233,7 @@ export class FarmScene extends Phaser.Scene {
 
   private saveFarm(): void {
     const save: FarmSave = {
-      version: 18,
+      version: 19,
       water:this.waterUnits,
       waterCollectedAt:this.waterCollectedAt,
       landTiles:[...this.landTiles],
