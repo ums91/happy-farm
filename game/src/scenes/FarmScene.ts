@@ -79,6 +79,7 @@ export class FarmScene extends Phaser.Scene {
   private animalReservedCells=new Set<string>();
   private animalTroughs=new Map<AnimalId,Phaser.GameObjects.Container>();
   private animalHungryBadges=new Map<number,Phaser.GameObjects.Text>();
+  private cropWaterBadges=new Map<string,Phaser.GameObjects.Text>();
   private sceneryGraphics: Phaser.GameObjects.Graphics[] = [];
   private sceneryLabels: Phaser.GameObjects.Text[] = [];
   private landTiles = new Set<string>();
@@ -161,7 +162,7 @@ export class FarmScene extends Phaser.Scene {
     this.bindDailyReward();
     initializeCloudSaves();
     this.refreshSelection();
-    this.time.addEvent({ delay: 1000, loop: true, callback: () => { if((this.questRefreshAt>0&&Date.now()>=this.questRefreshAt)||(this.eventStartedAt>0&&Date.now()-this.eventStartedAt>=604800000)){this.ensureQuestAndEventCycles();this.renderSideRail();} this.updateCropLifecycle(); this.updateProduction(); this.updateFruitTrees(); this.updateAnimalHungryIndicators(); this.refreshCropHoverTooltip(); if(this.activeBuilding==='coop'||this.activeBuilding==='barn')this.renderBuildingPanel(this.activeBuilding);else if(this.activeBuilding)this.renderGenericBuildingPanel(this.activeBuilding); } });
+    this.time.addEvent({ delay: 1000, loop: true, callback: () => { if((this.questRefreshAt>0&&Date.now()>=this.questRefreshAt)||(this.eventStartedAt>0&&Date.now()-this.eventStartedAt>=604800000)){this.ensureQuestAndEventCycles();this.renderSideRail();} this.updateCropLifecycle(); this.updateProduction(); this.updateFruitTrees(); this.updateAnimalHungryIndicators(); this.updateCropWaterBadges(); this.refreshCropHoverTooltip(); if(this.activeBuilding==='coop'||this.activeBuilding==='barn')this.renderBuildingPanel(this.activeBuilding);else if(this.activeBuilding)this.renderGenericBuildingPanel(this.activeBuilding); } });
     this.input.on('wheel', (_pointer: Phaser.Input.Pointer, _objects: unknown[], _dx: number, dy: number) => {
       const camera=this.cameras.main;const anchor=camera.getWorldPoint(_pointer.x,_pointer.y);camera.setZoom(Phaser.Math.Clamp(camera.zoom-dy*0.0015,this.minFarmZoom,1.8));const after=camera.getWorldPoint(_pointer.x,_pointer.y);camera.scrollX+=anchor.x-after.x;camera.scrollY+=anchor.y-after.y;
     });
@@ -616,8 +617,8 @@ export class FarmScene extends Phaser.Scene {
     const animal=this.animals[this.animalActors.indexOf(actor)];
     if(!animal)return;
     const cow=animal.id==='cow'||animal.id==='calf',baby=this.isBabyAnimal(animal.id);
-    const width=animal.id==='chick'?17:cow?(baby?23:34):27;
-    const height=animal.id==='chick'?16:cow?(baby?17:24):26;
+    const width=animal.id==='chick'?17:cow?(baby?27:40):27;
+    const height=animal.id==='chick'?16:cow?(baby?20:28):26;
     // Animation frames use large source canvases (the cow frame is 384x256).
     // Reapply display dimensions whenever an animation changes; setScale(1) exposes the full source frame.
     sprite.setDisplaySize(width*growthScale,height*growthScale);
@@ -803,6 +804,14 @@ export class FarmScene extends Phaser.Scene {
     const world=this.cameras.main.getWorldPoint(pointer.x,pointer.y);
     // In select mode, collect finished produce directly from the individual animal.
     if(this.activeTool==='select'){
+      // Water icons are lightweight tap targets above eligible growing crops.
+      if(this.waterUnits>0){
+        const waterHit=[...this.cropWaterBadges.entries()].find(([key,badge])=>{
+          const [col,row]=key.split(':').map(Number);
+          return badge.active&&Phaser.Math.Distance.Between(world.x,world.y,badge.x,badge.y)<20&&!!this.plots.get(key)&&this.plots.get(key)!.state==='growing'&&!this.plots.get(key)!.watered;
+        });
+        if(waterHit){const plot=this.plots.get(waterHit[0]);if(plot){this.waterPlot(plot);return;}}
+      }
       const readyIndex=this.animals.findIndex((animal,index)=>{
         const actor=this.animalActors[index];
         return (animal.id==='hen'||animal.id==='cow')&&animal.assigned!==false&&animal.readyAt>0&&animal.readyAt<=Date.now()&&!!actor?.active&&Phaser.Math.Distance.Between(world.x,world.y,actor.x,actor.y)<(animal.id==='cow'?36:29);
@@ -1142,11 +1151,31 @@ export class FarmScene extends Phaser.Scene {
     tip.innerHTML='<strong>'+crop.emoji+' '+crop.name+'</strong><span>'+status+'</span>'+action;
     tip.style.left=Math.max(8,Math.min(this.scale.width-190,x+14))+'px';tip.style.top=Math.max(8,Math.min(this.scale.height-100,y-48))+'px';tip.style.display='flex';tip.style.pointerEvents='auto';
   }
+  private updateCropWaterBadges():void{
+    const eligible=new Set<string>();
+    if(this.waterUnits>0){
+      for(const plot of this.plots.values()){
+        if(plot.state!=='growing'||plot.watered)continue;
+        const key=this.key(plot.col,plot.row),p=this.toWorld(plot.col,plot.row);eligible.add(key);
+        let badge=this.cropWaterBadges.get(key);
+        if(!badge){
+          badge=this.add.text(p.x,p.y-43,'💧',{fontFamily:'Arial',fontSize:'20px',padding:{x:0,y:0},shadow:{offsetX:0,offsetY:1,color:'#214d67',blur:3,fill:true}})
+            .setOrigin(.5).setDepth(p.y+45);
+          this.cropWaterBadges.set(key,badge);
+          this.tweens.add({targets:badge,y:badge.y-3,duration:700,yoyo:true,repeat:-1,ease:'Sine.inOut'});
+        }
+        badge.setPosition(p.x,p.y-43).setDepth(p.y+45).setVisible(true);
+      }
+    }
+    for(const [key,badge] of this.cropWaterBadges){
+      if(!eligible.has(key)){this.tweens.killTweensOf(badge);badge.destroy();this.cropWaterBadges.delete(key);}
+    }
+  }
   private waterPlot(plot:Plot):void{
     if(plot.state!=='growing'||plot.watered){this.toast(plot.watered?'This field has already been watered.':'Only growing crops can be watered.');return;}
     if(this.waterUnits<1){this.toast('No water available. Collect water from your Well.');return;}
     this.waterUnits-=1;plot.watered=true;this.scheduleGrowth(plot,Math.max(1500,Math.ceil((plot.readyAt-Date.now())/2)));
-    this.playWateringEffect(plot);this.redrawPlot(plot);this.saveFarm();this.refreshHud();this.refreshSelection();this.toast(CROPS[plot.crop].name+' watered · 1 water used · remaining growth time halved.');
+    this.playWateringEffect(plot);this.redrawPlot(plot);this.updateCropWaterBadges();this.saveFarm();this.refreshHud();this.refreshSelection();this.toast(CROPS[plot.crop].name+' watered · 1 water used · remaining growth time halved.');
   }
   private playWateringEffect(plot:Plot):void {
     const p=this.toWorld(plot.col,plot.row);
