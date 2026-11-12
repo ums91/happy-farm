@@ -103,6 +103,13 @@
           <form id="cloud-auth-form"><label for="cloud-email">Email</label><input id="cloud-email" type="email" autocomplete="email" required /><label for="cloud-password">Password</label><input id="cloud-password" type="password" autocomplete="current-password" minlength="6" required /><button id="cloud-auth-submit" type="submit">Sign in</button></form>
           <button id="cloud-auth-mode" class="cloud-text-button" type="button">Need an account? Create one</button>
           <div class="cloud-account-actions"><button id="cloud-sync-now" type="button">Sync now</button><button id="cloud-sign-out" type="button">Sign out</button></div>
+          <section class="farm-backup-actions" aria-label="Farm backup tools">
+            <h3>Farm backup</h3>
+            <p>Export a copy to keep outside this browser, or import a previously exported Happy Farm backup.</p>
+            <button id="farm-backup-export" type="button">⬇ Download farm backup</button>
+            <label for="farm-backup-import" class="cloud-text-button">⬆ Import farm backup</label>
+            <input id="farm-backup-import" type="file" accept=".json,application/json" />
+          </section>
           <button id="cloud-recovery-open" class="cloud-text-button" type="button">🛟 View recovery history</button>
           <section id="recovery-history" class="recovery-history" hidden>
             <h3>Farm recovery snapshots</h3>
