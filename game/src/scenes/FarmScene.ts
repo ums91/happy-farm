@@ -1195,22 +1195,29 @@ export class FarmScene extends Phaser.Scene {
     const g = this.add.graphics().setDepth(-4);
     this.plotOverlays.set(id, g);
     this.diamond(g, p.x, p.y, plot.state === 'withered' ? 0x725b45 : 0x805332, plot.state === 'withered' ? 0x574332 : 0x68452f);
-    g.lineStyle(2, 0xb78655, 0.9);
+    // Raised soil ridges and darker furrows give each plot a cultivated, planted-bed look.
+    g.lineStyle(2, plot.watered ? 0x986b45 : 0xb78655, 0.88);
     for (let i = -2; i <= 2; i += 1) {
-      g.beginPath();
-      g.moveTo(p.x - 25, p.y + i * 5);
-      g.lineTo(p.x + 25, p.y + i * 5);
-      g.strokePath();
+      const yy=p.y+i*5;
+      g.beginPath();g.moveTo(p.x-25,yy+1);g.lineTo(p.x-12,yy-1);g.lineTo(p.x+8,yy+1);g.lineTo(p.x+25,yy-1);g.strokePath();
     }
+    g.lineStyle(1,0x4f3928,0.28);
+    for(let i=-1;i<=1;i++){g.beginPath();g.moveTo(p.x-20,p.y+i*8+3);g.lineTo(p.x+20,p.y+i*8+3);g.strokePath();}
+    g.fillStyle(plot.watered?0x557d3d:0x4d3828,plot.watered?0.2:0.24);
+    [[-17,-5],[9,-8],[18,5],[-7,8]].forEach(([dx,dy])=>g.fillEllipse(p.x+dx!,p.y+dy!,3,1.6));
     if (plot.crop === 'tomato' && (plot.state === 'growing' || plot.state === 'ready') && this.textures.exists(`crop-tomato-${1}`)) {
       const stage = plot.state === 'ready' ? 5 : Math.min(5, Math.floor(plot.growth / 20) + 1);
+      const size=plot.state==='ready'?78:38+stage*8;
+      g.fillStyle(0x342a20,0.2);g.fillEllipse(p.x,p.y-2,size*0.48,size*0.16);
       const sprite = this.add.image(p.x, p.y - 13, `crop-tomato-${stage}`);
-      sprite.setDisplaySize(76, 76).setDepth(p.y + 2);
+      sprite.setDisplaySize(size, size).setDepth(p.y + 2);
       this.tomatoSprites.set(id, sprite);
     } else if (['wheat','carrot','corn','strawberry','pumpkin'].includes(plot.crop) && (plot.state === 'growing' || plot.state === 'ready') && this.textures.exists(`crop-${plot.crop}`)) {
       const stage = plot.state === 'ready' ? 4 : Math.min(4, Math.floor(plot.growth / 20));
+      const size=plot.state==='ready'?78:34+stage*11;
+      g.fillStyle(0x342a20,0.2);g.fillEllipse(p.x,p.y-2,size*0.48,size*0.16);
       const sprite = this.add.image(p.x, p.y - 13, `crop-${plot.crop}`, stage);
-      sprite.setDisplaySize(76, 76).setDepth(p.y + 2);
+      sprite.setDisplaySize(size, size).setDepth(p.y + 2);
       this.cropSprites.set(id, sprite);
     } else if (plot.state === 'growing' || plot.state === 'ready' || plot.state === 'withered') {
       this.drawCrop(g, p.x, p.y, plot);
