@@ -2,8 +2,6 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { getCloudSupabaseClient, getCloudUserId } from './cloudSave';
 
 const SAVE_KEY='happyFarmPhaserSaveV1';
-const supabaseUrl=import.meta.env.VITE_SUPABASE_URL as string|undefined;
-const supabaseKey=(import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY||import.meta.env.VITE_SUPABASE_ANON_KEY) as string|undefined;
 type Farmer={friend_code:string;farmer_name:string;farm_name:string;level:number;xp?:number};
 type Friend=Farmer&{friend_user_id:string;friends_since?:string};
 type Request=Farmer&{request_id:string;direction:'incoming'|'outgoing';created_at:string};
@@ -49,7 +47,6 @@ export function initializeFriends():void{
  el('top-friends')?.addEventListener('click',show);el('friends-close')?.addEventListener('click',hide);
  el('friends-modal')?.addEventListener('click',e=>{if(e.target===e.currentTarget)hide();});
  document.querySelectorAll<HTMLButtonElement>('[data-friends-tab]').forEach(b=>b.addEventListener('click',()=>setTab(b.dataset.friendsTab as 'friends'|'add'|'requests')));
- if(!supabaseUrl||!supabaseKey){return;}
  client=getCloudSupabaseClient();
  userId=getCloudUserId();
  window.addEventListener('happyfarm:auth-changed',()=>{userId=getCloudUserId();if(el('friends-modal')?.classList.contains('open'))void render();});
