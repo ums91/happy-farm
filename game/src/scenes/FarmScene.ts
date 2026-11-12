@@ -700,16 +700,16 @@ export class FarmScene extends Phaser.Scene {
   }
   private moveAnimalToTrough(actor:Phaser.GameObjects.Container,kind:AnimalId,index:number):void{
     const trough=this.animalTroughs.get(kind);if(!actor.active||!trough?.active)return;
-    const cow=kind==='cow'||kind==='calf',spacing=cow?10:8;
+    const cow=kind==='cow'||kind==='calf',baby=kind==='chick'||kind==='calf',baseScale=kind==='calf'?0.19:cow?0.275:1,spacing=cow?10:8;
     const offset=(index%3-1)*spacing;
     const targetX=trough.x+offset,targetY=trough.y+(Math.floor(index/3)%2)*7+8;
     const sprite=this.animalSprites.get(actor);
     this.tweens.killTweensOf(actor);
-    if(sprite){this.tweens.killTweensOf(sprite);sprite.play(cow?'cow-walk':'hen-walk',true);}
+    if(sprite){this.tweens.killTweensOf(sprite);sprite.play(kind==='chick'?'chick-walk':cow?'cow-walk':'hen-walk',true);}
     this.tweens.add({targets:actor,x:targetX,y:targetY,duration:Phaser.Math.Between(450,850),ease:'Sine.inOut',
-      onStart:()=>actor.setScale((targetX<actor.x?-1:1)*(cow?0.275:1),cow?0.275:1),
+      onStart:()=>actor.setScale((targetX<actor.x?-1:1)*baseScale,baseScale),
       onUpdate:()=>actor.setDepth(actor.y+this.animalActors.indexOf(actor)),
-      onComplete:()=>{if(!actor.active)return;actor.setScale(cow?0.275:1,cow?0.275:1);if(sprite){sprite.setAngle(0).setY(-2);sprite.play(cow?'cow-eat':'hen-peck',true);}this.playFeedingAnimation(actor);}
+      onComplete:()=>{if(!actor.active)return;actor.setScale(actor.scaleX<0?-baseScale:baseScale,baseScale);if(sprite){sprite.setAngle(0).setY(-2);sprite.play(kind==='chick'?'chick-peck':cow?'cow-eat':'hen-peck',true);}this.playFeedingAnimation(actor);}
     });
   }
   private playFeedingAnimation(actor:Phaser.GameObjects.Container):void{
@@ -1541,7 +1541,8 @@ export class FarmScene extends Phaser.Scene {
     if(this.isBabyAnimal(kind)){
       if(this.feed[feedType]<=0){this.toast('No '+feedType+' feed in storage. Visit the Market to buy feed.');return;}
       this.feed[feedType]--;animal.growthFeedings=(animal.growthFeedings||0)+1;
-      if(actor){const sprite=this.animalSprites.get(actor);if(sprite)sprite.setScale(0.65+animal.growthFeedings/3*0.35);}
+      if(actor){this.moveAnimalToTrough(actor,kind,this.animals.slice(0,index).filter(a=>a.id===kind).length);const sprite=this.animalSprites.get(actor);if(sprite)sprite.setScale(0.65+animal.growthFeedings/3*0.35);}
+      this.animateAnimalTrough(kind);
       if(animal.growthFeedings>=3){this.matureAnimal(index);return;}
       this.saveFarm();this.refreshHud();this.updateAnimalHungryIndicators();this.toast((kind==='chick'?'Chick':'Calf')+' fed · '+(3-animal.growthFeedings)+' more feedings to grow.');return;
     }
