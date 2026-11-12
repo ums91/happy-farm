@@ -795,12 +795,6 @@ export class FarmScene extends Phaser.Scene {
       });
       if(readyIndex>=0){this.collectAnimalAt(readyIndex);return;}
     }
-    if(this.activeTool==='feed-hen'||this.activeTool==='feed-cow'){
-      const kind:AnimalId=this.activeTool==='feed-hen'?'hen':'cow';
-      const index=this.animals.findIndex((animal,i)=>{const actor=this.animalActors[i];return (animal.id===kind||(kind==='hen'&&animal.id==='chick')||(kind==='cow'&&animal.id==='calf'))&&!!actor?.active&&Phaser.Math.Distance.Between(world.x,world.y,actor.x,actor.y)<(kind==='cow'?34:27);});
-      if(index>=0){this.feedAnimalAt(index,this.animals[index]!.id);return;}
-      this.toast('Tap a hungry '+(kind==='hen'?'chick or hen':'calf or cow')+' to feed it.');return;
-    }
     // Newly purchased trees/decor remain in hand until the player chooses a valid tile.
     if(this.pendingDecorId){
       const tile=this.toTile(world.x,world.y);
@@ -1563,8 +1557,17 @@ export class FarmScene extends Phaser.Scene {
       const icon=ready?(animal.id==='hen'?'🥚':'🥛'):hungry?'🥣':'';
       let badge=this.animalHungryBadges.get(index);
       if(!icon){if(badge){badge.destroy();this.animalHungryBadges.delete(index);}return;}
-      if(!badge){badge=this.add.text(actor.x,actor.y-34,icon,{fontFamily:'Arial',fontSize:'19px',padding:{x:0,y:0},shadow:{offsetX:0,offsetY:1,color:'#5b4727',blur:2,fill:true}}).setOrigin(.5).setDepth(actor.depth+30);this.animalHungryBadges.set(index,badge);this.tweens.add({targets:badge,y:badge.y-4,duration:650,yoyo:true,repeat:-1,ease:'Sine.inOut'});}
-      else if(badge.text!==icon){badge.setText(icon);}
+      if(!badge){
+        badge=this.add.text(actor.x,actor.y-34,icon,{fontFamily:'Arial',fontSize:'19px',padding:{x:0,y:0},shadow:{offsetX:0,offsetY:1,color:'#5b4727',blur:2,fill:true}}).setOrigin(.5).setDepth(actor.depth+30);
+        this.animalHungryBadges.set(index,badge);
+        // The floating bowl is the direct feed control; no separate toolbar mode is needed.
+        badge.setInteractive({useHandCursor:true});
+        badge.on('pointerdown',(_pointer:any,_x:number,_y:number,event:any)=>{
+          event?.stopPropagation?.();
+          if(badge?.text==='🥣')this.feedAnimalAt(index,animal.id);
+        });
+        this.tweens.add({targets:badge,y:badge.y-4,duration:650,yoyo:true,repeat:-1,ease:'Sine.inOut'});
+      }else if(badge.text!==icon){badge.setText(icon);}
       badge.setPosition(actor.x,actor.y-34).setDepth(actor.depth+30);
     });
   }
