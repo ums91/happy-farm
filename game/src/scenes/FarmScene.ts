@@ -1642,7 +1642,6 @@ export class FarmScene extends Phaser.Scene {
       const actor=this.animalActors[index],active=animal.assigned!==false&&!!actor?.active;
       const mature=animal.id==='hen'||animal.id==='cow';
       const baby=this.isBabyAnimal(animal.id);
-      const ready=active&&mature&&animal.readyAt>0&&animal.readyAt<=now;
       // Baby animals have a feeding interval too: the bowl disappears after feeding
       // and returns only when the next growth feeding is due.
       const hungry=active&&(animal.readyAt===0||(baby&&animal.readyAt<=now));
