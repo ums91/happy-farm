@@ -79,6 +79,7 @@ export class FarmScene extends Phaser.Scene {
   private animalReservedCells=new Set<string>();
   private animalTroughs=new Map<AnimalId,Phaser.GameObjects.Container>();
   private animalHungryBadges=new Map<number,Phaser.GameObjects.Text>();
+  private buildingProduceBadges=new Map<'coop'|'barn',Phaser.GameObjects.Text>();
   private cropWaterBadges=new Map<string,Phaser.GameObjects.Text>();
   private sceneryGraphics: Phaser.GameObjects.Graphics[] = [];
   private sceneryLabels: Phaser.GameObjects.Text[] = [];
@@ -155,6 +156,7 @@ export class FarmScene extends Phaser.Scene {
     this.createCropHoverTooltip();
     this.bindWorldInput();
     this.bindToolbar();
+    this.updateToolCursor();
     this.bindCropSelector();
     this.bindMarket();
     this.bindSideRail();
@@ -162,7 +164,7 @@ export class FarmScene extends Phaser.Scene {
     this.bindDailyReward();
     initializeCloudSaves();
     this.refreshSelection();
-    this.time.addEvent({ delay: 1000, loop: true, callback: () => { if((this.questRefreshAt>0&&Date.now()>=this.questRefreshAt)||(this.eventStartedAt>0&&Date.now()-this.eventStartedAt>=604800000)){this.ensureQuestAndEventCycles();this.renderSideRail();} this.updateCropLifecycle(); this.updateProduction(); this.updateFruitTrees(); this.updateAnimalHungryIndicators(); this.updateCropWaterBadges(); this.refreshCropHoverTooltip(); if(this.activeBuilding==='coop'||this.activeBuilding==='barn')this.renderBuildingPanel(this.activeBuilding);else if(this.activeBuilding)this.renderGenericBuildingPanel(this.activeBuilding); } });
+    this.time.addEvent({ delay: 1000, loop: true, callback: () => { if((this.questRefreshAt>0&&Date.now()>=this.questRefreshAt)||(this.eventStartedAt>0&&Date.now()-this.eventStartedAt>=604800000)){this.ensureQuestAndEventCycles();this.renderSideRail();} this.updateCropLifecycle(); this.updateProduction(); this.updateFruitTrees(); this.updateAnimalHungryIndicators(); this.updateBuildingProduceBadges(); this.updateCropWaterBadges(); this.refreshCropHoverTooltip(); if(this.activeBuilding==='coop'||this.activeBuilding==='barn')this.renderBuildingPanel(this.activeBuilding);else if(this.activeBuilding)this.renderGenericBuildingPanel(this.activeBuilding); } });
     this.input.on('wheel', (_pointer: Phaser.Input.Pointer, _objects: unknown[], _dx: number, dy: number) => {
       const camera=this.cameras.main;const anchor=camera.getWorldPoint(_pointer.x,_pointer.y);camera.setZoom(Phaser.Math.Clamp(camera.zoom-dy*0.0015,this.minFarmZoom,1.8));const after=camera.getWorldPoint(_pointer.x,_pointer.y);camera.scrollX+=anchor.x-after.x;camera.scrollY+=anchor.y-after.y;
     });
@@ -804,6 +806,9 @@ export class FarmScene extends Phaser.Scene {
     const world=this.cameras.main.getWorldPoint(pointer.x,pointer.y);
     // In select mode, collect finished produce directly from the individual animal.
     if(this.activeTool==='select'){
+      // Ready egg/milk icons sit above the coop/shed; one click collects the available batch.
+      const buildingHit=[...this.buildingProduceBadges.entries()].find(([id,badge])=>badge.active&&Phaser.Math.Distance.Between(world.x,world.y,badge.x,badge.y)<24);
+      if(buildingHit){this.collectBuildingProduce(buildingHit[0]);return;}
       // Water icons are lightweight tap targets above eligible growing crops.
       if(this.waterUnits>0){
         const waterHit=[...this.cropWaterBadges.entries()].find(([key,badge])=>{
@@ -1350,19 +1355,19 @@ export class FarmScene extends Phaser.Scene {
     [[-17,-5],[9,-8],[18,5],[-7,8]].forEach(([dx,dy])=>g.fillEllipse(p.x+dx!,p.y+dy!,3,1.6));
     if (plot.crop === 'tomato' && (plot.state === 'growing' || plot.state === 'ready') && this.textures.exists(`crop-tomato-${1}`)) {
       const stage = plot.state === 'ready' ? 5 : Math.min(5, Math.floor(plot.growth / 20) + 1);
-      const size=plot.state==='ready'?78:38+stage*8;
-      g.fillStyle(0x342a20,0.2);g.fillEllipse(p.x,p.y-2,size*0.48,size*0.16);
-      const sprite = this.add.image(p.x, p.y + 2, `crop-tomato-${stage}`);
-      // Crop artwork is bottom-anchored at the exact centre of its diamond tile.
-      sprite.setOrigin(0.5, 1).setDisplaySize(size, size).setDepth(p.y + 24);
+      const size=plot.state==='ready'?46:26+stage*4;
+      g.fillStyle(0x342a20,0.2);g.fillEllipse(p.x,p.y+5,Math.min(28,size*0.58),5);
+      const sprite = this.add.image(p.x, p.y + 9, `crop-tomato-${stage}`);
+      // Keep the crop artwork centred within the current isometric field diamond.
+      sprite.setOrigin(0.5, 0.88).setDisplaySize(size, size).setDepth(p.y + 24);
       this.tomatoSprites.set(id, sprite);
     } else if (['wheat','carrot','corn','strawberry','pumpkin'].includes(plot.crop) && (plot.state === 'growing' || plot.state === 'ready') && this.textures.exists(`crop-${plot.crop}`)) {
       const stage = plot.state === 'ready' ? 4 : Math.min(4, Math.floor(plot.growth / 20));
-      const size=plot.state==='ready'?78:34+stage*11;
-      g.fillStyle(0x342a20,0.2);g.fillEllipse(p.x,p.y-2,size*0.48,size*0.16);
-      const sprite = this.add.image(p.x, p.y + 2, `crop-${plot.crop}`, stage);
-      // Keep every growth stage on the same tile-centre baseline.
-      sprite.setOrigin(0.5, 1).setDisplaySize(size, size).setDepth(p.y + 24);
+      const size=plot.state==='ready'?46:26+stage*5;
+      g.fillStyle(0x342a20,0.2);g.fillEllipse(p.x,p.y+5,Math.min(28,size*0.58),5);
+      const sprite = this.add.image(p.x, p.y + 9, `crop-${plot.crop}`, stage);
+      // Every growth stage shares the centre and baseline of its own soil diamond.
+      sprite.setOrigin(0.5, 0.88).setDisplaySize(size, size).setDepth(p.y + 24);
       this.cropSprites.set(id, sprite);
     } else if (plot.state === 'growing' || plot.state === 'ready' || plot.state === 'withered') {
       this.drawCrop(g, p.x, p.y, plot);
@@ -1472,6 +1477,18 @@ export class FarmScene extends Phaser.Scene {
     this.redrawPlot(plot);this.saveFarm();this.refreshHud();this.refreshSelection();this.drawSelection();this.toast(crop.name+' sown · '+crop.cost+' coins deducted. The selected seed remains active.');
   }
 
+  private updateToolCursor():void{
+    const canvas=this.game.canvas;if(!canvas)return;
+    const cursors:Partial<Record<Tool,string>>={
+      select:'<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path d="M5 3 L25 20 L16 21 L12 29 Z" fill="#fff" stroke="#26351f" stroke-width="2" stroke-linejoin="round"/></svg>',
+      plow:'<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path d="M7 27 L23 7" stroke="#8b542c" stroke-width="4" stroke-linecap="round"/><path d="M17 5 L27 9 L22 15 L13 11 Z" fill="#b8c6ce" stroke="#26351f" stroke-width="1.6"/></svg>',
+      harvest:'<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path d="M7 27 L21 12" stroke="#8b542c" stroke-width="4" stroke-linecap="round"/><path d="M20 12 Q29 2 29 12 Q27 22 15 22 Q22 18 20 12Z" fill="#d9e3d1" stroke="#26351f" stroke-width="1.6"/></svg>',
+      move:'<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path d="M16 3 L11 9 H14 V14 H9 V11 L3 16 L9 21 V18 H14 V23 H11 L16 29 L21 23 H18 V18 H23 V21 L29 16 L23 11 V14 H18 V9 H21 Z" fill="#fff" stroke="#26351f" stroke-width="1.7" stroke-linejoin="round"/></svg>'
+    };
+    const svg=cursors[this.activeTool];
+    canvas.style.cursor=svg?'url("data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg)+'") 3 3, auto':'default';
+  }
+
   private bindToolbar(): void {
     document.getElementById('tool-sell')?.addEventListener('click',()=>{this.openMarket();document.querySelector<HTMLButtonElement>('[data-market-tab=sell]')?.click();});
     document.querySelectorAll<HTMLButtonElement>('[data-tool]').forEach(button => {
@@ -1480,7 +1497,7 @@ export class FarmScene extends Phaser.Scene {
         document.querySelectorAll('[data-tool]').forEach(el => el.classList.remove('active'));
         button.classList.add('active');
         if(this.activeTool==='select'&&this.selected?.state==='tilled')this.openFieldSeedPicker();
-        this.refreshSelection();
+        this.refreshSelection();this.updateToolCursor();
       });
     });
   }
@@ -1587,6 +1604,38 @@ export class FarmScene extends Phaser.Scene {
   private matureAnimal(index:number):void{const animal=this.animals[index];if(!animal||!this.isBabyAnimal(animal.id))return;animal.id=animal.id==='chick'?'hen':'cow';animal.readyAt=0;animal.growthFeedings=undefined;this.renderOwnedAnimals();this.saveFarm();this.refreshHud();this.toast(animal.id==='hen'?'Your chick has grown into a hen!':'Your calf has grown into a cow!');}
   private productionCapacity(kind:AnimalId):number{return 10+((kind==='hen'?this.buildings.coopLevel:this.buildings.barnLevel)-1)*5+(this.buildings.warehouseLevel-1)*10;}
   private collectAndFeed(kind:AnimalId):{collected:number;fed:number;waiting:number}{let collected=0,fed=0,waiting=0;const now=Date.now();const field=kind==='hen'?'eggs':'milk';for(const animal of this.animals.filter(a=>a.id===kind&&a.assigned!==false)){if(animal.readyAt>0&&animal.readyAt<=now){if(this.produce[field]<this.productionCapacity(kind)){this.produce[field]++;animal.readyAt=0;collected++;}else{waiting++;continue;}}if(animal.readyAt===0){if(this.feed[kind]>0){this.feed[kind]--;animal.readyAt=now+this.animalProductionDuration(kind);fed++;const actor=this.animalActors[this.animals.indexOf(animal)];if(actor)this.moveAnimalToTrough(actor,kind,fed-1);this.animateAnimalTrough(kind);}else waiting++;}}return{collected,fed,waiting};}
+  private updateBuildingProduceBadges():void{
+    (['coop','barn'] as const).forEach(id=>{
+      const kind:AnimalId=id==='coop'?'hen':'cow';
+      const ready=this.animals.filter(a=>a.id===kind&&a.assigned!==false&&a.readyAt>0&&a.readyAt<=Date.now()).length;
+      const pos=this.decor[id];let badge=this.buildingProduceBadges.get(id);
+      if(!pos||ready===0){if(badge){badge.destroy();this.buildingProduceBadges.delete(id);}return;}
+      const p=this.toWorld(pos.col,pos.row),label=(id==='coop'?'🥚':'🥛')+(ready>1?' '+ready:'');
+      if(!badge){
+        badge=this.add.text(p.x,p.y-(id==='coop'?82:88),label,{fontFamily:'Arial',fontSize:'21px',padding:{x:0,y:0},shadow:{offsetX:0,offsetY:2,color:'#3c2c18',blur:4,fill:true}}).setOrigin(.5).setDepth(20000);
+        this.buildingProduceBadges.set(id,badge);
+        this.tweens.add({targets:badge,y:badge.y-4,duration:700,yoyo:true,repeat:-1,ease:'Sine.inOut'});
+      }else if(badge.text!==label)badge.setText(label);
+      badge.setPosition(p.x,p.y-(id==='coop'?82:88)).setDepth(20000).setVisible(true);
+    });
+  }
+
+  private collectBuildingProduce(id:'coop'|'barn'):void{
+    const kind:AnimalId=id==='coop'?'hen':'cow',field=id==='coop'?'eggs':'milk';
+    const ready=this.animals.map((animal,index)=>({animal,index})).filter(x=>x.animal.id===kind&&x.animal.assigned!==false&&x.animal.readyAt>0&&x.animal.readyAt<=Date.now());
+    if(!ready.length)return;
+    let collected=0;
+    for(const item of ready){
+      if(this.produce[field]>=this.productionCapacity(kind))break;
+      this.produce[field]++;item.animal.readyAt=0;collected++;
+      const actor=this.animalActors[item.index];if(actor)this.animateAnimalCollection(actor,kind);
+    }
+    if(!collected){this.toast((id==='coop'?'Egg':'Milk')+' storage is full. Sell stored produce before collecting more.');return;}
+    this.saveFarm();this.refreshHud();this.updateBuildingProduceBadges();this.updateAnimalHungryIndicators();
+    if(this.activeBuilding===id)this.renderBuildingPanel(id);
+    this.toast('Collected '+collected+' '+(id==='coop'?'egg':'milk')+(collected===1?'':'s')+' from the '+(id==='coop'?'coop':'shed')+'.');
+  }
+
   private updateAnimalHungryIndicators():void{
     const now = Date.now();
     this.animals.forEach((animal,index)=>{
@@ -1597,7 +1646,7 @@ export class FarmScene extends Phaser.Scene {
       // Baby animals have a feeding interval too: the bowl disappears after feeding
       // and returns only when the next growth feeding is due.
       const hungry=active&&(animal.readyAt===0||(baby&&animal.readyAt<=now));
-      const icon=ready?(animal.id==='hen'?'🥚':'🥛'):hungry?'🥣':'';
+      const icon=hungry?'🥣':'';
       let badge=this.animalHungryBadges.get(index);
       if(!icon){if(badge){badge.destroy();this.animalHungryBadges.delete(index);}return;}
       if(!badge){
