@@ -1812,23 +1812,27 @@ export class FarmScene extends Phaser.Scene {
       }
       let badge=this.animalHungryBadges.get(index);
       if(!badge){
-        badge=this.add.text(actor?.x||0,(actor?.y||0)-25,symbol,{
-          fontFamily:'Arial',fontSize:'12px',fontStyle:'bold',color:'#ffffff',
-          backgroundColor:color,padding:{x:2,y:2},stroke:'#49331f',strokeThickness:1,
+        // Parent the tiny, transparent symbol to the animal container so it follows
+        // every tween/wander frame with no one-second positional update delay.
+        badge=this.add.text(0,-25,symbol,{
+          fontFamily:'Arial',fontSize:'9px',fontStyle:'bold',color:'#ffffff',
+          padding:{x:0,y:0},stroke:'#49331f',strokeThickness:1,
           shadow:{offsetX:0,offsetY:1,color:'#382718',blur:1,fill:true}
-        }).setOrigin(.5).setDepth((actor?.depth||0)+30);
+        }).setOrigin(.5).setDepth(30);
+        actor?.add(badge);
         this.animalHungryBadges.set(index,badge);
       }else{
         const previous=badge.getData('status');
         if(previous!==status){this.tweens.killTweensOf(badge);badge.setData('status',status);}
-        badge.setText(symbol).setStyle({backgroundColor:color});
+        badge.setText(symbol).setStyle({backgroundColor:undefined});
       }
       badge.setData('status',status);
-      if(actor?.active)badge.setPosition(actor.x,actor.y-25).setDepth(actor.depth+30);
+      badge.setPosition(0,-25);
       if(hungry&&!this.tweens.isTweening(badge)){
-        this.tweens.add({targets:badge,y:badge.y-2,duration:700,yoyo:true,repeat:-1,ease:'Sine.inOut'});
+        this.tweens.add({targets:badge,y:-27,duration:700,yoyo:true,repeat:-1,ease:'Sine.inOut'});
       }else if(!hungry&&this.tweens.isTweening(badge)){
         this.tweens.killTweensOf(badge);
+        badge.setY(-25);
       }
     });
     for(const [index,badge] of this.animalHungryBadges){
