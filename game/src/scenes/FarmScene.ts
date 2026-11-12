@@ -612,14 +612,26 @@ export class FarmScene extends Phaser.Scene {
   }
 
   // FarmVille-style resting is genuinely still: hold a single idle frame so no legs cycle.
+  private sizeAnimalSprite(actor:Phaser.GameObjects.Container,sprite:Phaser.GameObjects.Sprite,growthScale=1):void{
+    const animal=this.animals[this.animalActors.indexOf(actor)];
+    if(!animal)return;
+    const cow=animal.id==='cow'||animal.id==='calf',baby=this.isBabyAnimal(animal.id);
+    const width=animal.id==='chick'?17:cow?(baby?23:34):27;
+    const height=animal.id==='chick'?16:cow?(baby?17:24):26;
+    // Animation frames use large source canvases (the cow frame is 384x256).
+    // Reapply display dimensions whenever an animation changes; setScale(1) exposes the full source frame.
+    sprite.setDisplaySize(width*growthScale,height*growthScale);
+  }
+
   private animateAnimalIdle(actor:Phaser.GameObjects.Container,sprite:Phaser.GameObjects.Sprite):void{
     if(!actor.active||!sprite.active)return;
     this.tweens.killTweensOf(sprite);
     sprite.anims.stop();
-    sprite.setAngle(0).setY(-2).setScale(1,1);
+    sprite.setAngle(0).setY(-2);
     sprite.setFrame(0);
-    // A restrained breathing motion keeps resting animals alive without cycling their legs.
-    this.tweens.add({targets:sprite,y:-2.7,scaleY:1.025,duration:1500,ease:'Sine.inOut',yoyo:true,repeat:-1});
+    this.sizeAnimalSprite(actor,sprite);
+    // Breathing is a small multiplier on the intended display scale, not a pixel-scale reset.
+    this.tweens.add({targets:sprite,y:-2.7,scaleY:sprite.scaleY*1.025,duration:1500,ease:'Sine.inOut',yoyo:true,repeat:-1});
   }
 
   private wanderAnimal(actor:Phaser.GameObjects.Container,cx:number,cy:number,limitX:number,limitY:number,cow:boolean):void{
@@ -1582,7 +1594,7 @@ export class FarmScene extends Phaser.Scene {
       if(this.feed[feedType]<=0){this.toast('No '+feedType+' feed in storage. Visit the Market to buy feed.');return;}
       this.feed[feedType]--;animal.growthFeedings=(animal.growthFeedings||0)+1;
       animal.readyAt=Date.now()+this.animalProductionDuration(feedType);
-      if(actor){this.moveAnimalToTrough(actor,kind,this.animals.slice(0,index).filter(a=>a.id===kind).length);const sprite=this.animalSprites.get(actor);if(sprite)sprite.setScale(0.65+animal.growthFeedings/3*0.35);}
+      if(actor){this.moveAnimalToTrough(actor,kind,this.animals.slice(0,index).filter(a=>a.id===kind).length);const sprite=this.animalSprites.get(actor);if(sprite)this.sizeAnimalSprite(actor,sprite,0.65+animal.growthFeedings/3*0.35);}
       this.animateAnimalTrough(kind);
       if(animal.growthFeedings>=3){this.matureAnimal(index);return;}
       this.saveFarm();this.refreshHud();this.updateAnimalHungryIndicators();this.toast((kind==='chick'?'Chick':'Calf')+' fed · '+(3-animal.growthFeedings)+' more feedings to grow.');return;
