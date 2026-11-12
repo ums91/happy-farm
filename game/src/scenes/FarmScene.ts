@@ -80,6 +80,7 @@ export class FarmScene extends Phaser.Scene {
   private animalReservedCells=new Set<string>();
   private animalTroughs=new Map<AnimalId,Phaser.GameObjects.Container>();
   private animalHungryBadges=new Map<number,Phaser.GameObjects.Text>();
+  private animalProduceBadges=new Map<number,Phaser.GameObjects.Text>();
   private buildingProduceBadges=new Map<'coop'|'barn',Phaser.GameObjects.Text>();
   private productionReadyBadges=new Map<'bakery'|'greenhouse'|'windmill'|'workshop',Phaser.GameObjects.Text>();
   private wellWaterBadge:Phaser.GameObjects.Text|null=null;
@@ -668,7 +669,7 @@ export class FarmScene extends Phaser.Scene {
   }
 
   private renderOwnedAnimals(): void {
-    this.animalActors.forEach(actor=>{this.tweens.killTweensOf(actor);const sprite=this.animalSprites.get(actor);if(sprite)this.tweens.killTweensOf(sprite);actor.destroy();});this.animalActors=[];this.animalSprites.clear();this.animalReservedCells.clear();this.animalTroughs.forEach(t=>t.destroy());this.animalTroughs.clear();this.animalHungryBadges.forEach(b=>b.destroy());this.animalHungryBadges.clear();
+    this.animalActors.forEach(actor=>{this.tweens.killTweensOf(actor);const sprite=this.animalSprites.get(actor);if(sprite)this.tweens.killTweensOf(sprite);actor.destroy();});this.animalActors=[];this.animalSprites.clear();this.animalReservedCells.clear();this.animalTroughs.forEach(t=>t.destroy());this.animalTroughs.clear();this.animalHungryBadges.forEach(b=>b.destroy());this.animalHungryBadges.clear();this.animalProduceBadges.forEach(b=>b.destroy());this.animalProduceBadges.clear();
     // Resolve animal home anchors defensively: older saves may contain animals before
     // their matching building decor has been restored or placed.
     const farmhouse=this.decor.farmhouse||{col:3,row:1};
@@ -691,8 +692,9 @@ export class FarmScene extends Phaser.Scene {
       actor.setScale(1);
       // Adult cows should read only modestly larger than hens in the isometric view;
       // calves remain visibly smaller. Keep sprite dimensions explicit (no container multiplier).
-      const animalWidth=animal.id==='chick'?17:cow?(baby?23:34):27;
-      const animalHeight=animal.id==='chick'?16:cow?(baby?17:24):26;
+      const growthScale=baby?0.65+Math.min(3,Math.max(0,Number(animal.growthFeedings)||0))/3*0.35:1;
+      const animalWidth=(animal.id==='chick'?27:cow?40:27)*growthScale;
+      const animalHeight=(animal.id==='chick'?26:cow?28:26)*growthScale;
       actor.add(this.add.ellipse(0,6,cow?(baby?21:31):animal.id==='chick'?17:24,cow?(baby?5:7):6,0x263e25,0.2));
       const texture=animal.id==='chick'?'animal-chick':cow?'animal-cow':'animal-hen';
       if(this.textures.exists(texture)){
@@ -909,6 +911,17 @@ export class FarmScene extends Phaser.Scene {
   private handleWorldTap(pointer: Phaser.Input.Pointer): void {
     const world=this.cameras.main.getWorldPoint(pointer.x,pointer.y);
     // In select mode, collect finished produce directly from the individual animal.
+    if(this.activeTool==='feed-hen'||this.activeTool==='feed-cow'){
+      const wanted=this.activeTool==='feed-hen'?'hen':'cow';
+      const hit=this.animals.findIndex((animal,index)=>{
+        const actor=this.animalActors[index];
+        const matches=wanted==='hen'?(animal.id==='hen'||animal.id==='chick'):(animal.id==='cow'||animal.id==='calf');
+        return matches&&animal.assigned!==false&&!!actor?.active&&Phaser.Math.Distance.Between(world.x,world.y,actor.x,actor.y)<(wanted==='cow'?42:34);
+      });
+      if(hit>=0){this.feedAnimalAt(hit,this.animals[hit]!.id);return;}
+      this.toast('Tap a hungry '+(wanted==='hen'?'hen or chick':'cow or calf')+' to use '+wanted+' feed.');
+      return;
+    }
     if(this.activeTool==='select'){
       // Ready water appears above the Well and is collected with one click.
       if(this.wellWaterBadge?.active&&Phaser.Math.Distance.Between(world.x,world.y,this.wellWaterBadge.x,this.wellWaterBadge.y)<26){this.collectWellWater();return;}
@@ -1771,33 +1784,41 @@ export class FarmScene extends Phaser.Scene {
   }
 
   private updateAnimalHungryIndicators():void{
-    const now = Date.now();
+    const now=Date.now();
     this.animals.forEach((animal,index)=>{
       const actor=this.animalActors[index],active=animal.assigned!==false&&!!actor?.active;
       const baby=this.isBabyAnimal(animal.id);
-      // Baby animals have a feeding interval too: the bowl disappears after feeding
-      // and returns only when the next growth feeding is due.
       const hungry=active&&(animal.readyAt===0||(baby&&animal.readyAt<=now));
-      const icon=hungry?'🥣':'';
-      let badge=this.animalHungryBadges.get(index);
-      if(!icon){if(badge){badge.destroy();this.animalHungryBadges.delete(index);}return;}
-      if(!badge){
-        badge=this.add.text(actor.x,actor.y-34,icon,{fontFamily:'Arial',fontSize:'19px',padding:{x:0,y:0},shadow:{offsetX:0,offsetY:1,color:'#5b4727',blur:2,fill:true}}).setOrigin(.5).setDepth(actor.depth+30);
-        this.animalHungryBadges.set(index,badge);
-        // The floating bowl is the direct feed control; no separate toolbar mode is needed.
-        badge.setInteractive({useHandCursor:true});
-        badge.on('pointerdown',(_pointer:any,_x:number,_y:number,event:any)=>{
-          event?.stopPropagation?.();
-          if(badge?.text==='🥣')this.feedAnimalAt(index,animal.id);
-        });
-        this.tweens.add({targets:badge,y:badge.y-4,duration:650,yoyo:true,repeat:-1,ease:'Sine.inOut'});
-      }else if(badge.text!==icon){badge.setText(icon);}
-      badge.setPosition(actor.x,actor.y-34).setDepth(actor.depth+30);
+      let hungryBadge=this.animalHungryBadges.get(index);
+      if(!hungry){if(hungryBadge){hungryBadge.destroy();this.animalHungryBadges.delete(index);}}
+      else{
+        if(!hungryBadge){
+          hungryBadge=this.add.text(actor.x,actor.y-34,'🥣',{fontFamily:'Arial',fontSize:'19px',padding:{x:0,y:0},shadow:{offsetX:0,offsetY:1,color:'#5b4727',blur:2,fill:true}}).setOrigin(.5).setDepth(actor.depth+30);
+          this.animalHungryBadges.set(index,hungryBadge);
+          this.tweens.add({targets:hungryBadge,y:hungryBadge.y-4,duration:650,yoyo:true,repeat:-1,ease:'Sine.inOut'});
+        }
+        hungryBadge.setPosition(actor.x,actor.y-34).setDepth(actor.depth+30);
+      }
+      const producingAdult=(animal.id==='hen'||animal.id==='cow')&&active;
+      const ready=producingAdult&&animal.readyAt>0&&animal.readyAt<=now;
+      let produceBadge=this.animalProduceBadges.get(index);
+      if(!ready){if(produceBadge){produceBadge.destroy();this.animalProduceBadges.delete(index);}}
+      else{
+        const icon=animal.id==='hen'?'🥚':'🥛';
+        if(!produceBadge){
+          produceBadge=this.add.text(actor.x,actor.y-34,icon,{fontFamily:'Arial',fontSize:'19px',padding:{x:0,y:0},shadow:{offsetX:0,offsetY:1,color:'#5b4727',blur:2,fill:true}}).setOrigin(.5).setDepth(actor.depth+31);
+          this.animalProduceBadges.set(index,produceBadge);
+          this.tweens.add({targets:produceBadge,y:produceBadge.y-5,duration:600,yoyo:true,repeat:-1,ease:'Sine.inOut'});
+        }
+        produceBadge.setPosition(actor.x,actor.y-34).setDepth(actor.depth+31);
+      }
     });
+    for(const [index,badge] of this.animalHungryBadges){if(index>=this.animals.length||!this.animalActors[index]?.active){badge.destroy();this.animalHungryBadges.delete(index);}}
+    for(const [index,badge] of this.animalProduceBadges){if(index>=this.animals.length||!this.animalActors[index]?.active){badge.destroy();this.animalProduceBadges.delete(index);}}
   }
   private feedAnimalAt(index:number,kind:AnimalId):void{
     const animal=this.animals[index],actor=this.animalActors[index];
-    if(!animal||animal.id!==kind||animal.assigned===false){this.toast('Select a '+(kind==='hen'?'hen':'cow')+' to feed.');return;}
+    if(!animal||animal.id!==kind||animal.assigned===false){this.toast('Select a '+(kind==='hen'||kind==='chick'?'hen or chick':'cow or calf')+' to feed.');return;}
     const feedType=this.animalFeedType(kind);
     if(this.isBabyAnimal(kind)){
       if(animal.readyAt>Date.now()){this.toast('This young animal has been fed. It will need feed again later.');return;}
@@ -2117,7 +2138,7 @@ export class FarmScene extends Phaser.Scene {
       host.innerHTML='<section class="inventory-section"><h3>🌾 Harvested crops</h3><div class="inventory-grid">'+(Object.entries(CROPS) as Array<[CropId,typeof CROPS[CropId]]>).map(([id,c])=>row(c.emoji,c.name,this.harvestedCrops[id],c.reward,'crop:'+id)).join('')+'</div></section><section class="inventory-section"><h3>🍎 Orchard fruit</h3><div class="inventory-grid">'+row('🍎','Apples',this.fruitInventory.apples,55,'fruit:apples')+row('🍐','Pears',this.fruitInventory.pears,65,'fruit:pears')+row('🍒','Cherries',this.fruitInventory.cherries,75,'fruit:cherries')+row('🍊','Oranges',this.fruitInventory.oranges,60,'fruit:oranges')+'</div></section><section class="inventory-section"><h3>🥚 Animal produce</h3><div class="inventory-grid">'+row('🥚','Eggs',this.produce.eggs,12,'eggs')+row('🥛','Milk',this.produce.milk,28,'milk')+'</div></section><section class="inventory-section"><h3>🏭 Crafted goods</h3><div class="inventory-grid">'+row('🌾','Flour',this.crafted.flour,24,'product:flour')+row('🍞','Bread',this.crafted.bread,58,'product:bread')+row('🥐','Pastries',this.crafted.pastry,86,'product:pastry')+row('🍇','Grapes',this.crafted.grapes,36,'product:grapes')+'</div></section>';
       return;
     }
-    if(category==='feed'){host.innerHTML='<article class="market-item"><div class="market-art">🌾</div><div class="market-copy"><strong>Hen feed</strong><small>Feed one hen · starts a 45-second egg cycle · in storage: '+this.feed.hen+'</small></div><button class="market-buy" data-buy-feed="hen" '+(this.coins<25?'disabled':'')+'>🪙 25 · Buy</button></article><article class="market-item"><div class="market-art">🌿</div><div class="market-copy"><strong>Cow feed</strong><small>Feed one cow · starts a 60-second milk cycle · in storage: '+this.feed.cow+'</small></div><button class="market-buy" data-buy-feed="cow" '+(this.coins<40?'disabled':'')+'>🪙 40 · Buy</button></article>';host.querySelectorAll<HTMLButtonElement>('[data-buy-feed]').forEach(btn=>btn.addEventListener('click',()=>{const id=btn.dataset.buyFeed as AnimalId;const price=id==='hen'?25:40;if(this.coins<price)return;this.coins-=price;this.feed[id]++;this.saveFarm();this.refreshHud();this.renderMarket('feed');this.toast((id==='hen'?'Hen':'Cow')+' feed added to storage.');}));return;} if(category==='animals'){
+    if(category==='feed'){host.innerHTML='<article class="market-item"><div class="market-art">🌾</div><div class="market-copy"><strong>Hen feed</strong><small>Feed one hen or chick · starts a 10-minute egg or growth cycle · in storage: '+this.feed.hen+'</small></div><button class="market-buy" data-buy-feed="hen" '+(this.coins<25?'disabled':'')+'>🪙 25 · Buy</button></article><article class="market-item"><div class="market-art">🌿</div><div class="market-copy"><strong>Cow feed</strong><small>Feed one cow or calf · starts a 30-minute milk or growth cycle · in storage: '+this.feed.cow+'</small></div><button class="market-buy" data-buy-feed="cow" '+(this.coins<40?'disabled':'')+'>🪙 40 · Buy</button></article>';host.querySelectorAll<HTMLButtonElement>('[data-buy-feed]').forEach(btn=>btn.addEventListener('click',()=>{const id=btn.dataset.buyFeed as AnimalId;const price=id==='hen'?25:40;if(this.coins<price)return;this.coins-=price;this.feed[id]++;this.saveFarm();this.refreshHud();this.renderMarket('feed');this.activeTool=id==='hen'?'feed-hen':'feed-cow';document.querySelectorAll('[data-tool]').forEach(el=>el.classList.toggle('active',(el as HTMLElement).dataset.tool===this.activeTool));this.updateToolCursor();this.refreshSelection();this.toast((id==='hen'?'Hen/chick':'Cow/calf')+' feed added · tap a hungry animal to feed it.');}));return;} if(category==='animals'){
       const hens=this.animals.filter(a=>a.id==='hen'||a.id==='chick').length,cows=this.animals.filter(a=>a.id==='cow'||a.id==='calf').length;
       const card=(id:'chick'|'calf'|'hen'|'cow',name:string,emoji:string,cost:number,desc:string,count:number,cap:number)=>'<article class="market-item"><div class="market-art">'+emoji+'</div><div class="market-copy"><strong>'+name+'</strong><small>'+desc+' · housed: '+count+'/'+cap+'</small></div><button class="market-buy" data-buy-animal="'+id+'" '+(this.coins<cost||count>=cap?'disabled':'')+'>🪙 '+cost+' · Buy</button></article>';
       host.innerHTML=card('chick','Baby Chick','🐣',90,'Needs 3 feedings to grow into a hen',hens,this.buildingCapacity('hen'))+card('hen','Happy Hen','🐔',220,'Ready to lay eggs after feeding',hens,this.buildingCapacity('hen'))+card('calf','Baby Calf','🐮',240,'Needs 3 feedings to grow into a cow',cows,this.buildingCapacity('cow'))+card('cow','Daisy Cow','🐄',480,'Produces milk after feeding',cows,this.buildingCapacity('cow'));
