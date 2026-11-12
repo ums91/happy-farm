@@ -961,9 +961,16 @@ export class FarmScene extends Phaser.Scene {
       return;
     }
     if(this.activeTool==='move'){
-      // Resolve the exact isometric cell first. A ploughed field is a small diamond;
-      // broad tree/building sprite bounds must never steal taps from a neighbouring field.
-      const tile=this.toTile(world.x,world.y);
+      // toTile() returns the nearest grid centre even when the pointer is outside
+      // that cell's diamond. In move mode that can make a tap on a field resolve
+      // to a tree anchor one or two cells away. Accept a cell only when the pointer
+      // is physically inside its isometric diamond.
+      const candidate=this.toTile(world.x,world.y);
+      const tile=candidate?(()=>{
+        const centre=this.toWorld(candidate.col,candidate.row);
+        const inside=Math.abs(world.x-centre.x)/(TILE_W/2)+Math.abs(world.y-centre.y)/(TILE_H/2)<=1;
+        return inside?candidate:null;
+      })():null;
       const plot=tile?this.plots.get(this.key(tile.col,tile.row)):undefined;
       if(plot&&plot.state!=='grass'){
         this.movingPlotKey=this.key(plot.col,plot.row);this.movingDecor=null;
