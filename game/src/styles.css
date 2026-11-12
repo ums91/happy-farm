@@ -2251,3 +2251,49 @@ body.visitor-mode .audio-dock{display:none!important}
   .resources .resource-icon{width:19px!important;height:19px!important;flex-basis:19px!important;font-size:13px!important}
   .resources .resource strong{font-size:13px!important}
 }
+
+
+/* Final desktop header geometry: use border-box sizing so the declared
+   height includes borders/padding, eliminating the empty lower strip.
+   Slim the water meter separately from the coin capsule. */
+@media(min-width:701px){
+  .topbar{
+    box-sizing:border-box!important;
+    height:54px!important;
+    min-height:54px!important;
+    max-height:54px!important;
+    flex:0 0 54px!important;
+    padding:2px 9px!important;
+    margin:0!important;
+    align-items:center!important;
+  }
+  .farmer-hud{
+    box-sizing:border-box!important;
+    height:44px!important;
+    min-height:44px!important;
+    max-height:44px!important;
+    margin:0!important;
+  }
+  .resources{align-items:center!important}
+  .resources .resource{
+    box-sizing:border-box!important;
+    height:30px!important;
+    min-height:30px!important;
+    padding:1px 6px!important;
+  }
+  .resources .water-resource{
+    height:26px!important;
+    min-height:26px!important;
+    padding:1px 6px!important;
+  }
+  .resources .water-resource .resource-icon{
+    width:18px!important;height:18px!important;flex-basis:18px!important;font-size:13px!important;
+  }
+  .resources .water-resource strong{font-size:12px!important}
+}
+@media(min-width:701px) and (max-width:1180px){
+  .topbar{height:54px!important;min-height:54px!important;max-height:54px!important;flex-basis:54px!important}
+  .farmer-hud{height:44px!important;min-height:44px!important}
+  .resources .resource{height:28px!important;min-height:28px!important}
+  .resources .water-resource{height:24px!important;min-height:24px!important}
+}
