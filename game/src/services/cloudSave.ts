@@ -152,8 +152,8 @@ async function importFarmBackup(file: File | null): Promise<void> {
       window.alert('This file is not a valid Happy Farm save. Your current farm was not changed.');
       return;
     }
-    const level = Math.max(1, Math.floor(Number(save.xp || 0) / 100) + 1);
-    if (!window.confirm('Import this backup (approximately Level ' + level + ', ' +
+    const level = recoveryProgress(save).level;
+    if (!window.confirm('Import this backup (Level ' + level + ', ' +
       Number(save.coins).toLocaleString() + ' coins)? Your current farm will first be archived.')) return;
     if (!archiveCurrentSaveBeforeReplacement()) {
       window.alert('Import blocked: the current farm could not be safely archived.');
@@ -363,8 +363,24 @@ export function queueCloudSave(): void {
 
 type RecoveryEntry = { source: 'This device' | 'Cloud device copy' | 'Supabase history'; savedAt: number; save: Record<string, unknown> };
 
+function xpRequiredForLevel(level: number): number {
+  const target = Math.max(1, Math.min(100, Math.floor(level)));
+  let total = 0;
+  for (let current = 1; current < target; current += 1) total += 120 + 14 * (current - 1) * (current - 1);
+  return total;
+}
+
+function recoveryProgress(save: Record<string, unknown>): { level: number; xp: number; earned: number; needed: number } {
+  const xp = Math.max(0, Math.floor(Number(save.xp || 0)));
+  let level = 1;
+  while (level < 100 && xp >= xpRequiredForLevel(level + 1)) level += 1;
+  const earned = xp - xpRequiredForLevel(level);
+  const needed = level >= 100 ? 0 : xpRequiredForLevel(level + 1) - xpRequiredForLevel(level);
+  return { level, xp, earned, needed };
+}
+
 function recoveryLevel(save: Record<string, unknown>): number {
-  return Math.max(1, Math.floor(Number(save.xp || 0) / 100) + 1);
+  return recoveryProgress(save).level;
 }
 
 async function showRecoveryHistory(): Promise<void> {
@@ -414,7 +430,11 @@ async function showRecoveryHistory(): Promise<void> {
         const heading = document.createElement('strong');
         heading.textContent = entry.source + ' · Level ' + recoveryLevel(entry.save);
         const meta = document.createElement('small');
-        meta.textContent = new Date(entry.savedAt).toLocaleString() + ' · ' +
+        const progress = recoveryProgress(entry.save);
+        const xpSummary = progress.level >= 100
+          ? progress.xp.toLocaleString() + ' XP · Max level'
+          : progress.xp.toLocaleString() + ' XP total · ' + progress.earned.toLocaleString() + '/' + progress.needed.toLocaleString() + ' XP to Level ' + (progress.level + 1);
+        meta.textContent = new Date(entry.savedAt).toLocaleString() + ' · ' + xpSummary + ' · ' +
           Number(entry.save.coins || 0).toLocaleString() + ' coins · ' +
           (Array.isArray(entry.save.animals) ? entry.save.animals.length : 0) + ' animals';
         details.append(heading, meta);
