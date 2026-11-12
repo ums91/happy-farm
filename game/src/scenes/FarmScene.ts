@@ -372,6 +372,17 @@ export class FarmScene extends Phaser.Scene {
     this.toast('Harvested 1 '+cfg.name+' · sell value '+reward+' coins · next fruit in '+Math.round(cfg.interval/60000)+' minutes.');
   }
 
+  private decorDisplayName(asset:string):string {
+    const known:Record<string,string>={
+      apple_tree_variant:'Wisteria Tree',
+      apple_tree_variant2:'Sunflower Cart',
+      apple_tree_variant_sheet2:'Decorative Flower Cart'
+    };
+    if(known[asset])return known[asset];
+    const clean=asset.replace(/_sheet_?\\d+$/i,'').replace(/_sheet\\d+$/i,'').replace(/_variant_?\\d*$/i,'').replace(/_variant\\d+$/i,'');
+    return clean.split('_').filter(Boolean).map(word=>word[0].toUpperCase()+word.slice(1)).join(' ');
+  }
+
   private decorAssetForId(id:string):string|null {
     if(['farmhouse','barn','coop','silo','bakery','greenhouse','windmill','stable','well','workshop','waterTower'].includes(id))return null;
     if(id.startsWith('appleTree'))return 'apple_tree';
@@ -1504,7 +1515,7 @@ export class FarmScene extends Phaser.Scene {
     }if(category==='decor'){
       const legacyMap:Record<string,string>={apple_tree:'appleTree',pear_tree:'pearTree',pink_blossom_tree:'cherryTree',round_flowerbed:'flowerbed',tiered_stone_fountain:'fountain',scarecrow:'scarecrow',wooden_park_bench:'bench'};
       const decorMeta=(asset:string,index:number)=>{const tree=/tree/.test(asset);const small=/bush|hedge|flowerbed|flower_pot|rock|fence|path|stump|firewood|hay/.test(asset);const grand=/gazebo|arch|swing|windmill|fountain|well|pond|waterfall|bridge|cart|market|campfire/.test(asset);const unlock=Math.min(95,3+Math.floor(index*92/DECOR_ASSETS.length));const base=grand?4200:tree?1850:small?480:asset.includes('bench')||asset.includes('bird')||asset.includes('lamp')||asset.includes('sign')?1450:2600;const variant=asset.includes('variant')||asset.includes('sheet')?1.18:1;return {unlock,cost:Math.round(base*variant/10)*10};};
-      const items=DECOR_ASSETS.map((asset,index)=>{const legacyId=legacyMap[asset];const meta=decorMeta(asset,index);const title=asset.split('_').map(w=>w[0]?.toUpperCase()+w.slice(1)).join(' ').replace(/ Sheet\\d+/i,' Variant');const emoji=/apple/.test(asset)?'🍎':/pear/.test(asset)?'🍐':/orange/.test(asset)?'🍊':/tree|pine/.test(asset)?'🌳':/fountain|pond|waterfall|bird_bath|well/.test(asset)?'⛲':/flower|bush|hedge|rose|lavender/.test(asset)?'🌸':/bench|swing/.test(asset)?'🪑':/lamp|light/.test(asset)?'🏮':/fence|gate|wall/.test(asset)?'🪵':'🌿';return {id:legacyId||'decor_'+asset,asset,name:title,emoji,cost:legacyId==='appleTree'?650:legacyId==='pearTree'?700:legacyId==='cherryTree'?780:legacyId==='flowerbed'?260:legacyId==='fountain'?1250:legacyId==='scarecrow'?520:legacyId==='bench'?450:meta.cost,unlock:meta.unlock,desc:'Decorate your homestead with this handcrafted farm item.'};});
+      const items=DECOR_ASSETS.map((asset,index)=>{const legacyId=legacyMap[asset];const meta=decorMeta(asset,index);const title=this.decorDisplayName(asset);const emoji=/apple/.test(asset)?'🍎':/pear/.test(asset)?'🍐':/orange/.test(asset)?'🍊':/tree|pine/.test(asset)?'🌳':/fountain|pond|waterfall|bird_bath|well/.test(asset)?'⛲':/flower|bush|hedge|rose|lavender/.test(asset)?'🌸':/bench|swing/.test(asset)?'🪑':/lamp|light/.test(asset)?'🏮':/fence|gate|wall/.test(asset)?'🪵':'🌿';return {id:legacyId||'decor_'+asset,asset,name:title,emoji,cost:legacyId==='appleTree'?650:legacyId==='pearTree'?700:legacyId==='cherryTree'?780:legacyId==='flowerbed'?260:legacyId==='fountain'?1250:legacyId==='scarecrow'?520:legacyId==='bench'?450:meta.cost,unlock:meta.unlock,desc:'Decorate your homestead with this handcrafted farm item.'};});
       host.innerHTML=items.map(item=>{const locked=this.farmerLevel<item.unlock;const owned=Object.keys(this.decor).some(k=>k===item.id||k.startsWith(item.id));const artAsset=item.asset==='pear_tree'?'small_green_tree':item.asset;const art=this.marketArtImage('decor/'+artAsset+'.png',item.name,item.emoji);return '<article class="market-item">'+art+'<div class="market-copy"><strong>'+item.name+'</strong><small>'+item.desc+' · Unlocks at Level '+item.unlock+(owned?' · Already placed':'')+'</small></div><button class="market-buy" data-buy-decor="'+item.id+'" '+(locked||this.coins<item.cost?'disabled':'')+'>'+(locked?'🔒 Level '+item.unlock:'🪙 '+item.cost+' · Buy')+'</button></article>';}).join('');
       host.querySelectorAll<HTMLButtonElement>('[data-buy-decor]').forEach(btn=>btn.addEventListener('click',()=>{
         const item=items.find(x=>x.id===btn.dataset.buyDecor);if(!item||this.farmerLevel<item.unlock||this.coins<item.cost)return;
