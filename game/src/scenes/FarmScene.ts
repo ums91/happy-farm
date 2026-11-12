@@ -80,6 +80,7 @@ export class FarmScene extends Phaser.Scene {
   private animalTroughs=new Map<AnimalId,Phaser.GameObjects.Container>();
   private animalHungryBadges=new Map<number,Phaser.GameObjects.Text>();
   private buildingProduceBadges=new Map<'coop'|'barn',Phaser.GameObjects.Text>();
+  private productionReadyBadges=new Map<'bakery'|'greenhouse'|'windmill',Phaser.GameObjects.Text>();
   private wellWaterBadge:Phaser.GameObjects.Text|null=null;
   private cropWaterBadges=new Map<string,Phaser.GameObjects.Text>();
   private sceneryGraphics: Phaser.GameObjects.Graphics[] = [];
@@ -165,7 +166,7 @@ export class FarmScene extends Phaser.Scene {
     this.bindDailyReward();
     initializeCloudSaves();
     this.refreshSelection();
-    this.time.addEvent({ delay: 1000, loop: true, callback: () => { if((this.questRefreshAt>0&&Date.now()>=this.questRefreshAt)||(this.eventStartedAt>0&&Date.now()-this.eventStartedAt>=604800000)){this.ensureQuestAndEventCycles();this.renderSideRail();} this.updateCropLifecycle(); this.updateProduction(); this.updateFruitTrees(); this.updateWellWaterBadge(); this.updateAnimalHungryIndicators(); this.updateBuildingProduceBadges(); this.updateCropWaterBadges(); this.refreshCropHoverTooltip(); if(this.activeBuilding==='coop'||this.activeBuilding==='barn')this.renderBuildingPanel(this.activeBuilding);else if(this.activeBuilding)this.renderGenericBuildingPanel(this.activeBuilding); } });
+    this.time.addEvent({ delay: 1000, loop: true, callback: () => { if((this.questRefreshAt>0&&Date.now()>=this.questRefreshAt)||(this.eventStartedAt>0&&Date.now()-this.eventStartedAt>=604800000)){this.ensureQuestAndEventCycles();this.renderSideRail();} this.updateCropLifecycle(); this.updateProduction(); this.updateProductionReadyBadges(); this.updateFruitTrees(); this.updateWellWaterBadge(); this.updateAnimalHungryIndicators(); this.updateBuildingProduceBadges(); this.updateCropWaterBadges(); this.refreshCropHoverTooltip(); if(this.activeBuilding==='coop'||this.activeBuilding==='barn')this.renderBuildingPanel(this.activeBuilding);else if(this.activeBuilding)this.renderGenericBuildingPanel(this.activeBuilding); } });
     this.input.on('wheel', (_pointer: Phaser.Input.Pointer, _objects: unknown[], _dx: number, dy: number) => {
       const camera=this.cameras.main;const anchor=camera.getWorldPoint(_pointer.x,_pointer.y);camera.setZoom(Phaser.Math.Clamp(camera.zoom-dy*0.0015,this.minFarmZoom,1.8));const after=camera.getWorldPoint(_pointer.x,_pointer.y);camera.scrollX+=anchor.x-after.x;camera.scrollY+=anchor.y-after.y;
     });
@@ -809,6 +810,9 @@ export class FarmScene extends Phaser.Scene {
     if(this.activeTool==='select'){
       // Ready water appears above the Well and is collected with one click.
       if(this.wellWaterBadge?.active&&Phaser.Math.Distance.Between(world.x,world.y,this.wellWaterBadge.x,this.wellWaterBadge.y)<26){this.collectWellWater();return;}
+      // Finished goods can be collected from the floating badge above each production building.
+      const productionHit=[...this.productionReadyBadges.entries()].find(([,badge])=>badge.active&&badge.visible&&Phaser.Math.Distance.Between(world.x,world.y,badge.x,badge.y)<28);
+      if(productionHit){this.collectProduction(productionHit[0]);return;}
       // Ready egg/milk icons sit above the coop/shed; one click collects the available batch.
       const buildingHit=[...this.buildingProduceBadges.entries()].find(([,badge])=>badge.active&&Phaser.Math.Distance.Between(world.x,world.y,badge.x,badge.y)<24);
       if(buildingHit){this.collectBuildingProduce(buildingHit[0]);return;}
@@ -1750,17 +1754,48 @@ export class FarmScene extends Phaser.Scene {
     return [{id:'grapes',name:'Grow Greenhouse Grapes',icon:'🍇',seconds:100,inputs:{strawberry:2},goods:{},output:'grapes',quantity:2,coins:0,xp:11}];
   }
   private productName(id:ProductId):string{return ({flour:'Flour',bread:'Fresh Bread',pastry:'Country Pastries',grapes:'Greenhouse Grapes'} as Record<ProductId,string>)[id];}
+  private updateProductionReadyBadges():void {
+    (['greenhouse','windmill','bakery'] as const).forEach(id=>{
+      const pos=this.decor[id],job=this.productionJobs[id];
+      const ready=!!pos&&!!job&&job.readyAt<=Date.now();
+      let badge=this.productionReadyBadges.get(id);
+      if(!ready||!pos){
+        if(badge){badge.destroy();this.productionReadyBadges.delete(id);}
+        return;
+      }
+      const point=this.toWorld(pos.col,pos.row),label=id==='greenhouse'?'🍇 Collect':id==='windmill'?'🌾 Collect':'🍞 Collect';
+      if(!badge){
+        badge=this.add.text(point.x,point.y-104,label,{fontFamily:'Arial',fontSize:'15px',fontStyle:'bold',color:'#fff9e9',backgroundColor:'#32834b',padding:{x:8,y:5},stroke:'#245b35',strokeThickness:2}).setOrigin(.5).setDepth(20000);
+        this.productionReadyBadges.set(id,badge);
+        this.tweens.add({targets:badge,y:badge.y-5,duration:700,yoyo:true,repeat:-1,ease:'Sine.inOut'});
+      }else badge.setPosition(point.x,point.y-104).setText(label).setVisible(true).setDepth(20000);
+    });
+  }
+
   private updateProduction():void {
     if(this.activeBuilding==='bakery'||this.activeBuilding==='greenhouse'||this.activeBuilding==='windmill')this.renderProductionPanel(this.activeBuilding);
   }
   private renderProductionPanel(id:'bakery'|'greenhouse'|'windmill'):void {
     const host=document.getElementById('market-items');if(!host)return;
     const level=this.buildingLevels[id],job=this.productionJobs[id],recipes=this.productionRecipes(id),now=Date.now();
-    const cards=recipes.map(r=>{const available=Object.entries(r.inputs).every(([key,n])=>this.inventory[key as CropId]>=(n||0))&&Object.entries(r.goods).every(([key,n])=>this.crafted[key as ProductId]>=(n||0));const costs=[...Object.entries(r.inputs).map(([k,n])=>(n||0)+' '+CROPS[k as CropId].name),...Object.entries(r.goods).map(([k,n])=>(n||0)+' '+this.productName(k as ProductId))].join(' + ');return '<article class="market-item"><div class="market-art">'+r.icon+'</div><div class="market-copy"><strong>'+r.name+'</strong><small>Uses '+costs+' · '+Math.max(10,Math.round(r.seconds*(1-(level-1)*.1)))+' sec · Produces '+r.quantity+' '+this.productName(r.output)+'</small></div><button class="market-buy" data-production-start="'+r.id+'" '+(job||!available?'disabled':'')+'>'+(job?'Busy':available?'Start':'Missing ingredients')+'</button></article>';}).join('');
+    const names={bakery:'Village Bakery',greenhouse:'Greenhouse',windmill:'Windmill'} as const;
+    const descriptions={windmill:'Grind harvested wheat into flour. Flour is used by the Bakery.',bakery:'Turn flour into baked goods for farm orders and extra coins.',greenhouse:'Grow premium grapes using strawberries as starter crops.'} as const;
+    const formatTime=(seconds:number)=>seconds>=60?Math.floor(seconds/60)+'m '+String(seconds%60).padStart(2,'0')+'s':seconds+'s';
+    const cards=recipes.map(r=>{
+      const available=Object.entries(r.inputs).every(([key,n])=>this.inventory[key as CropId]>=(n||0))&&Object.entries(r.goods).every(([key,n])=>this.crafted[key as ProductId]>=(n||0));
+      const inputs=[...Object.entries(r.inputs).map(([k,n])=>({name:CROPS[k as CropId].name,icon:CROPS[k as CropId].emoji,have:this.inventory[k as CropId],need:n||0})),...Object.entries(r.goods).map(([k,n])=>({name:this.productName(k as ProductId),icon:({flour:'🌾',bread:'🍞',pastry:'🥐',grapes:'🍇'} as Record<ProductId,string>)[k as ProductId],have:this.crafted[k as ProductId],need:n||0}))];
+      const duration=Math.max(10,Math.round(r.seconds*(1-(level-1)*.1)));
+      const ingredients=inputs.map(item=>'<span class="production-ingredient '+(item.have>=item.need?'available':'missing')+'">'+item.icon+' '+item.have+'/'+item.need+' '+item.name+'</span>').join('');
+      return '<article class="market-item production-recipe-card"><div class="market-art">'+r.icon+'</div><div class="market-copy"><strong>'+r.name+'</strong><small>Produces '+r.quantity+' '+this.productName(r.output)+' · '+formatTime(duration)+' · +'+r.xp+' XP</small><div class="production-ingredients">'+ingredients+'</div></div><button class="market-buy" data-production-start="'+r.id+'" '+(job||!available?'disabled':'')+'>'+(job?'Queue busy':available?'Start batch':'Need ingredients')+'</button></article>';
+    }).join('');
     const active=job?recipes.find(r=>r.id===job.recipe):null,remaining=job?Math.max(0,Math.ceil((job.readyAt-now)/1000)):0;
-    const jobCard=job&&active?'<section class="inventory-section"><h3>⏳ Production in progress</h3><p>'+active.icon+' '+active.name+' · '+(remaining>0?remaining+' seconds remaining':'Ready to collect')+'</p><div class="production-track"><i style="width:'+Math.max(0,Math.min(100,(1-(job.readyAt-now)/(active.seconds*1000))*100))+'%"></i></div><button class="market-buy" id="collect-production" '+(remaining>0?'disabled':'')+'>Collect '+active.quantity+' '+this.productName(active.output)+'</button></section>':'<section class="inventory-section"><h3>🏭 Production queue</h3><p>One production order can run at a time. Building upgrades reduce production time by 10% per level.</p></section>';
-    host.innerHTML='<section class="inventory-section"><h3>🏗️ '+({bakery:'Village Bakery',greenhouse:'Greenhouse',windmill:'Windmill'} as Record<string,string>)[id]+' · Level '+level+'</h3><p>'+({windmill:'Turn harvested wheat into flour for your bakery.',bakery:'Use flour to bake goods for delivery and sale.',greenhouse:'Grow premium grapes using strawberry seeds.'} as Record<string,string>)[id]+'</p><div class="building-levels">'+[1,2,3,4,5].map(n=>'<span class="'+(n<=level?'reached':'')+'">★</span>').join('')+'</div></section>'+jobCard+'<section class="inventory-section"><h3>📋 Available recipes</h3><div class="quest-list">'+cards+'</div></section><section class="inventory-section"><h3>📦 Crafted goods</h3><div class="inventory-grid">'+(['flour','bread','pastry','grapes'] as ProductId[]).map(p=>'<article class="market-item"><div class="market-art">'+({flour:'🌾',bread:'🍞',pastry:'🥐',grapes:'🍇'} as Record<ProductId,string>)[p]+'</div><div class="market-copy"><strong>'+this.productName(p)+'</strong></div><span class="inventory-quantity">× '+this.crafted[p]+'</span></article>').join('')+'</div></section><section class="inventory-section"><h3>⬆️ Building upgrade · Level '+level+'</h3><p>Each upgrade reduces production time by 10%, up to Level 5.</p><button class="market-buy" id="upgrade-generic-building" '+(level>=5||this.coins<level*350?'disabled':'')+'>'+(level>=5?'Maximum level reached':'🪙 '+(level*350)+' · Upgrade to Level '+(level+1))+'</button></section>';
-    host.querySelector<HTMLButtonElement>('#upgrade-generic-building')?.addEventListener('click',()=>{const cost=level*350;if(level>=5||this.coins<cost)return;this.coins-=cost;this.buildingLevels[id]=level+1;this.saveFarm();this.refreshHud();this.renderProductionPanel(id);this.toast('Building upgraded to Level '+(level+1)+'.');});
+    const progress=active&&job?Math.max(0,Math.min(100,(1-(job.readyAt-now)/(Math.max(10000,active.seconds*1000*(1-(level-1)*.1))))*100)):0;
+    const jobCard=job&&active?'<section class="inventory-section production-active"><div class="production-status-row"><h3>⏳ Current batch</h3><strong class="'+(remaining===0?'production-ready':'')+'">'+(remaining===0?'Ready to collect':'In production')+'</strong></div><p>'+active.icon+' '+active.name+' <span class="production-countdown">'+(remaining>0?formatTime(remaining):'Finished')+'</span></p><div class="production-track"><i style="width:'+progress+'%"></i></div><button class="market-buy" id="collect-production" '+(remaining>0?'disabled':'')+'>Collect '+active.quantity+' '+this.productName(active.output)+'</button></section>':'<section class="inventory-section production-idle"><h3>🏭 Production queue</h3><p>Choose a recipe below to start a batch. One batch can run at a time; you can leave the farm and return when it is ready.</p></section>';
+    const stock=Object.entries(this.inventory).filter(([,n])=>n>0).map(([key,n])=>'<span class="production-stock-chip">'+CROPS[key as CropId].emoji+' '+CROPS[key as CropId].name+' × '+n+'</span>').join('');
+    host.innerHTML='<section class="inventory-section production-building-heading"><h3>🏗️ '+names[id]+' <span class="production-level">Level '+level+'</span></h3><p>'+descriptions[id]+'</p><div class="building-levels">'+[1,2,3,4,5].map(n=>'<span class="'+(n<=level?'reached':'')+'">★</span>').join('')+'</div></section>'+jobCard+'<section class="inventory-section"><div class="production-status-row"><h3>📋 Recipes</h3><small>Ingredients are deducted when a batch starts</small></div><div class="quest-list">'+cards+'</div></section><section class="inventory-section"><h3>🌱 Available farm crops</h3><div class="production-stock">'+(stock||'<span class="market-intro">No harvested crops in storage yet.</span>')+'</div></section><section class="inventory-section"><h3>📦 Crafted goods</h3><div class="inventory-grid">'+(['flour','bread','pastry','grapes'] as ProductId[]).map(p=>'<article class="market-item"><div class="market-art">'+({flour:'🌾',bread:'🍞',pastry:'🥐',grapes:'🍇'} as Record<ProductId,string>)[p]+'</div><div class="market-copy"><strong>'+this.productName(p)+'</strong></div><span class="inventory-quantity">× '+this.crafted[p]+'</span></article>').join('')+'</div></section><section class="inventory-section"><div class="production-status-row"><h3>⬆️ Upgrade building</h3><strong>Level '+level+'/5</strong></div><p>Each upgrade reduces production time by 10%. Upgrade cost: '+(level*350)+' coins.</p><button class="market-buy" id="upgrade-generic-building" '+(level>=5||this.coins<level*350?'disabled':'')+'>'+(level>=5?'Maximum level reached':'🪙 '+(level*350)+' · Upgrade to Level '+(level+1))+'</button></section>';
+    host.querySelector<HTMLButtonElement>('#collect-production')?.addEventListener('click',()=>this.collectProduction(id));
+    host.querySelectorAll<HTMLButtonElement>('[data-production-start]').forEach(button=>button.addEventListener('click',()=>this.startProduction(id,button.dataset.productionStart||'')));
+    host.querySelector<HTMLButtonElement>('#upgrade-generic-building')?.addEventListener('click',()=>{const cost=level*350;if(level>=5||this.coins<cost)return;this.coins-=cost;this.buildingLevels[id]=level+1;this.saveFarm();this.refreshHud();this.renderProductionPanel(id);this.toast(names[id]+' upgraded to Level '+(level+1)+'.');});
   }
   private startProduction(id:BuildingId,recipeId:string):void {
     if(id!=='bakery'&&id!=='greenhouse'&&id!=='windmill')return;
@@ -1771,14 +1806,14 @@ export class FarmScene extends Phaser.Scene {
     Object.entries(recipe.goods).forEach(([k,n])=>this.crafted[k as ProductId]-=(n||0));
     const duration=Math.max(10000,recipe.seconds*1000*(1-(this.buildingLevels[id]-1)*.1));
     this.productionJobs[id]={recipe:recipe.id,readyAt:Date.now()+duration};
-    this.saveFarm();this.refreshHud();this.renderProductionPanel(id);this.toast(recipe.name+' started.');
+    this.saveFarm();this.refreshHud();this.updateProductionReadyBadges();this.renderProductionPanel(id);this.toast(recipe.name+' started.');
   }
   private collectProduction(id:BuildingId):void {
     if(id!=='bakery'&&id!=='greenhouse'&&id!=='windmill')return;
     const job=this.productionJobs[id];if(!job||job.readyAt>Date.now())return;
     const recipe=this.productionRecipes(id).find(r=>r.id===job.recipe);if(!recipe)return;
     this.crafted[recipe.output]+=recipe.quantity;this.xp+=recipe.xp;this.productionJobs[id]=null;
-    this.saveFarm();this.refreshHud();this.renderProductionPanel(id);this.toast('Collected '+recipe.quantity+' '+this.productName(recipe.output)+' · +'+recipe.xp+' XP');
+    this.saveFarm();this.refreshHud();this.updateProductionReadyBadges();this.renderProductionPanel(id);this.toast('Collected '+recipe.quantity+' '+this.productName(recipe.output)+' · +'+recipe.xp+' XP');
   }
   private fulfilCraftedOrder(id:string):void {
     const orders:Record<string,{product:ProductId;quantity:number;coins:number;xp:number}>={bread:{product:'bread',quantity:1,coins:58,xp:16},pastry:{product:'pastry',quantity:1,coins:86,xp:24},grapes:{product:'grapes',quantity:2,coins:72,xp:20}};
