@@ -1463,19 +1463,20 @@ export class FarmScene extends Phaser.Scene {
     const intro=document.getElementById('market-intro');
     if(intro)intro.textContent='Choose an unlocked crop, buy seeds if needed, then sow this plot. Locked crops show their farmer level.';
     modal?.classList.add('field-seed-mode','open');modal?.setAttribute('aria-hidden','false');
-    const panel=modal?.querySelector<HTMLElement>('.market-window');if(panel&&this.selected){const p=this.toWorld(this.selected.col,this.selected.row);const camera=this.cameras.main;const rect=document.getElementById('game')?.getBoundingClientRect();if(rect){const sx=rect.left+(p.x-camera.worldView.x)*camera.zoom;const sy=rect.top+(p.y-camera.worldView.y)*camera.zoom;panel.style.left=Math.max(12,Math.min(window.innerWidth-520,sx-210))+'px';panel.style.top=Math.max(72,Math.min(window.innerHeight-300,sy-220))+'px';}}
+    const panel=modal?.querySelector<HTMLElement>('.market-window');if(panel){panel.style.left='';panel.style.top='';}
     this.renderFieldSeedPicker();
   }
   private renderFieldSeedPicker():void {
     const host=document.getElementById('market-items');if(!host)return;
-    const level=this.farmerLevel;
-    const selected=this.selected?this.selected.state:'grass';
+    const level=this.farmerLevel,selected=this.selected?this.selected.state:'grass';
     const rows=(Object.entries(CROPS) as Array<[CropId,typeof CROPS[CropId]]>).map(([id,c])=>{
       const locked=level<c.unlockLevel,active=this.selectedCrop===id,harvested=this.harvestedCrops[id],mastery=harvested%10;
-      return '<article class="market-item field-seed-card '+(active?'chosen':'')+'"><div class="market-art">'+c.emoji+'</div><div class="market-copy"><strong>'+c.name+(active?' · Selected':'')+'</strong><small>'+ (locked?'🔒 Unlock at Level '+c.unlockLevel:'Grow '+Math.round(c.growMs/1000)+' sec · Sell for '+c.reward+' coins · Planting cost: '+c.cost+' coins per field')+'</small><small>🏅 Mastery '+Math.floor(harvested/10)+' · '+mastery+'/10 harvests to next bonus · Total harvested: '+harvested+'</small></div><button class="market-buy" data-field-seed="'+id+'" '+(locked?'disabled':'')+'>'+(locked?'Locked':active?'Selected':'Select')+'</button></article>';
+      const growSeconds=Math.round(c.growMs/1000),growTime=growSeconds>=3600?Math.floor(growSeconds/3600)+'h '+Math.floor((growSeconds%3600)/60)+'m':growSeconds>=60?Math.floor(growSeconds/60)+'m':growSeconds+' sec';
+      return '<article class="market-item field-seed-card '+(active?'chosen':'')+(locked?' locked':'')+'"><div class="market-art">'+c.emoji+'</div><div class="market-copy"><strong>'+c.name+(active?' · Selected':'')+'</strong><div class="seed-stats"><span>⏱ '+growTime+'</span><span>🪙 Sell '+c.reward+'</span><span>🌱 Plant '+c.cost+'</span></div><small>🏅 Mastery '+Math.floor(harvested/10)+' · '+mastery+'/10 to bonus · Harvested '+harvested+'</small>'+(locked?'<small class="seed-unlock">🔒 Unlocks at Level '+c.unlockLevel+'</small>':'')+'</div><button class="market-buy" data-field-seed="'+id+'" '+(locked?'disabled':'')+'>'+(locked?'Locked':active?'Selected':'Select seed')+'</button></article>';
     }).join('');
-    host.innerHTML='<section class="inventory-section"><h3>🌱 Choose a seed · Field '+(this.selected? (this.selected.col+1)+', '+(this.selected.row+1):'')+' · '+selected+'</h3><p>Choose a crop once, then tap as many ploughed fields as you like. The planting cost is deducted from your coins for each field. Use Select again to change crops.</p><div class="quest-list">'+rows+'</div></section>';
+    host.innerHTML='<section class="inventory-section"><div class="seed-picker-context"><h3>🌱 Field '+(this.selected?(this.selected.col+1)+', '+(this.selected.row+1):'')+' · '+selected+'</h3><p>Select a crop, then tap other ploughed fields to plant the same seed. Coins are charged for each field you sow.</p></div><div class="quest-list seed-picker-grid">'+rows+'</div></section>';
   }
+
   private sowSelectedPlot():void {
     const plot=this.selected;if(!plot)return;
     const crop=CROPS[this.selectedCrop];if(this.farmerLevel<crop.unlockLevel){this.toast('Reach Level '+crop.unlockLevel+' to unlock '+crop.name+'.');return;}
