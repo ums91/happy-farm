@@ -1188,7 +1188,7 @@ export class FarmScene extends Phaser.Scene {
         if (plot.state === 'tilled') this.sowSelectedPlot();
         break;
       case 'harvest':
-        if (plot.state === 'ready') { const crop=CROPS[plot.crop]; const reward=this.toWorld(plot.col,plot.row); plot.state='tilled'; plot.growth=0; plot.readyAt=0; plot.witherAt=0; plot.watered=false; this.growthTimers.get(this.key(plot.col,plot.row))?.remove(false); this.growthTimers.delete(this.key(plot.col,plot.row)); this.harvestedCrops[plot.crop]++; this.xp+=crop.xp; this.harvests += 1; this.playHarvestEffect(reward.x,reward.y); this.showHarvestReward(reward.x,reward.y-28,crop.reward); this.toast(`${crop.emoji} ${crop.name} harvested · sell value ${crop.reward} coins · added to Sell inventory`); }
+        if (plot.state === 'ready') { const crop=CROPS[plot.crop]; const reward=this.toWorld(plot.col,plot.row); plot.state='tilled'; plot.growth=0; plot.readyAt=0; plot.witherAt=0; plot.watered=false; this.growthTimers.get(this.key(plot.col,plot.row))?.remove(false); this.growthTimers.delete(this.key(plot.col,plot.row)); this.harvestedCrops[plot.crop]++; const masteryCount=this.harvestedCrops[plot.crop]; if(masteryCount>0&&masteryCount%10===0){const masteryBonus=25+Math.floor(masteryCount/10)*5;this.coins+=masteryBonus;this.xp+=10;this.toast(crop.name+' mastery Level '+(masteryCount/10)+'! +'+masteryBonus+' coins · +10 XP.');} this.xp+=crop.xp; this.harvests += 1; this.playHarvestEffect(reward.x,reward.y); this.showHarvestReward(reward.x,reward.y-28,crop.reward); this.toast(`${crop.emoji} ${crop.name} harvested · sell value ${crop.reward} coins · added to Sell inventory`); }
         break;
       case 'select':
         break;
@@ -1395,8 +1395,8 @@ export class FarmScene extends Phaser.Scene {
     const level=this.farmerLevel;
     const selected=this.selected?this.selected.state:'grass';
     const rows=(Object.entries(CROPS) as Array<[CropId,typeof CROPS[CropId]]>).map(([id,c])=>{
-      const locked=level<c.unlockLevel,active=this.selectedCrop===id;
-      return '<article class="market-item field-seed-card '+(active?'chosen':'')+'"><div class="market-art">'+c.emoji+'</div><div class="market-copy"><strong>'+c.name+(active?' · Selected':'')+'</strong><small>'+ (locked?'🔒 Unlock at Level '+c.unlockLevel:'Grow '+Math.round(c.growMs/1000)+' sec · Sell for '+c.reward+' coins · Planting cost: '+c.cost+' coins per field')+'</small></div><button class="market-buy" data-field-seed="'+id+'" '+(locked?'disabled':'')+'>'+(locked?'Locked':active?'Selected':'Select')+'</button></article>';
+      const locked=level<c.unlockLevel,active=this.selectedCrop===id,harvested=this.harvestedCrops[id],mastery=harvested%10;
+      return '<article class="market-item field-seed-card '+(active?'chosen':'')+'"><div class="market-art">'+c.emoji+'</div><div class="market-copy"><strong>'+c.name+(active?' · Selected':'')+'</strong><small>'+ (locked?'🔒 Unlock at Level '+c.unlockLevel:'Grow '+Math.round(c.growMs/1000)+' sec · Sell for '+c.reward+' coins · Planting cost: '+c.cost+' coins per field')+'</small><small>🏅 Mastery '+Math.floor(harvested/10)+' · '+mastery+'/10 harvests to next bonus · Total harvested: '+harvested+'</small></div><button class="market-buy" data-field-seed="'+id+'" '+(locked?'disabled':'')+'>'+(locked?'Locked':active?'Selected':'Select')+'</button></article>';
     }).join('');
     host.innerHTML='<section class="inventory-section"><h3>🌱 Choose a seed · Field '+(this.selected? (this.selected.col+1)+', '+(this.selected.row+1):'')+' · '+selected+'</h3><p>Choose a crop once, then tap as many ploughed fields as you like. The planting cost is deducted from your coins for each field. Use Select again to change crops.</p><div class="quest-list">'+rows+'</div></section>';
   }
