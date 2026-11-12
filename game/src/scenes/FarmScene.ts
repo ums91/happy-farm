@@ -1797,22 +1797,58 @@ export class FarmScene extends Phaser.Scene {
     const now=Date.now();
     this.animals.forEach((animal,index)=>{
       const actor=this.animalActors[index],active=animal.assigned!==false&&!!actor?.active;
-      const baby=this.isBabyAnimal(animal.id);
-      const hungry=active&&(animal.readyAt===0||(baby&&animal.readyAt<=now));
-      let hungryBadge=this.animalHungryBadges.get(index);
-      if(!hungry){if(hungryBadge){hungryBadge.destroy();this.animalHungryBadges.delete(index);}}
-      else{
-        if(!hungryBadge){
-          hungryBadge=this.add.text(actor.x,actor.y-34,'🥣',{fontFamily:'Arial',fontSize:'19px',padding:{x:0,y:0},shadow:{offsetX:0,offsetY:1,color:'#5b4727',blur:2,fill:true}}).setOrigin(.5).setDepth(actor.depth+30);
-          this.animalHungryBadges.set(index,hungryBadge);
-          this.tweens.add({targets:hungryBadge,y:hungryBadge.y-4,duration:650,yoyo:true,repeat:-1,ease:'Sine.inOut'});
+      const baby=this.isBabyAnimal(animal.id),cow=animal.id==='cow'||animal.id==='calf';
+      let status='',color='#4b3523',hungry=false;
+      if(!active){status='💤 RESTING';color='#665d52';}
+      else if(animal.readyAt===0){status='🥣 HUNGRY';color='#8a4b16';hungry=true;}
+      else if(animal.readyAt>now){
+        const remaining=animal.readyAt-now;
+        if(baby){
+          const fed=animal.growthFeedings||0;
+          const mins=Math.floor(remaining/60000),secs=Math.ceil((remaining%60000)/1000);
+          status='🌱 GROWING '+fed+'/3 · '+(mins>0?mins+'m ': '')+secs+'s';
+          color='#426c31';
+        }else{
+          const mins=Math.floor(remaining/60000),secs=Math.ceil((remaining%60000)/1000);
+          status='⏳ '+(mins>0?mins+'m ': '')+secs+'s';
+          color='#3f6480';
         }
-        hungryBadge.setPosition(actor.x,actor.y-34).setDepth(actor.depth+30);
+      }else if(baby){
+        status='🥣 FEED AGAIN · '+(animal.growthFeedings||0)+'/3';
+        color='#8a4b16';hungry=true;
+      }else{
+        status=cow?'🥛 MILK READY':'🥚 EGGS READY';
+        color='#286b3b';
       }
-
+      let badge=this.animalHungryBadges.get(index);
+      if(!badge){
+        badge=this.add.text(actor?.x||0,(actor?.y||0)-38,status,{fontFamily:'Arial',fontSize:'11px',fontStyle:'bold',color:'#ffffff',backgroundColor:color,padding:{x:6,y:4},stroke:'#49331f',strokeThickness:2,shadow:{offsetX:0,offsetY:2,color:'#382718',blur:3,fill:true}})
+          .setOrigin(.5).setDepth((actor?.depth||0)+30);
+        this.animalHungryBadges.set(index,badge);
+      }else{
+        const previous=badge.getData('status');
+        if(previous!==status){
+          this.tweens.killTweensOf(badge);
+          badge.setData('status',status);
+        }
+        badge.setText(status).setStyle({backgroundColor:color});
+      }
+      badge.setData('status',status);
+      if(actor?.active)badge.setPosition(actor.x,actor.y-38).setDepth(actor.depth+30);
+      if(hungry&&!this.tweens.isTweening(badge)){
+        this.tweens.add({targets:badge,y:badge.y-4,duration:650,yoyo:true,repeat:-1,ease:'Sine.inOut'});
+      }else if(!hungry&&this.tweens.isTweening(badge)){
+        this.tweens.killTweensOf(badge);
+      }
     });
-    for(const [index,badge] of this.animalHungryBadges){if(index>=this.animals.length||!this.animalActors[index]?.active){badge.destroy();this.animalHungryBadges.delete(index);}}
-    for(const [index,badge] of this.animalProduceBadges){if(index>=this.animals.length||!this.animalActors[index]?.active){badge.destroy();this.animalProduceBadges.delete(index);}}
+    for(const [index,badge] of this.animalHungryBadges){
+      if(index>=this.animals.length||!this.animalActors[index]?.active){
+        this.tweens.killTweensOf(badge);badge.destroy();this.animalHungryBadges.delete(index);
+      }
+    }
+    for(const [index,badge] of this.animalProduceBadges){
+      if(index>=this.animals.length||!this.animalActors[index]?.active){badge.destroy();this.animalProduceBadges.delete(index);}
+    }
   }
   private feedAnimalAt(index:number,kind:AnimalId):void{
     const animal=this.animals[index],actor=this.animalActors[index];
