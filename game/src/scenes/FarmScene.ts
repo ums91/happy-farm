@@ -257,8 +257,12 @@ export class FarmScene extends Phaser.Scene {
     this.redrawFarmTiles();this.drawScenery();this.renderFruitTreeBadges();this.fitFarmToViewport();this.saveFarm();this.refreshHud();this.renderMarket('buildings');
     this.toast(`Unlocked ${expansion.size} × ${expansion.size} new farmland!`);
   }
-  // Eight usable fields through Level 12; one more at 13, 16, 19, and every three levels thereafter.
-  private get plowLimit():number { return 8+Math.max(0,Math.floor((this.farmerLevel-10)/3)); }
+  // Crop-field capacity grows with farmer level and purchased land, so expansions create usable growing space too.
+  private get plowLimit():number {
+    const levelSlots=8+Math.max(0,Math.floor((this.farmerLevel-10)/3));
+    const landSlots=Math.floor(Math.max(0,this.landTiles.size-INITIAL_FARM_SIZE*INITIAL_FARM_SIZE)/4);
+    return Math.min(100,levelSlots+landSlots);
+  }
   private get establishedFieldCount():number { return [...this.plots.values()].filter(plot=>plot.state!=='grass').length; }
   private key(col: number, row: number): string { return col + ':' + row; }
 
