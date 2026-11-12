@@ -2045,3 +2045,17 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 .friends-success{padding:10px;border-radius:9px;background:#e7f2d8;color:#4c7935;font-size:12px;font-weight:900}
 .friends-footnote{display:block;margin-top:12px;padding-top:9px;border-top:1px solid #e7d6b5;color:#9a825f;font-size:9px;line-height:1.4}
 @media(max-width:650px){.friends-toolbar-button{padding:5px 7px;font-size:9px}.friends-modal-card{padding:12px;border-width:4px;max-height:94dvh}.friends-modal-card>header h2{font-size:20px}.my-farmer-code strong{font-size:19px}.friends-tabs button{font-size:9px;padding:5px 2px}.friend-card{gap:7px;padding:7px}.friend-avatar{flex-basis:36px;width:36px;height:36px;font-size:22px}.friend-info strong{font-size:11px}.friend-request-actions{flex-direction:column}}
+
+
+/* FarmVille-inspired audio controls: a slim vertical dock keeps the top HUD clear. */
+.audio-dock{position:absolute;z-index:8;top:78px;right:12px;display:flex;flex-direction:column;gap:8px;padding:8px 6px;border:2px solid #c9a365;border-radius:18px;background:linear-gradient(180deg,#fff8e6ed,#e8d3a8ed);box-shadow:0 3px 0 #65472b,0 6px 15px #263d2440;backdrop-filter:blur(5px)}
+.audio-channel{display:flex;flex-direction:column;align-items:center;gap:5px;min-width:36px}
+.audio-channel+.audio-channel{padding-top:8px;border-top:1px solid #c9ad79}
+.audio-channel button{display:grid;place-items:center;width:30px;height:30px;border:2px solid #c69d5b;border-radius:50%;background:linear-gradient(#fff1bd,#e9bd61);color:#704b24;font-size:17px;font-weight:1000;box-shadow:0 2px 0 #9c743c;cursor:pointer}
+.audio-channel button[aria-pressed="false"]{filter:grayscale(.8);opacity:.65}
+.audio-channel label{font-size:8px;font-weight:1000;letter-spacing:.7px;color:#795a32}
+.audio-channel input[type="range"]{appearance:slider-vertical;-webkit-appearance:slider-vertical;writing-mode:vertical-lr;direction:rtl;width:18px;height:76px;margin:0;accent-color:#78aa43;cursor:pointer;touch-action:pan-y}
+.audio-channel output{min-width:30px;text-align:center;font-size:9px;font-weight:1000;font-variant-numeric:tabular-nums;color:#795a32}
+body.visitor-mode .audio-dock{display:none!important}
+@media(max-width:700px){.audio-dock{top:62px;right:6px;gap:5px;padding:6px 4px;border-radius:14px}.audio-channel{gap:3px}.audio-channel button{width:27px;height:27px;font-size:15px}.audio-channel input[type="range"]{height:58px;width:16px}.audio-channel label{font-size:7px}.audio-channel output{font-size:8px;min-width:26px}}
+@media(max-width:390px){.audio-dock{top:58px;right:4px;padding:5px 3px}.audio-channel input[type="range"]{height:48px}}
