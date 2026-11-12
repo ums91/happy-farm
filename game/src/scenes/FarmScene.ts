@@ -1800,15 +1800,15 @@ export class FarmScene extends Phaser.Scene {
     this.animals.forEach((animal,index)=>{
       const actor=this.animalActors[index],active=animal.assigned!==false&&!!actor?.active;
       const baby=this.isBabyAnimal(animal.id),cow=animal.id==='cow'||animal.id==='calf';
-      let symbol='💤',color='#665d52',hungry=false,status='resting';
-      if(active&&animal.readyAt===0){symbol='🥣';color='#a96a20';hungry=true;status='hungry';}
+      let symbol='💤',hungry=false,status='resting';
+      if(active&&animal.readyAt===0){symbol='🥣';hungry=true;status='hungry';}
       else if(active&&animal.readyAt>now){
-        if(baby){symbol='🌱';color='#54843b';status='growing-'+(animal.growthFeedings||0);}
-        else{symbol='⏳';color='#477c9c';status='producing';}
+        if(baby){symbol='🌱';status='growing-'+(animal.growthFeedings||0);}
+        else{symbol='⏳';status='producing';}
       }else if(active&&baby){
-        symbol='🥣';color='#a96a20';hungry=true;status='feed-again';
+        symbol='🥣';hungry=true;status='feed-again';
       }else if(active){
-        symbol=cow?'🥛':'🥚';color='#438448';status='ready';
+        symbol=cow?'🥛':'🥚';status='ready';
       }
       let badge=this.animalHungryBadges.get(index);
       if(!badge){
