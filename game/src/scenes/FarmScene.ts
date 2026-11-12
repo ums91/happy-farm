@@ -1957,7 +1957,7 @@ export class FarmScene extends Phaser.Scene {
     this.saveFarm();this.refreshHud();this.updateProductionReadyBadges();this.renderProductionPanel(id);this.toast(recipe.name+' started.');
   }
   private collectProduction(id:BuildingId):void {
-    if(id!=='bakery'&&id!=='greenhouse'&&id!=='windmill')return;
+    if(id!=='bakery'&&id!=='greenhouse'&&id!=='windmill'&&id!=='workshop')return;
     const job=this.productionJobs[id];if(!job||job.readyAt>Date.now())return;
     if(id==='workshop'){this.collectWorkshopProduction();return;}
     const recipe=this.productionRecipes(id).find(r=>r.id===job.recipe);if(!recipe)return;
