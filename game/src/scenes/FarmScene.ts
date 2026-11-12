@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { initializeCloudSaves, queueCloudSave } from '../services/cloudSave';
 
-type Tool = 'select' | 'plow' | 'plant' | 'water' | 'harvest' | 'move' | 'store' | 'remove';
+type Tool = 'select' | 'plow' | 'plant' | 'harvest' | 'move' | 'store' | 'remove';
 type PlotState = 'grass' | 'tilled' | 'growing' | 'ready' | 'withered';
 type CropId = 'wheat' | 'carrot' | 'corn' | 'strawberry' | 'tomato' | 'pumpkin' | 'blueberry' | 'watermelon';
 interface Plot { col: number; row: number; state: PlotState; watered: boolean; growth: number; crop: CropId; readyAt: number; witherAt: number }
@@ -12,7 +12,7 @@ interface AnimalProduce { eggs: number; milk: number }
 type BuildingId = 'coop'|'barn'|'silo'|'bakery'|'greenhouse'|'windmill'|'stable'|'well'|'workshop'|'waterTower';
 type ProductId='flour'|'bread'|'pastry'|'grapes';
 interface ProductionJob { recipe:string; readyAt:number }
-interface FarmSave { version: 17; farmExpansionLevel?:number; landTiles?:string[]; landExpansionCount?:number; questRefreshAt?:number; questProgressBaseline?:Partial<Record<'harvests'|'hens'|'cows'|'eggs'|'milk',number>>; eventStartedAt?:number; eventStartHarvests?:number; eventClaimed?:boolean; claimedMilestones?:number[]; harvestedCrops?:Partial<Record<CropId,number>>; fruitInventory?:Record<'apples'|'pears'|'cherries'|'oranges',number>; fruitTreeReadyAt?:Record<string,number>; farmerName?:string; farmName?:string; buildingLevels?:Partial<Record<BuildingId,number>>; productionJobs?:Partial<Record<BuildingId,ProductionJob|null>>; crafted?:Partial<Record<ProductId,number>>; randomQuests?: Array<{id:string;title:string;description:string;target:number;coins:number;xp:number;icon:string;metric:'harvests'|'hens'|'cows'|'eggs'|'milk'}>; claimedQuests?: string[]; ordersCompleted?: Record<string,number>; animals: Animal[]; harvests: number; coins: number; xp: number; selectedCrop?: CropId; decor?: Record<string,{col:number;row:number}>; storedDecor?:string[]; feed: { hen: number; cow: number }; buildings?: BuildingProgress; produce?: AnimalProduce; inventory: Record<CropId, number>; plots: Array<{ col:number; row:number; state:PlotState; watered:boolean; growth:number; crop?:CropId; readyAt?:number; witherAt?:number }> }
+interface FarmSave { version: 18; water?:number; waterCollectedAt?:number; farmExpansionLevel?:number; landTiles?:string[]; landExpansionCount?:number; questRefreshAt?:number; questProgressBaseline?:Partial<Record<'harvests'|'hens'|'cows'|'eggs'|'milk',number>>; eventStartedAt?:number; eventStartHarvests?:number; eventClaimed?:boolean; claimedMilestones?:number[]; harvestedCrops?:Partial<Record<CropId,number>>; fruitInventory?:Record<'apples'|'pears'|'cherries'|'oranges',number>; fruitTreeReadyAt?:Record<string,number>; farmerName?:string; farmName?:string; buildingLevels?:Partial<Record<BuildingId,number>>; productionJobs?:Partial<Record<BuildingId,ProductionJob|null>>; crafted?:Partial<Record<ProductId,number>>; randomQuests?: Array<{id:string;title:string;description:string;target:number;coins:number;xp:number;icon:string;metric:'harvests'|'hens'|'cows'|'eggs'|'milk'}>; claimedQuests?: string[]; ordersCompleted?: Record<string,number>; animals: Animal[]; harvests: number; coins: number; xp: number; selectedCrop?: CropId; decor?: Record<string,{col:number;row:number}>; storedDecor?:string[]; feed: { hen: number; cow: number }; buildings?: BuildingProgress; produce?: AnimalProduce; inventory: Record<CropId, number>; plots: Array<{ col:number; row:number; state:PlotState; watered:boolean; growth:number; crop?:CropId; readyAt?:number; witherAt?:number }> }
 const CROPS: Record<CropId,{name:string;emoji:string;cost:number;reward:number;xp:number;growMs:number;color:number;unlockLevel:number}> = {
  wheat:{name:'Wheat',emoji:'🌾',cost:8,reward:22,xp:2,growMs:5*60*1000,color:0xe4b83f,unlockLevel:1},
  carrot:{name:'Carrot',emoji:'🥕',cost:14,reward:38,xp:3,growMs:10*60*1000,color:0xef873e,unlockLevel:1},
@@ -68,6 +68,8 @@ export class FarmScene extends Phaser.Scene {
   private activeBuilding: BuildingId|null = null;
   private farmerName='New Farmer';
   private farmName='My Farm';
+  private waterUnits=0;
+  private waterCollectedAt=0;
   private buildingLevels: Record<BuildingId,number>={coop:0,barn:0,silo:0,bakery:0,greenhouse:0,windmill:0,stable:0,well:0,workshop:0,waterTower:0};
   private productionJobs: Record<BuildingId,ProductionJob|null>={coop:null,barn:null,silo:null,bakery:null,greenhouse:null,windmill:null,stable:null,well:null,workshop:null,waterTower:null};
   private crafted: Record<ProductId,number>={flour:0,bread:0,pastry:0,grapes:0};
@@ -995,7 +997,7 @@ export class FarmScene extends Phaser.Scene {
       const button=(event.target as HTMLElement).closest<HTMLButtonElement>('[data-water-plot]');
       if(!button)return;
       const plot=this.cropActionPlot;
-      if(!plot||plot.state!=='growing'||plot.watered)return;
+      if(!plot||plot.state!=='growing'||plot.watered||this.waterUnits<1)return;
       this.waterPlot(plot);this.showCropActionPopup(plot,this.hoverPointer.x,this.hoverPointer.y);
     });
   }
@@ -1004,14 +1006,15 @@ export class FarmScene extends Phaser.Scene {
     this.cropActionPlot=plot;this.hoveredCropPlot=plot;this.hoverPointer={x,y};
     const crop=CROPS[plot.crop],remaining=Math.max(0,plot.readyAt-Date.now()),totalSeconds=Math.ceil(remaining/1000),hours=Math.floor(totalSeconds/3600),mins=Math.floor((totalSeconds%3600)/60),secs=totalSeconds%60;
     const status=plot.state==='ready'?'Ready to harvest!':plot.state==='withered'?'Withered · Plow to clear':'Harvest in '+(hours>0?hours+'h ':'')+(mins>0?mins+'m ':'')+secs+'s';
-    const action=plot.state==='growing'?(plot.watered?'<span>💧 Already watered</span>':'<button type="button" class="crop-water-action" data-water-plot>💧 Water field</button>'):'';
+    const action=plot.state==='growing'?(plot.watered?'<span>💧 Already watered</span>':this.waterUnits>0?'<button type="button" class="crop-water-action" data-water-plot>💧 Water field · 1</button>':'<span>💧 No water · collect at the Well</span>'):'';
     tip.innerHTML='<strong>'+crop.emoji+' '+crop.name+'</strong><span>'+status+'</span>'+action;
     tip.style.left=Math.max(8,Math.min(this.scale.width-190,x+14))+'px';tip.style.top=Math.max(8,Math.min(this.scale.height-100,y-48))+'px';tip.style.display='flex';tip.style.pointerEvents='auto';
   }
   private waterPlot(plot:Plot):void{
     if(plot.state!=='growing'||plot.watered){this.toast(plot.watered?'This field has already been watered.':'Only growing crops can be watered.');return;}
-    plot.watered=true;this.scheduleGrowth(plot,Math.max(1500,Math.ceil((plot.readyAt-Date.now())/2)));
-    this.redrawPlot(plot);this.saveFarm();this.refreshHud();this.refreshSelection();this.toast(CROPS[plot.crop].name+' watered · remaining growth time halved.');
+    if(this.waterUnits<1){this.toast('No water available. Collect water from your Well.');return;}
+    this.waterUnits-=1;plot.watered=true;this.scheduleGrowth(plot,Math.max(1500,Math.ceil((plot.readyAt-Date.now())/2)));
+    this.redrawPlot(plot);this.saveFarm();this.refreshHud();this.refreshSelection();this.toast(CROPS[plot.crop].name+' watered · 1 water used · remaining growth time halved.');
   }
   private updateCropHover(pointer:Phaser.Input.Pointer):void {
     if(!this.cropHoverTooltip)return;
@@ -1070,9 +1073,6 @@ export class FarmScene extends Phaser.Scene {
         break;
       case 'plant':
         if (plot.state === 'tilled') this.sowSelectedPlot();
-        break;
-      case 'water':
-        this.waterPlot(plot);
         break;
       case 'harvest':
         if (plot.state === 'ready') { const crop=CROPS[plot.crop]; const reward=this.toWorld(plot.col,plot.row); plot.state='tilled'; plot.growth=0; plot.readyAt=0; plot.witherAt=0; plot.watered=false; this.growthTimers.get(this.key(plot.col,plot.row))?.remove(false); this.growthTimers.delete(this.key(plot.col,plot.row)); this.harvestedCrops[plot.crop]++; this.xp+=crop.xp; this.harvests += 1; this.showHarvestReward(reward.x,reward.y-28,crop.reward); this.toast(`${crop.emoji} ${crop.name} harvested · sell value ${crop.reward} coins · added to Sell inventory`); }
@@ -1407,12 +1407,16 @@ export class FarmScene extends Phaser.Scene {
     this.activeBuilding=id;const modal=document.getElementById('market-modal');const title=modal?.querySelector('.market-header h2');if(title)title.textContent=id==='silo'?'Grain Silo':id==='bakery'?'Village Bakery':id==='greenhouse'?'Greenhouse':id==='windmill'?'Windmill':id==='stable'?'Horse Stable':id==='well'?'Stone Well':id==='workshop'?'Farm Workshop':'Water Tower';
     modal?.querySelector('.market-tabs')?.classList.add('inventory-hidden');const intro=document.getElementById('market-intro');if(intro)intro.textContent='Upgrade this farm building as you progress.';modal?.classList.add('open');modal?.setAttribute('aria-hidden','false');this.renderGenericBuildingPanel(id);
   }
+  private get waterCapacity():number{return this.decor.well?20+Math.max(0,this.buildingLevels.well-1)*10+(this.decor.waterTower?20+Math.max(0,this.buildingLevels.waterTower-1)*10:0):0;}
+  private collectWellWater():void{if(!this.decor.well){this.toast('Build a Stone Well to collect water.');return;}const now=Date.now(),cooldown=30*60*1000;if(this.waterCollectedAt&&now-this.waterCollectedAt<cooldown){const left=Math.ceil((cooldown-(now-this.waterCollectedAt))/60000);this.toast('The Well needs '+left+' more minute(s) to refill.');return;}const gained=Math.min(10,this.waterCapacity-this.waterUnits);if(gained<=0){this.toast('Water storage is full.');return;}this.waterUnits+=gained;this.waterCollectedAt=now;this.saveFarm();this.refreshHud();if(this.activeBuilding==='well')this.renderGenericBuildingPanel('well');this.toast('Collected '+gained+' water from the Well.');}
   private renderGenericBuildingPanel(id:BuildingId):void {
     if(id==='bakery'||id==='greenhouse'||id==='windmill'){this.renderProductionPanel(id);return;}
     const level=this.buildingLevels[id]||this.buildings.warehouseLevel;const cost=level*350;const names:Record<BuildingId,string>={coop:'Chicken Run',barn:'Cow Pasture',silo:'Grain Silo',bakery:'Village Bakery',greenhouse:'Greenhouse',windmill:'Windmill',stable:'Horse Stable',well:'Stone Well',workshop:'Farm Workshop',waterTower:'Water Tower'};
     const perks:Record<BuildingId,string>={coop:'Expands the chicken run, adding 2 hen spaces and 5 egg storage per level.',barn:'Expands the cow pasture, adding 2 cow spaces and 5 milk storage per level.',silo:'Adds 10 shared animal-product storage spaces per level.',bakery:'A growing production hub for baked-goods recipes.',greenhouse:'A glasshouse for advanced crops and specialist growing.',windmill:'A landmark mill that completes your homestead.',stable:'Unlocks the next chapter of farm companions and stable upgrades.',well:'A reliable water source for your growing homestead.',workshop:'A dedicated place for future tool crafting and farm improvements.',waterTower:'A landmark water system for your expanded farm.'};
     const host=document.getElementById('market-items');if(!host)return;
-    host.innerHTML='<section class="inventory-section"><h3>🏗️ '+names[id]+' · Level '+level+'</h3><p>'+perks[id]+'</p><div class="building-levels">'+[1,2,3,4,5].map(n=>'<span class="'+(n<=level?'reached':'')+'">★</span>').join('')+'</div><p>Upgrade cost: '+cost+' coins. Maximum level: 5.</p><button class="market-buy" id="upgrade-generic-building" '+(level>=5||this.coins<cost?'disabled':'')+'>'+(level>=5?'Maximum level reached':'🪙 '+cost+' · Upgrade to Level '+(level+1))+'</button></section>';
+    const waterPanel=id==='well'?'<section class="inventory-section"><h3>💧 Water supply</h3><p>Water available: <strong>'+this.waterUnits+' / '+this.waterCapacity+'</strong>. The Well collects 10 water every 30 minutes. Each growing field uses 1 water and has its remaining growth time cut in half.</p><button class="market-buy" id="collect-well-water" '+(!this.decor.well||this.waterUnits>=this.waterCapacity|| (this.waterCollectedAt>0&&Date.now()-this.waterCollectedAt<30*60*1000)?'disabled':'')+'>💧 Collect 10 water</button></section>':id==='waterTower'?'<section class="inventory-section"><h3>💧 Expanded water storage</h3><p>Water Tower adds 20 storage capacity, plus 10 for each upgrade level. Current capacity: '+this.waterCapacity+'.</p></section>':'';
+    host.innerHTML=waterPanel+'<section class="inventory-section"><h3>🏗️ '+names[id]+' · Level '+level+'</h3><p>'+perks[id]+'</p><div class="building-levels">'+[1,2,3,4,5].map(n=>'<span class="'+(n<=level?'reached':'')+'">★</span>').join('')+'</div><p>Upgrade cost: '+cost+' coins. Maximum level: 5.</p><button class="market-buy" id="upgrade-generic-building" '+(level>=5||this.coins<cost?'disabled':'')+'>'+(level>=5?'Maximum level reached':'🪙 '+cost+' · Upgrade to Level '+(level+1))+'</button></section>';
+    host.querySelector<HTMLButtonElement>('#collect-well-water')?.addEventListener('click',()=>this.collectWellWater());
     host.querySelector<HTMLButtonElement>('#upgrade-generic-building')?.addEventListener('click',()=>{if(level>=5||this.coins<cost)return;this.coins-=cost;if(id==='silo')this.buildings.warehouseLevel++;this.buildingLevels[id]=level+1;this.drawScenery();this.saveFarm();this.refreshHud();this.renderGenericBuildingPanel(id);this.toast(names[id]+' upgraded to Level '+(level+1)+'.');});
   }
 
@@ -1629,17 +1633,17 @@ export class FarmScene extends Phaser.Scene {
       const raw = localStorage.getItem(this.saveKey);
       if (!raw) {
         this.landTiles.clear();for(let row=0;row<INITIAL_FARM_SIZE;row++)for(let col=0;col<INITIAL_FARM_SIZE;col++)this.landTiles.add(this.key(col,row));
-        this.coins=250;this.xp=0;this.inventory={wheat:3,carrot:0,corn:0,strawberry:0,tomato:0,pumpkin:0,blueberry:0,watermelon:0};
+        this.coins=250;this.xp=0;this.waterUnits=0;this.waterCollectedAt=0;this.inventory={wheat:3,carrot:0,corn:0,strawberry:0,tomato:0,pumpkin:0,blueberry:0,watermelon:0};
         for(const [col,row] of [[2,2],[3,2],[2,3]]){const plot=this.plots.get(this.key(col,row));if(plot)plot.state='tilled';}
         this.saveFarm();
         return;
       }
       const save = JSON.parse(raw) as any;
-      if (![1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17].includes(save.version) || !Array.isArray(save.plots)) return;
+      if (![1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18].includes(save.version) || !Array.isArray(save.plots)) return;
       this.coins = Math.max(0, Math.floor(save.coins));
       this.farmerName=typeof save.farmerName==='string'&&save.farmerName.trim()?save.farmerName.slice(0,24):'New Farmer';
       this.farmName=typeof save.farmName==='string'&&save.farmName.trim()?save.farmName.slice(0,28):'My Farm';
-      if(save.buildingLevels&&typeof save.buildingLevels==='object')for(const id of ['coop','barn','silo','bakery','greenhouse','windmill','stable','well','workshop','waterTower'] as BuildingId[])this.buildingLevels[id]=Math.max(this.buildingLevels[id],Math.min(5,Math.floor(Number(save.buildingLevels[id])||0)));this.randomQuests = Array.isArray(save.randomQuests) ? save.randomQuests : [];this.questRefreshAt=Number(save.questRefreshAt)||0;if(save.questProgressBaseline)this.questProgressBaseline={...this.questProgressBaseline,...save.questProgressBaseline};this.eventStartedAt=Number(save.eventStartedAt)||0;this.eventStartHarvests=Math.max(0,Number(save.eventStartHarvests)||0);this.eventClaimed=Boolean(save.eventClaimed);this.claimedMilestones=Array.isArray(save.claimedMilestones)?save.claimedMilestones.filter((n:number)=>[10,25,50,100].includes(n)):[];
+      if(save.water!==undefined)this.waterUnits=Math.max(0,Math.floor(Number(save.water)||0));else this.waterUnits=0;if(this.waterUnits>this.waterCapacity)this.waterUnits=this.waterCapacity;this.waterCollectedAt=Math.max(0,Number(save.waterCollectedAt)||0);if(save.buildingLevels&&typeof save.buildingLevels==='object')for(const id of ['coop','barn','silo','bakery','greenhouse','windmill','stable','well','workshop','waterTower'] as BuildingId[])this.buildingLevels[id]=Math.max(this.buildingLevels[id],Math.min(5,Math.floor(Number(save.buildingLevels[id])||0)));this.randomQuests = Array.isArray(save.randomQuests) ? save.randomQuests : [];this.questRefreshAt=Number(save.questRefreshAt)||0;if(save.questProgressBaseline)this.questProgressBaseline={...this.questProgressBaseline,...save.questProgressBaseline};this.eventStartedAt=Number(save.eventStartedAt)||0;this.eventStartHarvests=Math.max(0,Number(save.eventStartHarvests)||0);this.eventClaimed=Boolean(save.eventClaimed);this.claimedMilestones=Array.isArray(save.claimedMilestones)?save.claimedMilestones.filter((n:number)=>[10,25,50,100].includes(n)):[];
       this.questCycle = this.randomQuests.length ? Math.max(1,...this.randomQuests.map(q=>Number((q.id.match(/-(\d+)-\d+$/)||[])[1])||1)) : 0;
       this.claimedQuests = Array.isArray(save.claimedQuests) ? save.claimedQuests.filter((id:string)=>(['first-harvest','busy-farmer','first-hen','first-cow','better-coop','bigger-silo'].includes(id) || this.randomQuests.some(q=>q.id===id))) : [];
       this.ordersCompleted = save.version >= 9 && save.ordersCompleted && typeof save.ordersCompleted === 'object' ? Object.fromEntries(Object.entries(save.ordersCompleted).map(([id,count])=>[id,Math.max(0,Math.floor(Number(count)||0))]).filter(([id])=>['egg-crate','milk-run','farm-breakfast'].includes(String(id)))) : {};
@@ -1697,7 +1701,9 @@ export class FarmScene extends Phaser.Scene {
 
   private saveFarm(): void {
     const save: FarmSave = {
-      version: 17,
+      version: 18,
+      water:this.waterUnits,
+      waterCollectedAt:this.waterCollectedAt,
       landTiles:[...this.landTiles],
       landExpansionCount:this.landExpansionCountValue,
       harvestedCrops:{...this.harvestedCrops},
@@ -1739,6 +1745,7 @@ export class FarmScene extends Phaser.Scene {
   private refreshHud(): void {
     const coins = document.getElementById('coins');
     const xp = document.getElementById('xp');
+    const waterMeter=document.getElementById('water-count');if(waterMeter)waterMeter.textContent=this.waterUnits+' / '+this.waterCapacity;
     if (coins) coins.textContent = String(this.coins);
     const level = this.farmerLevel;
     if(level>this.displayedLevel){const bonus=level*20;this.coins+=bonus;this.displayedLevel=level;this.toast('Level '+level+' reached! Farmhouse upgraded · +'+bonus+' coins.');}
