@@ -20,7 +20,8 @@ export function initializeMusicControls(): void {
   let hasStarted = false;
 
   const render = (): void => {
-    toggle.textContent = enabled ? '♫ Music: On' : '♫ Music: Off';
+    toggle.textContent = '♫';
+    toggle.setAttribute('aria-label', enabled ? 'Turn background music off' : 'Turn background music on');
     toggle.setAttribute('aria-pressed', String(enabled));
     toggle.title = enabled ? 'Turn background music off' : 'Turn background music on';
     slider.value = String(Math.round(volume * 100));
