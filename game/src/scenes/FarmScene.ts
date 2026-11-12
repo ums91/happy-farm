@@ -1527,10 +1527,15 @@ export class FarmScene extends Phaser.Scene {
   private collectAndFeed(kind:AnimalId):{collected:number;fed:number;waiting:number}{let collected=0,fed=0,waiting=0;const now=Date.now();const field=kind==='hen'?'eggs':'milk';for(const animal of this.animals.filter(a=>a.id===kind&&a.assigned!==false)){if(animal.readyAt>0&&animal.readyAt<=now){if(this.produce[field]<this.productionCapacity(kind)){this.produce[field]++;animal.readyAt=0;collected++;}else{waiting++;continue;}}if(animal.readyAt===0){if(this.feed[kind]>0){this.feed[kind]--;animal.readyAt=now+this.animalProductionDuration(kind);fed++;const actor=this.animalActors[this.animals.indexOf(animal)];if(actor)this.moveAnimalToTrough(actor,kind,fed-1);this.animateAnimalTrough(kind);}else waiting++;}}return{collected,fed,waiting};}
   private updateAnimalHungryIndicators():void{
     this.animals.forEach((animal,index)=>{
-      const actor=this.animalActors[index],hungry=animal.assigned!==false&&animal.readyAt===0&&!!actor?.active;
+      const actor=this.animalActors[index],active=animal.assigned!==false&&!!actor?.active;
+      const mature=animal.id==='hen'||animal.id==='cow';
+      const ready=active&&mature&&animal.readyAt>0&&animal.readyAt<=Date.now();
+      const hungry=active&&animal.readyAt===0;
+      const icon=ready?(animal.id==='hen'?'🥚':'🥛'):hungry?'🥣':'';
       let badge=this.animalHungryBadges.get(index);
-      if(!hungry){if(badge){badge.destroy();this.animalHungryBadges.delete(index);}return;}
-      if(!badge){badge=this.add.text(actor.x,actor.y-34,'🥣',{fontFamily:'Arial',fontSize:'18px',backgroundColor:'#fff4c9',padding:{x:3,y:2}}).setOrigin(.5).setDepth(30001);this.animalHungryBadges.set(index,badge);this.tweens.add({targets:badge,y:badge.y-4,duration:650,yoyo:true,repeat:-1,ease:'Sine.inOut'});}
+      if(!icon){if(badge){badge.destroy();this.animalHungryBadges.delete(index);}return;}
+      if(!badge){badge=this.add.text(actor.x,actor.y-34,icon,{fontFamily:'Arial',fontSize:'18px',backgroundColor:ready?'#e5f7d8':'#fff4c9',padding:{x:3,y:2}}).setOrigin(.5).setDepth(actor.depth+30);this.animalHungryBadges.set(index,badge);this.tweens.add({targets:badge,y:badge.y-4,duration:650,yoyo:true,repeat:-1,ease:'Sine.inOut'});}
+      else if(badge.text!==icon){badge.setText(icon).setStyle({backgroundColor:ready?'#e5f7d8':'#fff4c9'});}
       badge.setPosition(actor.x,actor.y-34).setDepth(actor.depth+30);
     });
   }
