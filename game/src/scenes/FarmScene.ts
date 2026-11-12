@@ -563,7 +563,7 @@ export class FarmScene extends Phaser.Scene {
     const farmhouse=this.decor.farmhouse||{col:3,row:1};
     const henHome=this.decor.coop||{col:Math.min(COLS-1,farmhouse.col+2),row:farmhouse.row+1};
     const barnHome=this.decor.barn||{col:Math.min(COLS-1,farmhouse.col+3),row:Math.min(ROWS-1,farmhouse.row+3)};
-    const cowHome={col:Math.min(COLS-1,barnHome.col+1),row:Math.min(ROWS-1,barnHome.row+2)};
+    const cowHome=barnHome;
     this.animals.forEach((animal,index)=>{
       const cow=animal.id==='cow';
       const home=cow?cowHome:henHome;
@@ -573,7 +573,7 @@ export class FarmScene extends Phaser.Scene {
       const bounds={width:TILE_W*4,height:TILE_H*4};
       const actor=this.add.container(center.x,center.y);actor.setDepth(center.y+24+index*0.01);
       this.animalReservedCells.add(this.animalCellKey(homeTile));
-      const scale=cow?0.45:1;
+      const scale=cow?0.55:1;
       actor.setScale(scale);
       actor.add(this.add.ellipse(0,6,cow?40:26,cow?8:6,0x263e25,0.2));
       const texture=cow?'animal-cow':'animal-hen';
@@ -625,7 +625,7 @@ export class FarmScene extends Phaser.Scene {
 
   private wanderAnimal(actor:Phaser.GameObjects.Container,cx:number,cy:number,limitX:number,limitY:number,cow:boolean):void{
     if(!actor.active)return;
-    const sprite=this.animalSprites.get(actor),baseScale=cow?0.45:1;
+    const sprite=this.animalSprites.get(actor),baseScale=cow?0.55:1;
     const current=this.toTile(actor.x,actor.y);
     if(!current)return;
     let destination:{col:number;row:number}|null=null;
