@@ -944,9 +944,23 @@ export class FarmScene extends Phaser.Scene {
         return Phaser.Math.Distance.Between(world.x,world.y,badge.x,badge.y)<28|| (Math.abs(world.x-p.x)<66&&Math.abs(world.y-p.y)<94);
       });
       if(buildingHit){this.collectBuildingProduce(buildingHit[0]);return;}
-      // Tap the small animal status symbol to feed a hungry animal or collect its ready produce.
-      const hungryHit=[...this.animalHungryBadges.entries()].find(([,badge])=>badge.active&&Phaser.Math.Distance.Between(world.x,world.y,badge.x,badge.y)<18);
+      // Status symbols are children of their animal containers. Their x/y are local
+      // coordinates, so hit-test against the parent actor's world position.
+      const hungryHit=[...this.animalHungryBadges.entries()].find(([index,badge])=>{
+        const actor=this.animalActors[index];
+        if(!badge.active||!actor?.active)return false;
+        const badgeWorldX=actor.x+badge.x*actor.scaleX;
+        const badgeWorldY=actor.y+badge.y*actor.scaleY;
+        return Phaser.Math.Distance.Between(world.x,world.y,badgeWorldX,badgeWorldY)<24;
+      });
       if(hungryHit){const animal=this.animals[hungryHit[0]];if(animal)this.feedAnimalAt(hungryHit[0],animal.id);return;}
+      // Also allow tapping the animal itself while its hungry bowl is visible.
+      const hungryAnimalHit=this.animals.findIndex((animal,index)=>{
+        const actor=this.animalActors[index];
+        return animal.assigned!==false&&animal.readyAt<=Date.now()&&!!actor?.active&&
+          Phaser.Math.Distance.Between(world.x,world.y,actor.x,actor.y)<24;
+      });
+      if(hungryAnimalHit>=0){this.feedAnimalAt(hungryAnimalHit,this.animals[hungryAnimalHit].id);return;}
       // Water icons are lightweight tap targets above eligible growing crops.
       if(this.waterUnits>0){
         const waterHit=[...this.cropWaterBadges.entries()].find(([key,badge])=>{
