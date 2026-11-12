@@ -149,6 +149,42 @@ async function syncWithCloud(): Promise<void> {
     // on the next page load.
     const latestLocal = localSnapshot();
     if (latestLocal) {
+      // Keep an independent cloud recovery point at most once per 24 hours.
+      // The recovery table is separate from farm_saves, so ordinary gameplay saves
+      // never create a GitHub commit or a recovery row on every action.
+      if (remote?.save_data) {
+        try {
+          const { data: latestBackup, error: backupReadError } = await client
+            .from('farm_save_recovery')
+            .select('created_at')
+            .eq('user_id', currentUserId)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          if (backupReadError) throw backupReadError;
+          const lastBackupAt = latestBackup?.created_at ? Date.parse(latestBackup.created_at) : 0;
+          if (!lastBackupAt || Date.now() - lastBackupAt >= 24 * 60 * 60 * 1000) {
+            const { error: backupInsertError } = await client
+              .from('farm_save_recovery')
+              .insert({ user_id: currentUserId, save_data: remote.save_data });
+            if (backupInsertError) throw backupInsertError;
+            // Keep a rolling 30-day history. RLS limits deletion to this player's rows.
+            const retentionCutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+            const { error: cleanupError } = await client
+              .from('farm_save_recovery')
+              .delete()
+              .eq('user_id', currentUserId)
+              .lt('created_at', retentionCutoff);
+            if (cleanupError) console.warn('Happy Farm recovery retention cleanup failed:', cleanupError);
+          }
+        } catch (backupError) {
+          console.error('Happy Farm cloud recovery snapshot failed:', backupError);
+          setStatus('error', 'Recovery backup unavailable · cloud overwrite paused');
+          cloudReady = true;
+          return;
+        }
+      }
+
       // Preserve the cloud snapshot locally before any upsert can replace it.
       // This gives the browser a recovery copy even when a newer local revision wins.
       if (remote?.save_data) {
