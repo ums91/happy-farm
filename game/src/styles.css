@@ -1716,3 +1716,57 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 .top-actions .music-controls #sfx-volume{width:42px!important;min-width:32px!important}
 @media(max-width:1180px){.top-actions .music-controls #sfx-volume,.top-actions .music-controls label[for="sfx-volume"]{display:none!important}}
 @media(max-width:700px){.top-actions .music-controls{flex-wrap:wrap!important}.top-actions .music-controls #sfx-toggle{min-height:27px!important;font-size:9px!important;padding:3px 6px!important}.top-actions .music-controls #sfx-volume{display:block!important;max-width:52px!important}}
+
+
+/* Compact Farm Inventory: denser cards, less chrome, and clearer section hierarchy. */
+#market-modal.inventory-mode{padding:clamp(8px,2vw,20px)!important;backdrop-filter:blur(5px)}
+#market-modal.inventory-mode .market-window{
+  width:min(900px,96vw)!important;
+  max-height:88dvh!important;
+  padding:12px 14px 10px!important;
+  border:5px solid #fff9e9!important;
+  border-radius:21px!important;
+  box-shadow:0 6px 0 #956c3c,0 20px 58px #17261670!important;
+  overflow-y:auto!important;
+  scrollbar-width:thin;
+  scrollbar-color:#c6a66e #f4e8cc;
+}
+#market-modal.inventory-mode .market-header{padding:0 2px 8px!important;border-bottom:1px solid #e8d5ad!important}
+#market-modal.inventory-mode .market-header small{font-size:8px;letter-spacing:1.2px}
+#market-modal.inventory-mode .market-header h2{font-size:clamp(22px,3vw,28px)!important;line-height:1.05;margin:0!important}
+#market-modal.inventory-mode .modal-close{width:32px;height:32px;font-size:22px;flex:0 0 auto}
+#market-modal.inventory-mode .market-intro{display:block;margin:7px 0 9px!important;padding:7px 10px;border-left:3px solid #9bc56a;border-radius:8px;background:#f5f7e8;font-size:10px!important;line-height:1.35}
+#market-modal.inventory-mode .market-items{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:7px!important;align-items:start}
+#market-modal.inventory-mode .inventory-section{padding:8px 0!important;border-bottom:1px solid #ead9b8}
+#market-modal.inventory-mode .inventory-section h3{margin:0 0 6px!important;font-size:12px!important;line-height:1.25}
+#market-modal.inventory-mode .inventory-section>p{margin:3px 0 6px;font-size:9px;line-height:1.35;color:#9b8057}
+#market-modal.inventory-mode .market-item{
+  min-width:0;gap:8px!important;padding:7px!important;border-radius:11px!important;
+  box-shadow:0 1px 3px #795b2b10!important;
+}
+#market-modal.inventory-mode .market-art{width:42px!important;height:42px!important;flex:0 0 42px!important;border-radius:10px!important;font-size:23px!important}
+#market-modal.inventory-mode .market-copy strong{font-size:11px!important;line-height:1.2}
+#market-modal.inventory-mode .market-copy small{font-size:9px!important;line-height:1.25;margin-top:2px!important}
+#market-modal.inventory-mode .inventory-quantity{padding:4px 7px!important;border-radius:8px!important;font-size:10px!important;white-space:nowrap}
+#market-modal.inventory-mode .inventory-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:6px!important}
+#market-modal.inventory-mode .quest-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+#market-modal.inventory-mode .quest-list .market-item{margin:0}
+#market-modal.inventory-mode .market-buy{padding:6px 8px!important;font-size:9px!important;white-space:nowrap}
+#market-modal.inventory-mode .inventory-stats{gap:6px!important}
+#market-modal.inventory-mode .inventory-stat{min-width:0;padding:7px!important}
+#market-modal.inventory-mode .inventory-stat strong{font-size:17px!important}
+#market-modal.inventory-mode .inventory-stat small{font-size:9px!important}
+#market-modal.inventory-mode .market-footer{position:sticky;bottom:-10px;z-index:2;margin-top:7px!important;padding:7px 4px 2px!important;background:linear-gradient(#fff8e9,#f2e1bd);font-size:10px!important}
+#market-modal.inventory-mode .market-footer strong{font-size:11px}
+@media(max-width:760px){
+ #market-modal.inventory-mode .market-window{width:min(680px,97vw)!important;max-height:90dvh!important;padding:10px!important}
+ #market-modal.inventory-mode .market-items{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ #market-modal.inventory-mode .inventory-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ #market-modal.inventory-mode .market-art{width:38px!important;height:38px!important;flex-basis:38px!important}
+}
+@media(max-width:480px){
+ #market-modal.inventory-mode .market-items{grid-template-columns:1fr!important}
+ #market-modal.inventory-mode .inventory-grid{grid-template-columns:1fr!important}
+ #market-modal.inventory-mode .quest-list{grid-template-columns:1fr}
+ #market-modal.inventory-mode .market-item{padding:7px!important}
+}
