@@ -1105,7 +1105,7 @@ export class FarmScene extends Phaser.Scene {
         if (plot.state === 'tilled') this.sowSelectedPlot();
         break;
       case 'harvest':
-        if (plot.state === 'ready') { const crop=CROPS[plot.crop]; const reward=this.toWorld(plot.col,plot.row); plot.state='tilled'; plot.growth=0; plot.readyAt=0; plot.witherAt=0; plot.watered=false; this.growthTimers.get(this.key(plot.col,plot.row))?.remove(false); this.growthTimers.delete(this.key(plot.col,plot.row)); this.harvestedCrops[plot.crop]++; this.xp+=crop.xp; this.harvests += 1; this.showHarvestReward(reward.x,reward.y-28,crop.reward); this.toast(`${crop.emoji} ${crop.name} harvested · sell value ${crop.reward} coins · added to Sell inventory`); }
+        if (plot.state === 'ready') { const crop=CROPS[plot.crop]; const reward=this.toWorld(plot.col,plot.row); plot.state='tilled'; plot.growth=0; plot.readyAt=0; plot.witherAt=0; plot.watered=false; this.growthTimers.get(this.key(plot.col,plot.row))?.remove(false); this.growthTimers.delete(this.key(plot.col,plot.row)); this.harvestedCrops[plot.crop]++; this.xp+=crop.xp; this.harvests += 1; this.playHarvestEffect(reward.x,reward.y); this.showHarvestReward(reward.x,reward.y-28,crop.reward); this.toast(`${crop.emoji} ${crop.name} harvested · sell value ${crop.reward} coins · added to Sell inventory`); }
         break;
       case 'select':
         break;
@@ -1659,6 +1659,17 @@ export class FarmScene extends Phaser.Scene {
     }
         const level=this.farmerLevel;host.innerHTML=(Object.entries(CROPS) as Array<[CropId,typeof CROPS[CropId]]>).map(([id,crop])=>{const locked=level<crop.unlockLevel;return `<article class="market-item ${locked?'crop-locked':''}"><div class="market-art">${crop.emoji}</div><div class="market-copy"><strong>${crop.name}</strong><small>${locked?'Unlocks at level '+crop.unlockLevel:Math.round(crop.growMs/1000)+'s grow · '+Math.round(Math.max(300000,crop.growMs*2)/1000)+'s harvest window'} · reward ${crop.reward} coins · +${crop.xp} XP · planting cost ${crop.cost} coins per field</small></div><button class="market-buy" data-buy-seed="${id}" ${locked?'disabled':''}>${locked?'🔒 Level '+crop.unlockLevel:'Select seed'}</button></article>`;}).join('');
     host.querySelectorAll<HTMLButtonElement>('[data-buy-seed]').forEach(btn=>btn.addEventListener('click',()=>{const id=btn.dataset.buySeed as CropId;const crop=CROPS[id];if(!crop||this.farmerLevel<crop.unlockLevel)return;this.selectedCrop=id;this.activeTool='plant';document.querySelectorAll('[data-tool]').forEach(el=>el.classList.toggle('active',(el as HTMLElement).dataset.tool==='plant'));this.saveFarm();this.refreshHud();this.closeMarket();this.refreshCropSelector();this.refreshSelection();this.toast(crop.name+' selected. Each field costs '+crop.cost+' coins to plant.');}));
+  }
+  private playHarvestEffect(x:number,y:number):void {
+    const ring=this.add.circle(x,y-8,7,0xffe68a,0).setStrokeStyle(3,0xffe68a,0.95).setDepth(29998);
+    this.tweens.add({targets:ring,scale:3.2,alpha:0,duration:430,ease:'Cubic.easeOut',onComplete:()=>ring.destroy()});
+    const colors=[0xffdf69,0xf5f0b0,0x8bcf62,0xffffff,0xf3a65c,0x9ed8e8];
+    for(let i=0;i<colors.length;i++){
+      const angle=(Math.PI*2*i/colors.length)+Phaser.Math.FloatBetween(-0.18,0.18);
+      const distance=Phaser.Math.Between(20,34);
+      const bit=this.add.circle(x,y-10,Phaser.Math.Between(2,4),colors[i]!,1).setDepth(29999);
+      this.tweens.add({targets:bit,x:x+Math.cos(angle)*distance,y:y-10+Math.sin(angle)*distance-Phaser.Math.Between(8,20),alpha:0,scale:0.25,angle:Phaser.Math.Between(-150,150),duration:Phaser.Math.Between(420,620),ease:'Cubic.easeOut',onComplete:()=>bit.destroy()});
+    }
   }
   private showHarvestReward(x:number,y:number,amount:number):void {
     const reward=this.add.text(x,y,'🪙 +'+amount,{fontFamily:'Arial',fontSize:'22px',fontStyle:'bold',color:'#fff5a8',stroke:'#704516',strokeThickness:5,shadow:{offsetX:1,offsetY:2,color:'#3b2a12',blur:4,fill:true}}).setOrigin(.5).setDepth(30000);
