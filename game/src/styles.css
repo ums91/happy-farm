@@ -2170,3 +2170,42 @@ body.visitor-mode .audio-dock{display:none!important}
   .top-actions>#top-friends{flex:0 1 auto!important;width:auto!important;min-width:70px!important;height:32px!important;padding:0 6px!important;font-size:9px!important}
   .top-actions>#top-quests,.top-actions>#top-orders,.top-actions>#top-inventory,.top-actions>#top-settings{flex:0 0 32px!important;width:32px!important;height:32px!important}
 }
+
+
+/* Mobile farmer HUD: remove inherited 62px profile minimum that was forcing
+   the contents against/clipped by the top edge of the compact header. */
+@media(max-width:700px){
+  .topbar{
+    align-content:center!important;
+    padding-top:4px!important;
+    padding-bottom:4px!important;
+    min-height:0!important;
+  }
+  .farmer-hud{
+    height:46px!important;
+    min-height:46px!important;
+    max-height:46px!important;
+    box-sizing:border-box!important;
+    align-items:center!important;
+    padding:2px 6px!important;
+    margin:0!important;
+    overflow:hidden!important;
+  }
+  .farmer-hud .avatar{
+    width:34px!important;height:34px!important;flex:0 0 34px!important;
+    margin:0!important;align-self:center!important;
+  }
+  .farmer-meta{
+    align-content:center!important;
+    align-items:center!important;
+    row-gap:1px!important;
+    padding:0!important;
+    margin:0!important;
+    min-height:0!important;
+  }
+  .farmer-title{align-items:center!important;min-height:16px!important}
+  .farmer-meta .level{padding:0 6px!important;line-height:13px!important}
+  .xp-line{height:5px!important;margin:0!important}
+  .farmer-meta>small{font-size:7px!important;line-height:1!important;padding:0!important;margin:0!important}
+  .settings-mini{width:25px!important;height:25px!important;flex:0 0 25px!important}
+}
