@@ -2297,3 +2297,12 @@ body.visitor-mode .audio-dock{display:none!important}
   .resources .resource{height:28px!important;min-height:28px!important}
   .resources .water-resource{height:24px!important;min-height:24px!important}
 }
+
+
+/* Fine vertical alignment inside the desktop farmer card:
+   raise the level chip and the XP row slightly without moving the name/avatar. */
+@media(min-width:701px){
+  .farmer-meta>.level{position:relative!important;top:-2px!important}
+  .farmer-meta>.xp-progress-row{position:relative!important;top:-3px!important}
+  .farmer-meta .xp-progress-row .xp-line{position:relative!important;top:-1px!important}
+}
