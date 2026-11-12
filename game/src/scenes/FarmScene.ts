@@ -85,6 +85,7 @@ export class FarmScene extends Phaser.Scene {
   private fruitTreeReadyAt:Record<string,number>={};
   private fruitTreeBadges:Record<string,Phaser.GameObjects.Text>={};
   private movingDecor: string | null = null;
+  private pendingDecorId: string | null = null;
   private movingPlotKey: string | null = null;
   private movingPreviewTile: {col:number;row:number}|null = null;
   private movingPreviewValid = false;
@@ -672,6 +673,15 @@ export class FarmScene extends Phaser.Scene {
 
   private handleWorldTap(pointer: Phaser.Input.Pointer): void {
     const world=this.cameras.main.getWorldPoint(pointer.x,pointer.y);
+    // Newly purchased trees/decor remain in hand until the player chooses a valid tile.
+    if(this.pendingDecorId){
+      const tile=this.toTile(world.x,world.y);
+      if(!tile){this.toast('Choose an unlocked farm tile to place this item.');return;}
+      this.movingDecor=this.pendingDecorId;this.movingPlotKey=null;this.movingPreviewTile=tile;
+      this.movingPreviewValid=this.canPlaceDecor(tile,this.pendingDecorId);this.drawPlacementOverlay();
+      if(!this.movingPreviewValid)this.toast('That spot is occupied or outside your farm. Drag to a green tile.');
+      return;
+    }
     if(this.activeTool==='move'){
       const hit=Object.keys(this.decor).reverse().find(id=>{
         const p=this.toWorld(this.decor[id]!.col,this.decor[id]!.row);
@@ -832,7 +842,15 @@ export class FarmScene extends Phaser.Scene {
       if(tile&&this.movingPreviewValid){
         if(this.movingDecor){
           const current=this.decor[this.movingDecor];
-          if(current&&(current.col!==tile.col||current.row!==tile.row)){
+          if(this.pendingDecorId===this.movingDecor){
+            const placedId=this.pendingDecorId;
+            this.decor[placedId]={col:tile.col,row:tile.row};
+            this.pendingDecorId=null;
+            this.drawScenery();this.renderOwnedAnimals();
+            if(this.fruitKind(placedId)){this.initializeFruitTrees();this.renderFruitTreeBadges();}
+            this.saveFarm();this.refreshHud();this.toast('Item placed. You can move it anytime with the Move tool.');
+            this.activeTool='select';document.querySelectorAll('[data-tool]').forEach(el=>el.classList.toggle('active',(el as HTMLElement).dataset.tool==='select'));
+          }else if(current&&(current.col!==tile.col||current.row!==tile.row)){
             this.decor[this.movingDecor]={col:tile.col,row:tile.row};
             this.drawScenery();this.renderOwnedAnimals();this.renderFruitTreeBadges();
             this.saveFarm();this.toast('Farm layout saved.');
@@ -1556,7 +1574,7 @@ export class FarmScene extends Phaser.Scene {
       const decorMeta=(asset:string,index:number)=>{const tree=isTreeAsset(asset);const small=/bush|hedge|flowerbed|flower_pot|rock|fence|path|stump|firewood|hay/.test(asset);const grand=/gazebo|arch|swing|windmill|fountain|well|pond|waterfall|bridge|cart|market|campfire/.test(asset);const unlock=Math.min(95,3+Math.floor(index*92/DECOR_ASSET_ORDER.length));const base=grand?4200:tree?1850:small?480:asset.includes('bench')||asset.includes('bird')||asset.includes('lamp')||asset.includes('sign')?1450:2600;const variant=asset.includes('variant')?1.18:1;return {unlock,cost:Math.round(base*variant/10)*10};};
       const items=sourceAssets.map(asset=>{const legacyId=legacyTreeMap[asset];const index=DECOR_ASSET_ORDER.indexOf(asset as typeof DECOR_ASSET_ORDER[number]);const meta=decorMeta(asset,index);const name=this.decorDisplayName(asset);const emoji=category==='trees'?treeFruit(asset):(/flower|bush|hedge|rose|lavender/.test(asset)?'🌸':/bench|swing/.test(asset)?'🪑':/lamp|light/.test(asset)?'🏮':/fence|gate|wall/.test(asset)?'🪵':'🌿');return {id:legacyId||'decor_'+asset,asset,name,emoji,cost:legacyId==='appleTree'?650:legacyId==='pearTree'?700:legacyId==='cherryTree'?780:meta.cost,unlock:meta.unlock,desc:category==='trees'?'Plant this tree on your farm'+(this.fruitKind(legacyId||'decor_'+asset)?' and harvest its fruit':'')+'.':'Decorate your homestead with this handcrafted farm item.'};});
       host.innerHTML=items.map(item=>{const locked=this.farmerLevel<item.unlock;const owned=Object.keys(this.decor).some(k=>k===item.id||k.startsWith(item.id));const artAsset=item.asset==='pear_tree'?'wisteria_tree':item.asset;const art=this.marketArtImage('decor/'+artAsset+'.png',item.name,item.emoji);return '<article class="market-item">'+art+'<div class="market-copy"><strong>'+item.name+'</strong><small>'+item.desc+' · Unlocks at Level '+item.unlock+(owned?' · Already placed':'')+'</small></div><button class="market-buy" data-buy-decor="'+item.id+'" '+(locked||this.coins<item.cost?'disabled':'')+'>'+(locked?'🔒 Level '+item.unlock:'🪙 '+item.cost+' · Buy')+'</button></article>';}).join('');
-      host.querySelectorAll<HTMLButtonElement>('[data-buy-decor]').forEach(btn=>btn.addEventListener('click',()=>{const item=items.find(x=>x.id===btn.dataset.buyDecor);if(!item||this.farmerLevel<item.unlock||this.coins<item.cost)return;const spot=this.findFreeDecorTile(true);if(!spot){this.toast('Your farm is full. Move or clear an object before buying more decorations.');return;}this.coins-=item.cost;const count=Object.keys(this.decor).filter(k=>k.startsWith(item.id)).length;const placedId=item.id+(count+1);this.decor[placedId]=spot;this.drawScenery();if(this.fruitKind(placedId)){this.initializeFruitTrees();this.renderFruitTreeBadges();}this.saveFarm();this.refreshHud();this.renderMarket(category);this.toast(item.name+' added to your farm!');}));return;
+      host.querySelectorAll<HTMLButtonElement>('[data-buy-decor]').forEach(btn=>btn.addEventListener('click',()=>{const item=items.find(x=>x.id===btn.dataset.buyDecor);if(!item||this.farmerLevel<item.unlock||this.coins<item.cost||this.pendingDecorId)return;this.coins-=item.cost;const count=Object.keys(this.decor).filter(k=>k.startsWith(item.id)).length;const placedId=item.id+(count+1);this.pendingDecorId=placedId;this.movingDecor=null;this.movingPlotKey=null;this.movingPreviewTile=null;this.movingPreviewValid=false;this.activeTool='move';document.querySelectorAll('[data-tool]').forEach(el=>el.classList.toggle('active',(el as HTMLElement).dataset.tool==='move'));this.closeMarket();this.refreshHud();this.drawPlacementOverlay();this.toast('Bought '+item.name+'. Tap or drag it to your chosen green farm tile to place it.');}));return;
     }
         const level=this.farmerLevel;host.innerHTML=(Object.entries(CROPS) as Array<[CropId,typeof CROPS[CropId]]>).map(([id,crop])=>{const locked=level<crop.unlockLevel;return `<article class="market-item ${locked?'crop-locked':''}"><div class="market-art">${crop.emoji}</div><div class="market-copy"><strong>${crop.name}</strong><small>${locked?'Unlocks at level '+crop.unlockLevel:Math.round(crop.growMs/1000)+'s grow · '+Math.round(Math.max(300000,crop.growMs*2)/1000)+'s harvest window'} · reward ${crop.reward} coins · +${crop.xp} XP · planting cost ${crop.cost} coins per field</small></div><button class="market-buy" data-buy-seed="${id}" ${locked?'disabled':''}>${locked?'🔒 Level '+crop.unlockLevel:'Select seed'}</button></article>`;}).join('');
     host.querySelectorAll<HTMLButtonElement>('[data-buy-seed]').forEach(btn=>btn.addEventListener('click',()=>{const id=btn.dataset.buySeed as CropId;const crop=CROPS[id];if(!crop||this.farmerLevel<crop.unlockLevel)return;this.selectedCrop=id;this.activeTool='plant';document.querySelectorAll('[data-tool]').forEach(el=>el.classList.toggle('active',(el as HTMLElement).dataset.tool==='plant'));this.saveFarm();this.refreshHud();this.closeMarket();this.refreshCropSelector();this.refreshSelection();this.toast(crop.name+' selected. Each field costs '+crop.cost+' coins to plant.');}));
