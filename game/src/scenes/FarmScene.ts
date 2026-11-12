@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { initializeCloudSaves, queueCloudSave } from '../services/cloudSave';
+import { playSfx } from '../services/sfx';
 
 type Tool = 'select' | 'plow' | 'plant' | 'harvest' | 'move' | 'store' | 'remove' | 'feed-hen' | 'feed-cow';
 type PlotState = 'grass' | 'tilled' | 'growing' | 'ready' | 'withered';
@@ -528,7 +529,7 @@ export class FarmScene extends Phaser.Scene {
     const kind=this.fruitKind(id);if(!kind)return;
     const readyAt=this.fruitTreeReadyAt[id]||0;const cfg=this.fruitConfig(kind);
     if(Date.now()<readyAt){const remaining=readyAt-Date.now();const mins=Math.floor(remaining/60000),secs=Math.ceil((remaining%60000)/1000);this.toast(cfg.name+' tree is growing fruit · '+mins+':'+String(secs).padStart(2,'0')+' remaining.');return;}
-    this.fruitInventory[kind]+=1;this.fruitTreeReadyAt[id]=Date.now()+cfg.interval;
+    this.fruitInventory[kind]+=1;playSfx('harvest');this.fruitTreeReadyAt[id]=Date.now()+cfg.interval;
     const reward=kind==='apples'?55:kind==='pears'?65:kind==='oranges'?60:75;
     const treePos=this.toWorld(this.decor[id]!.col,this.decor[id]!.row);
     this.showHarvestReward(treePos.x,treePos.y-72,reward);
@@ -1386,13 +1387,13 @@ export class FarmScene extends Phaser.Scene {
           this.toast('Field limit reached ('+this.plowLimit+'). Next field unlocks at Level '+nextLevel+'.');
           break;
         }
-        if (plot.state === 'grass' || plot.state === 'withered') { plot.state = 'tilled'; plot.witherAt = 0; plot.readyAt = 0; plot.growth = 0; }
+        if (plot.state === 'grass' || plot.state === 'withered') { plot.state = 'tilled'; plot.witherAt = 0; plot.readyAt = 0; plot.growth = 0; playSfx('plow'); }
         break;
       case 'plant':
         if (plot.state === 'tilled') this.sowSelectedPlot();
         break;
       case 'harvest':
-        if (plot.state === 'ready') { const crop=CROPS[plot.crop]; const reward=this.toWorld(plot.col,plot.row); plot.state='tilled'; plot.growth=0; plot.readyAt=0; plot.witherAt=0; plot.watered=false; this.growthTimers.get(this.key(plot.col,plot.row))?.remove(false); this.growthTimers.delete(this.key(plot.col,plot.row)); this.harvestedCrops[plot.crop]++; const masteryCount=this.harvestedCrops[plot.crop]; if(masteryCount>0&&masteryCount%10===0){const masteryBonus=25+Math.floor(masteryCount/10)*5;this.coins+=masteryBonus;this.xp+=10;this.toast(crop.name+' mastery Level '+(masteryCount/10)+'! +'+masteryBonus+' coins · +10 XP.');} this.xp+=crop.xp; this.harvests += 1; this.playHarvestEffect(reward.x,reward.y); this.showHarvestReward(reward.x,reward.y-28,crop.reward); this.toast(`${crop.emoji} ${crop.name} harvested · sell value ${crop.reward} coins · added to Sell inventory`); }
+        if (plot.state === 'ready') { const crop=CROPS[plot.crop]; const reward=this.toWorld(plot.col,plot.row); plot.state='tilled'; plot.growth=0; plot.readyAt=0; plot.witherAt=0; plot.watered=false; this.growthTimers.get(this.key(plot.col,plot.row))?.remove(false); this.growthTimers.delete(this.key(plot.col,plot.row)); this.harvestedCrops[plot.crop]++; const masteryCount=this.harvestedCrops[plot.crop]; if(masteryCount>0&&masteryCount%10===0){const masteryBonus=25+Math.floor(masteryCount/10)*5;this.coins+=masteryBonus;this.xp+=10;this.toast(crop.name+' mastery Level '+(masteryCount/10)+'! +'+masteryBonus+' coins · +10 XP.');} this.xp+=crop.xp; this.harvests += 1; playSfx('harvest'); this.playHarvestEffect(reward.x,reward.y); this.showHarvestReward(reward.x,reward.y-28,crop.reward); this.toast(`${crop.emoji} ${crop.name} harvested · sell value ${crop.reward} coins · added to Sell inventory`); }
         break;
       case 'select':
         break;
@@ -1612,7 +1613,7 @@ export class FarmScene extends Phaser.Scene {
     const crop=CROPS[this.selectedCrop];if(this.farmerLevel<crop.unlockLevel){this.toast('Reach Level '+crop.unlockLevel+' to unlock '+crop.name+'.');return;}
     if(plot.state!=='tilled'){this.toast('Plow this field before sowing.');return;}
     if(this.coins<crop.cost){this.toast('Not enough coins to plant '+crop.name+'. You need '+crop.cost+' coins.');return;}
-    this.coins-=crop.cost;
+    this.coins-=crop.cost;playSfx('plant');
     plot.state='growing';plot.crop=this.selectedCrop;plot.growth=0;plot.watered=false;this.scheduleGrowth(plot,crop.growMs);
     this.redrawPlot(plot);this.saveFarm();this.refreshHud();this.refreshSelection();this.drawSelection();this.toast(crop.name+' sown · '+crop.cost+' coins deducted. The selected seed remains active.');
   }
@@ -1771,7 +1772,7 @@ export class FarmScene extends Phaser.Scene {
       const actor=this.animalActors[item.index];if(actor)this.animateAnimalCollection(actor,kind);
     }
     if(!collected){this.toast((id==='coop'?'Egg':'Milk')+' storage is full. Sell stored produce before collecting more.');return;}
-    this.saveFarm();this.refreshHud();this.updateBuildingProduceBadges();this.updateAnimalHungryIndicators();
+    playSfx(id==='coop'?'egg':'milk');this.saveFarm();this.refreshHud();this.updateBuildingProduceBadges();this.updateAnimalHungryIndicators();
     if(this.activeBuilding===id)this.renderBuildingPanel(id);
     this.toast('Collected '+collected+' '+(id==='coop'?'egg':'milk')+(collected===1?'':'s')+' from the '+(id==='coop'?'coop':'shed')+'.');
   }
@@ -1804,7 +1805,7 @@ export class FarmScene extends Phaser.Scene {
     if(this.isBabyAnimal(kind)){
       if(animal.readyAt>Date.now()){this.toast('This young animal has been fed. It will need feed again later.');return;}
       if(this.feed[feedType]<=0){this.toast('No '+feedType+' feed in storage. Visit the Market to buy feed.');return;}
-      this.feed[feedType]--;animal.growthFeedings=(animal.growthFeedings||0)+1;
+      this.feed[feedType]--;playSfx('feed');animal.growthFeedings=(animal.growthFeedings||0)+1;
       animal.readyAt=Date.now()+this.animalProductionDuration(feedType);
       if(actor){this.moveAnimalToTrough(actor,kind,this.animals.slice(0,index).filter(a=>a.id===kind).length);const sprite=this.animalSprites.get(actor);if(sprite)this.sizeAnimalSprite(actor,sprite);}
       this.animateAnimalTrough(kind);
@@ -1813,7 +1814,7 @@ export class FarmScene extends Phaser.Scene {
     }
     if(animal.readyAt>0){this.toast('This animal has already been fed.');return;}
     if(this.feed[feedType]<=0){this.toast('No '+feedType+' feed in storage. Visit the Market to buy feed.');return;}
-    this.feed[feedType]--;animal.readyAt=Date.now()+this.animalProductionDuration(kind);
+    this.feed[feedType]--;playSfx('feed');animal.readyAt=Date.now()+this.animalProductionDuration(kind);
     if(actor)this.moveAnimalToTrough(actor,kind,this.animals.slice(0,index).filter(a=>a.id===kind).length);
     this.animateAnimalTrough(kind);this.saveFarm();this.refreshHud();this.updateAnimalHungryIndicators();
     this.toast((kind==='hen'?'Hen':'Cow')+' fed · '+(kind==='hen'?'Egg':'Milk')+' production started.');
@@ -1985,9 +1986,9 @@ export class FarmScene extends Phaser.Scene {
     else if(animal){quantity=this.produce[animal];price=animal==='eggs'?12:28;label=animal;if(quantity)this.produce[animal]=0;}
     else if(product&&product in this.crafted){quantity=this.crafted[product];price=({flour:24,bread:58,pastry:86,grapes:36} as Record<ProductId,number>)[product];label=this.productName(product);if(quantity)this.crafted[product]=0;}
     if(!quantity){this.toast('Nothing available to sell.');return;}
-    const total=quantity*price;this.coins+=total;this.xp+=Math.max(1,Math.floor(total/20));this.saveFarm();this.refreshHud();this.renderMarket('sell');this.toast('Sold '+quantity+' '+label+' for '+total+' coins · XP earned.');
+    const total=quantity*price;playSfx('coin');this.coins+=total;this.xp+=Math.max(1,Math.floor(total/20));this.saveFarm();this.refreshHud();this.renderMarket('sell');this.toast('Sold '+quantity+' '+label+' for '+total+' coins · XP earned.');
   }
-  private sellProduce(): void { const value=this.produce.eggs*12+this.produce.milk*28; if(value<=0){this.toast('No animal products to sell yet.');return;}const eggs=this.produce.eggs,milk=this.produce.milk;this.produce={eggs:0,milk:0};this.coins+=value;this.xp+=eggs*2+milk*4;this.saveFarm();this.refreshHud();this.renderInventory();this.toast('Sold '+eggs+' eggs and '+milk+' milk for '+value+' coins!'); }
+  private sellProduce(): void { const value=this.produce.eggs*12+this.produce.milk*28; if(value<=0){this.toast('No animal products to sell yet.');return;}const eggs=this.produce.eggs,milk=this.produce.milk;this.produce={eggs:0,milk:0};playSfx('coin');this.coins+=value;this.xp+=eggs*2+milk*4;this.saveFarm();this.refreshHud();this.renderInventory();this.toast('Sold '+eggs+' eggs and '+milk+' milk for '+value+' coins!'); }
   private openMarket(): void {
     const modal=document.getElementById('market-modal');
     const title=modal?.querySelector('.market-header h2'); if(title) title.textContent='Farm Market';
@@ -2016,9 +2017,9 @@ export class FarmScene extends Phaser.Scene {
     this.saveFarm();
   }
   private renderEvents():string {const progress=Math.max(0,this.harvests-this.eventStartHarvests),target=20,done=progress>=target,remaining=Math.max(0,604800000-(Date.now()-this.eventStartedAt)),days=Math.floor(remaining/86400000),hours=Math.floor(remaining%86400000/3600000);return '<article class="market-item quest-card"><div class="market-art">🎉</div><div class="market-copy"><strong>Weekly Harvest Festival</strong><small>Harvest 20 crops before the festival ends. '+days+'d '+hours+'h remaining.</small><div class="quest-track"><i style="width:'+Math.min(100,progress/target*100)+'%"></i></div><small>'+Math.min(target,progress)+' / '+target+' harvests · Reward: 150 coins + 30 XP</small></div><button class="market-buy" data-claim-event '+(!done||this.eventClaimed?'disabled':'')+'>'+(this.eventClaimed?'Claimed':done?'Claim reward':'In progress')+'</button></article>';}
-  private claimEvent():void {if(this.eventClaimed||this.harvests-this.eventStartHarvests<20)return;this.eventClaimed=true;this.coins+=150;this.xp+=30;this.saveFarm();this.refreshHud();this.toast('Harvest Festival complete · +150 coins · +30 XP');}
+  private claimEvent():void {if(this.eventClaimed||this.harvests-this.eventStartHarvests<20)return;this.eventClaimed=true;playSfx('level');this.coins+=150;this.xp+=30;this.saveFarm();this.refreshHud();this.toast('Harvest Festival complete · +150 coins · +30 XP');}
   private renderRewards():string {return [10,25,50,100].map(n=>{const claimed=this.claimedMilestones.includes(n),done=this.harvests>=n;return '<article class="market-item quest-card"><div class="market-art">🏅</div><div class="market-copy"><strong>'+n+' Lifetime Harvests</strong><small>'+Math.min(n,this.harvests)+' / '+n+' crops · Reward: '+n*10+' coins + '+n*2+' XP</small><div class="quest-track"><i style="width:'+Math.min(100,this.harvests/n*100)+'%"></i></div></div><button class="market-buy" data-claim-milestone="'+n+'" '+(!done||claimed?'disabled':'')+'>'+(claimed?'Claimed':done?'Claim reward':'In progress')+'</button></article>';}).join('');}
-  private claimMilestone(n:number):void {if(![10,25,50,100].includes(n)||this.harvests<n||this.claimedMilestones.includes(n))return;this.claimedMilestones.push(n);this.coins+=n*4;this.xp+=n;this.saveFarm();this.refreshHud();this.toast('Harvest milestone reward collected!');}
+  private claimMilestone(n:number):void {if(![10,25,50,100].includes(n)||this.harvests<n||this.claimedMilestones.includes(n))return;this.claimedMilestones.push(n);playSfx('level');this.coins+=n*4;this.xp+=n;this.saveFarm();this.refreshHud();this.toast('Harvest milestone reward collected!');}
   private createRandomQuests():void {
     this.questCycle++;
     const pool = [
@@ -2052,7 +2053,7 @@ export class FarmScene extends Phaser.Scene {
   private claimQuest(id:string):void {
     const quest=this.questDefinitions().find(q=>q.id===id);
     if(!quest||quest.progress<quest.target||this.claimedQuests.includes(id))return;
-    this.claimedQuests.push(id);this.coins+=quest.coins;this.xp+=quest.xp;
+    this.claimedQuests.push(id);playSfx('level');this.coins+=quest.coins;this.xp+=quest.xp;
     if(this.questDefinitions().every(q=>this.claimedQuests.includes(q.id)))this.createRandomQuests();
     this.saveFarm();this.refreshHud();this.renderInventory();this.renderSideRail();this.toast('Quest complete: '+quest.title+' · +'+quest.coins+' coins · +'+quest.xp+' XP');
   }
@@ -2076,7 +2077,7 @@ export class FarmScene extends Phaser.Scene {
     if(!order||this.produce.eggs<order.eggs||this.produce.milk<order.milk)return;
     this.produce.eggs-=order.eggs;this.produce.milk-=order.milk;
     this.coins+=order.coins;this.xp+=order.xp;
-    this.ordersCompleted[id]=(this.ordersCompleted[id]||0)+1;
+    this.ordersCompleted[id]=(this.ordersCompleted[id]||0)+1;playSfx('coin');
     this.saveFarm();this.refreshHud();this.renderInventory();this.renderSideRail();
     this.toast('Delivery complete: +'+order.coins+' coins · +'+order.xp+' XP');
   }
