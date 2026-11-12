@@ -700,7 +700,7 @@ export class FarmScene extends Phaser.Scene {
   }
   private moveAnimalToTrough(actor:Phaser.GameObjects.Container,kind:AnimalId,index:number):void{
     const trough=this.animalTroughs.get(kind);if(!actor.active||!trough?.active)return;
-    const cow=kind==='cow'||kind==='calf',baby=kind==='chick'||kind==='calf',baseScale=kind==='calf'?0.19:cow?0.275:1,spacing=cow?10:8;
+    const cow=kind==='cow'||kind==='calf',baseScale=kind==='calf'?0.19:cow?0.275:1,spacing=cow?10:8;
     const offset=(index%3-1)*spacing;
     const targetX=trough.x+offset,targetY=trough.y+(Math.floor(index/3)%2)*7+8;
     const sprite=this.animalSprites.get(actor);
