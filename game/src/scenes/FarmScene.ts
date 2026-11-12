@@ -572,12 +572,12 @@ export class FarmScene extends Phaser.Scene {
       const bounds={width:TILE_W*4,height:TILE_H*4};
       const actor=this.add.container(center.x,center.y);actor.setDepth(center.y+24+index*0.01);
       this.animalReservedCells.add(this.animalCellKey(homeTile));
-      const scale=cow?0.42:0.58;
+      const scale=1;
       actor.setScale(scale);
-      actor.add(this.add.ellipse(0,6,cow?44:34,cow?9:8,0x263e25,0.2));
+      actor.add(this.add.ellipse(0,6,cow?40:26,cow?8:6,0x263e25,0.2));
       const texture=cow?'animal-cow':'animal-hen';
       if(this.textures.exists(texture)){
-        const sprite=this.add.sprite(0,-2,texture).setDisplaySize(cow?64:38,cow?43:38).setAlpha(1).setVisible(true);
+        const sprite=this.add.sprite(0,-2,texture).setDisplaySize(cow?46:30,cow?31:30).setAlpha(1).setVisible(true);
         sprite.setDepth(2);
         actor.add(sprite);
         this.animalSprites.set(actor,sprite);
@@ -604,7 +604,7 @@ export class FarmScene extends Phaser.Scene {
       this.animalReservedCells.add(this.animalCellKey(chickTile));
       const chick=this.add.container(chickPos.x,chickPos.y);chick.setDepth(chickPos.y+24.02);
       chick.add(this.add.ellipse(0,4,20,5,0x263e25,0.2));
-      const chickSprite=this.add.sprite(0,-1,'animal-chick').setDisplaySize(18,16.4);chick.add(chickSprite);this.animalSprites.set(chick,chickSprite);
+      const chickSprite=this.add.sprite(0,-1,'animal-chick').setDisplaySize(22,20);chick.add(chickSprite);this.animalSprites.set(chick,chickSprite);
       this.animalActors.push(chick);
       chickSprite.play('chick-idle');this.animateAnimalIdle(chick,chickSprite);
       this.wanderAnimal(chick,chickPos.x,chickPos.y,TILE_W*2-15,TILE_H*2-15,false);
@@ -624,7 +624,7 @@ export class FarmScene extends Phaser.Scene {
 
   private wanderAnimal(actor:Phaser.GameObjects.Container,cx:number,cy:number,limitX:number,limitY:number,cow:boolean):void{
     if(!actor.active)return;
-    const sprite=this.animalSprites.get(actor),baseScale=cow?0.42:0.58;
+    const sprite=this.animalSprites.get(actor),baseScale=1;
     const current=this.toTile(actor.x,actor.y);
     if(!current)return;
     let destination:{col:number;row:number}|null=null;
