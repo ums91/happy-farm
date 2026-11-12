@@ -465,8 +465,8 @@ export class FarmScene extends Phaser.Scene {
       const scale=Math.min(maxW/source.width,maxH/source.height);
       const displayW=source.width*scale;
       const shadow=this.add.ellipse(p.x,p.y+1,Math.max(24,displayW*0.66),tree?11:large?15:9,0x34502a,0.22)
-        .setDepth(p.y+39);
-      const sprite=this.add.image(p.x,p.y+4,texture).setOrigin(0.5,1).setScale(scale).setDepth(p.y+45);
+        .setDepth(p.y+20);
+      const sprite=this.add.image(p.x,p.y+4,texture).setOrigin(0.5,1).setScale(scale).setDepth(p.y+24);
       this.decorAssetShadows.set(id,shadow);
       this.decorAssetSprites.set(id,sprite);
       // A light, asynchronous breeze gives foliage life without moving its ground anchor.
@@ -531,7 +531,7 @@ export class FarmScene extends Phaser.Scene {
       if(!homeTile){this.toast('No clear grass tile available for an animal. Move a building or field first.');return;}
       const center=this.toWorld(homeTile.col,homeTile.row);
       const bounds={width:TILE_W*4,height:TILE_H*4};
-      const actor=this.add.container(center.x,center.y);actor.setDepth(center.y+index*0.01);
+      const actor=this.add.container(center.x,center.y);actor.setDepth(center.y+24+index*0.01);
       this.animalReservedCells.add(this.animalCellKey(homeTile));
       const scale=cow?0.74:0.58;
       actor.setScale(scale);
@@ -563,7 +563,7 @@ export class FarmScene extends Phaser.Scene {
       if(!chickTile)return;
       const chickPos=this.toWorld(chickTile.col,chickTile.row);
       this.animalReservedCells.add(this.animalCellKey(chickTile));
-      const chick=this.add.container(chickPos.x,chickPos.y);chick.setDepth(chickPos.y+0.02);
+      const chick=this.add.container(chickPos.x,chickPos.y);chick.setDepth(chickPos.y+24.02);
       chick.add(this.add.ellipse(0,4,20,5,0x263e25,0.2));
       const chickSprite=this.add.sprite(0,-1,'animal-chick').setDisplaySize(18,16.4);chick.add(chickSprite);this.animalSprites.set(chick,chickSprite);
       this.animalActors.push(chick);
@@ -676,12 +676,12 @@ export class FarmScene extends Phaser.Scene {
       if(id==='windmill'&&this.textures.exists('windmill-body')&&this.textures.exists('windmill-rotor')){
         const source=this.textures.get('windmill-body').getSourceImage() as HTMLImageElement;
         const scale=Math.min(132/source.width,124/source.height);
-        const body=this.add.image(p.x,p.y+24,'windmill-body').setOrigin(0.5,1).setScale(scale).setDepth(p.y+30);
+        const body=this.add.image(p.x,p.y+24,'windmill-body').setOrigin(0.5,1).setScale(scale).setDepth(p.y+24);
         this.buildingAssetSprites.set(id,body);
         // The axle sits at roughly 75% width and 36% height in the prepared body art.
         const axleX=p.x-source.width*scale/2+source.width*0.75*scale;
         const axleY=p.y+24-source.height*scale+source.height*0.36*scale;
-        const rotor=this.add.image(axleX,axleY,'windmill-rotor').setOrigin(0.5,0.5).setScale(scale).setDepth(p.y+32);
+        const rotor=this.add.image(axleX,axleY,'windmill-rotor').setOrigin(0.5,0.5).setScale(scale).setDepth(p.y+26);
         this.windmillRotorSprites.set(id,rotor);
         this.tweens.add({targets:rotor,angle:360,duration:9000,repeat:-1,ease:'Linear'});
         continue;
@@ -1216,14 +1216,14 @@ export class FarmScene extends Phaser.Scene {
       const size=plot.state==='ready'?78:38+stage*8;
       g.fillStyle(0x342a20,0.2);g.fillEllipse(p.x,p.y-2,size*0.48,size*0.16);
       const sprite = this.add.image(p.x, p.y - 13, `crop-tomato-${stage}`);
-      sprite.setDisplaySize(size, size).setDepth(p.y + 2);
+      sprite.setDisplaySize(size, size).setDepth(p.y + 24);
       this.tomatoSprites.set(id, sprite);
     } else if (['wheat','carrot','corn','strawberry','pumpkin'].includes(plot.crop) && (plot.state === 'growing' || plot.state === 'ready') && this.textures.exists(`crop-${plot.crop}`)) {
       const stage = plot.state === 'ready' ? 4 : Math.min(4, Math.floor(plot.growth / 20));
       const size=plot.state==='ready'?78:34+stage*11;
       g.fillStyle(0x342a20,0.2);g.fillEllipse(p.x,p.y-2,size*0.48,size*0.16);
       const sprite = this.add.image(p.x, p.y - 13, `crop-${plot.crop}`, stage);
-      sprite.setDisplaySize(size, size).setDepth(p.y + 2);
+      sprite.setDisplaySize(size, size).setDepth(p.y + 24);
       this.cropSprites.set(id, sprite);
     } else if (plot.state === 'growing' || plot.state === 'ready' || plot.state === 'withered') {
       this.drawCrop(g, p.x, p.y, plot);
