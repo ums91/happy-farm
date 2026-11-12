@@ -109,10 +109,16 @@ async function syncWithCloud(): Promise<void> {
     const localChangedDuringFetch = latestLocalUpdatedAt !== revisionAtRead;
     const remoteUpdatedAt = remote?.updated_at ? Date.parse(remote.updated_at) : 0;
     // Restore an existing cloud farm if startup has produced only a pristine starter snapshot.
-    const localIsPristineStarter = isPristineStarterSave(localSnapshot());
+    const latestLocalSnapshot = localSnapshot();
+    const localIsPristineStarter = isPristineStarterSave(latestLocalSnapshot);
+    // Do not reload repeatedly when the cloud snapshot is already the exact
+    // snapshot stored locally (notably when both contain the starter farm).
+    const remoteDiffersFromLocal = Boolean(remote?.save_data) &&
+      JSON.stringify(remote.save_data) !== JSON.stringify(latestLocalSnapshot);
 
     if (
       remote?.save_data &&
+      remoteDiffersFromLocal &&
       !preserveLegacyLocal &&
       !dirtyAtRead &&
       !latestLocalIsDirty &&
