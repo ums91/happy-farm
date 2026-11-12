@@ -944,8 +944,8 @@ export class FarmScene extends Phaser.Scene {
         return Phaser.Math.Distance.Between(world.x,world.y,badge.x,badge.y)<28|| (Math.abs(world.x-p.x)<66&&Math.abs(world.y-p.y)<94);
       });
       if(buildingHit){this.collectBuildingProduce(buildingHit[0]);return;}
-      // Tap the floating hungry bowl above an animal to feed it, using the matching feed in storage.
-      const hungryHit=[...this.animalHungryBadges.entries()].find(([,badge])=>badge.active&&Phaser.Math.Distance.Between(world.x,world.y,badge.x,badge.y)<25);
+      // Tap the small animal status symbol to feed a hungry animal or collect its ready produce.
+      const hungryHit=[...this.animalHungryBadges.entries()].find(([,badge])=>badge.active&&Phaser.Math.Distance.Between(world.x,world.y,badge.x,badge.y)<18);
       if(hungryHit){const animal=this.animals[hungryHit[0]];if(animal)this.feedAnimalAt(hungryHit[0],animal.id);return;}
       // Water icons are lightweight tap targets above eligible growing crops.
       if(this.waterUnits>0){
@@ -1800,45 +1800,33 @@ export class FarmScene extends Phaser.Scene {
     this.animals.forEach((animal,index)=>{
       const actor=this.animalActors[index],active=animal.assigned!==false&&!!actor?.active;
       const baby=this.isBabyAnimal(animal.id),cow=animal.id==='cow'||animal.id==='calf';
-      let status='',color='#4b3523',hungry=false;
-      if(!active){status='💤 RESTING';color='#665d52';}
-      else if(animal.readyAt===0){status='🥣 HUNGRY';color='#8a4b16';hungry=true;}
-      else if(animal.readyAt>now){
-        const remaining=animal.readyAt-now;
-        if(baby){
-          const fed=animal.growthFeedings||0;
-          const mins=Math.floor(remaining/60000),secs=Math.ceil((remaining%60000)/1000);
-          status='🌱 GROWING '+fed+'/3 · '+(mins>0?mins+'m ': '')+secs+'s';
-          color='#426c31';
-        }else{
-          const mins=Math.floor(remaining/60000),secs=Math.ceil((remaining%60000)/1000);
-          status='⏳ '+(mins>0?mins+'m ': '')+secs+'s';
-          color='#3f6480';
-        }
-      }else if(baby){
-        status='🥣 FEED AGAIN · '+(animal.growthFeedings||0)+'/3';
-        color='#8a4b16';hungry=true;
-      }else{
-        status=cow?'🥛 MILK READY':'🥚 EGGS READY';
-        color='#286b3b';
+      let symbol='💤',color='#665d52',hungry=false,status='resting';
+      if(active&&animal.readyAt===0){symbol='🥣';color='#a96a20';hungry=true;status='hungry';}
+      else if(active&&animal.readyAt>now){
+        if(baby){symbol='🌱';color='#54843b';status='growing-'+(animal.growthFeedings||0);}
+        else{symbol='⏳';color='#477c9c';status='producing';}
+      }else if(active&&baby){
+        symbol='🥣';color='#a96a20';hungry=true;status='feed-again';
+      }else if(active){
+        symbol=cow?'🥛':'🥚';color='#438448';status='ready';
       }
       let badge=this.animalHungryBadges.get(index);
       if(!badge){
-        badge=this.add.text(actor?.x||0,(actor?.y||0)-38,status,{fontFamily:'Arial',fontSize:'11px',fontStyle:'bold',color:'#ffffff',backgroundColor:color,padding:{x:6,y:4},stroke:'#49331f',strokeThickness:2,shadow:{offsetX:0,offsetY:2,color:'#382718',blur:3,fill:true}})
-          .setOrigin(.5).setDepth((actor?.depth||0)+30);
+        badge=this.add.text(actor?.x||0,(actor?.y||0)-25,symbol,{
+          fontFamily:'Arial',fontSize:'12px',fontStyle:'bold',color:'#ffffff',
+          backgroundColor:color,padding:{x:2,y:2},stroke:'#49331f',strokeThickness:1,
+          shadow:{offsetX:0,offsetY:1,color:'#382718',blur:1,fill:true}
+        }).setOrigin(.5).setDepth((actor?.depth||0)+30);
         this.animalHungryBadges.set(index,badge);
       }else{
         const previous=badge.getData('status');
-        if(previous!==status){
-          this.tweens.killTweensOf(badge);
-          badge.setData('status',status);
-        }
-        badge.setText(status).setStyle({backgroundColor:color});
+        if(previous!==status){this.tweens.killTweensOf(badge);badge.setData('status',status);}
+        badge.setText(symbol).setStyle({backgroundColor:color});
       }
       badge.setData('status',status);
-      if(actor?.active)badge.setPosition(actor.x,actor.y-38).setDepth(actor.depth+30);
+      if(actor?.active)badge.setPosition(actor.x,actor.y-25).setDepth(actor.depth+30);
       if(hungry&&!this.tweens.isTweening(badge)){
-        this.tweens.add({targets:badge,y:badge.y-4,duration:650,yoyo:true,repeat:-1,ease:'Sine.inOut'});
+        this.tweens.add({targets:badge,y:badge.y-2,duration:700,yoyo:true,repeat:-1,ease:'Sine.inOut'});
       }else if(!hungry&&this.tweens.isTweening(badge)){
         this.tweens.killTweensOf(badge);
       }
