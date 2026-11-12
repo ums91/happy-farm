@@ -926,7 +926,7 @@ export class FarmScene extends Phaser.Scene {
       });
       if(buildingHit){this.collectBuildingProduce(buildingHit[0]);return;}
       // Tap the floating hungry bowl above an animal to feed it, using the matching feed in storage.
-      const hungryHit=[...this.animalHungryBadges.entries()].find(([index,badge])=>badge.active&&Phaser.Math.Distance.Between(world.x,world.y,badge.x,badge.y)<25);
+      const hungryHit=[...this.animalHungryBadges.entries()].find(([,badge])=>badge.active&&Phaser.Math.Distance.Between(world.x,world.y,badge.x,badge.y)<25);
       if(hungryHit){const animal=this.animals[hungryHit[0]];if(animal)this.feedAnimalAt(hungryHit[0],animal.id);return;}
       // Water icons are lightweight tap targets above eligible growing crops.
       if(this.waterUnits>0){
@@ -1818,17 +1818,6 @@ export class FarmScene extends Phaser.Scene {
     this.animateAnimalTrough(kind);this.saveFarm();this.refreshHud();this.updateAnimalHungryIndicators();
     this.toast((kind==='hen'?'Hen':'Cow')+' fed · '+(kind==='hen'?'Egg':'Milk')+' production started.');
     if(this.activeBuilding===(kind==='hen'?'coop':'barn'))this.renderBuildingPanel(kind==='hen'?'coop':'barn');
-  }
-  private collectAnimalAt(index:number):void{
-    const animal=this.animals[index];
-    if(!animal||(animal.id!=='hen'&&animal.id!=='cow')||animal.assigned===false||animal.readyAt<=0||animal.readyAt>Date.now())return;
-    const kind=animal.id,field=kind==='hen'?'eggs':'milk';
-    if(this.produce[field]>=this.productionCapacity(kind)){this.toast((kind==='hen'?'Egg':'Milk')+' storage is full. Sell stored produce before collecting more.');return;}
-    this.produce[field]++;animal.readyAt=0;
-    const actor=this.animalActors[index];if(actor)this.animateAnimalCollection(actor,kind);
-    this.saveFarm();this.refreshHud();this.updateAnimalHungryIndicators();
-    if(this.activeBuilding===(kind==='hen'?'coop':'barn'))this.renderBuildingPanel(kind==='hen'?'coop':'barn');
-    this.toast(kind==='hen'?'Collected an egg from your hen!':'Collected fresh milk from your cow!');
   }
   private animateAnimalCollection(actor:Phaser.GameObjects.Container,kind:AnimalId):void{
     if(!actor.active)return;
