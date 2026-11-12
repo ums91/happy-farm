@@ -2059,3 +2059,20 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 body.visitor-mode .audio-dock{display:none!important}
 @media(max-width:700px){.audio-dock{top:62px;right:6px;gap:5px;padding:6px 4px;border-radius:14px}.audio-channel{gap:3px}.audio-channel button{width:27px;height:27px;font-size:15px}.audio-channel input[type="range"]{height:58px;width:16px}.audio-channel label{font-size:7px}.audio-channel output{font-size:8px;min-width:26px}}
 @media(max-width:390px){.audio-dock{top:58px;right:4px;padding:5px 3px}.audio-channel input[type="range"]{height:48px}}
+
+
+/* Reduce the height and visual weight of the farmer and resource HUD capsules. */
+@media(min-width:701px){
+  .topbar{min-height:70px!important;padding-top:5px!important;padding-bottom:5px!important;gap:10px!important}
+  .farmer-hud{height:50px!important;min-height:50px!important;padding:3px 8px!important;gap:8px!important;border-radius:13px!important}
+  .farmer-hud .avatar{width:38px!important;height:38px!important;flex:0 0 38px!important;font-size:26px!important}
+  .farmer-title strong{font-size:15px!important}
+  .farmer-title button,.settings-mini{width:24px!important;height:24px!important;font-size:13px!important}
+  .farmer-meta .level{font-size:9px!important;padding:0 7px!important}
+  .farmer-meta .xp-line,.xp-line{height:6px!important}
+  .farmer-meta #progress-text,.farmer-meta>small{font-size:8px!important}
+  .resources .resource{height:40px!important;padding:4px 8px!important;gap:6px!important}
+  .resources .resource strong{font-size:16px!important}
+  .resource-icon{width:26px!important;height:26px!important;font-size:18px!important}
+  .resources .resource button{width:24px!important;height:24px!important;font-size:18px!important}
+}
