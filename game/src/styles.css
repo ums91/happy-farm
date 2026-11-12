@@ -2076,3 +2076,33 @@ body.visitor-mode .audio-dock{display:none!important}
   .resource-icon{width:26px!important;height:26px!important;font-size:18px!important}
   .resources .resource button{width:24px!important;height:24px!important;font-size:18px!important}
 }
+
+
+/* Final desktop HUD proportions: compact farmer panel, bounded resource capsules, aligned actions. */
+@media(min-width:1181px){
+  .topbar{
+    grid-template-columns:minmax(320px,380px) minmax(380px,480px) auto!important;
+    justify-content:space-between!important;
+    column-gap:12px!important;
+    height:72px!important;
+    min-height:72px!important;
+    flex:0 0 72px!important;
+    padding:5px 10px!important;
+  }
+  .farmer-hud{width:100%!important;max-width:380px!important;height:48px!important;min-height:48px!important}
+  .resources{
+    width:100%!important;max-width:480px!important;
+    justify-self:center!important;gap:8px!important;
+  }
+  .resources .resource{
+    flex:1 1 0!important;
+    max-width:232px!important;
+    height:38px!important;
+    padding:3px 7px!important;
+  }
+  .resources .resource strong{font-size:15px!important}
+  .resource-icon{width:24px!important;height:24px!important;font-size:17px!important}
+  .resources .resource button{width:23px!important;height:23px!important}
+  .top-actions{gap:5px!important}
+  .top-actions>button{width:38px!important;height:38px!important;flex-basis:38px!important;font-size:20px!important}
+}
