@@ -1508,3 +1508,30 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 
 /* FarmVille-style water meter in the resource bar. */
 .water-resource{border:1px solid #8dc9e6;background:linear-gradient(180deg,#effaff,#d8f0fb);color:#246b91}.water-resource .resource-icon{color:#2796c8}.water-resource strong{font-variant-numeric:tabular-nums}
+
+
+/* Redesigned field seed picker: readable cards at every viewport size */
+#market-modal.field-seed-mode{display:flex!important;position:fixed!important;inset:0!important;align-items:center!important;justify-content:center!important;padding:clamp(10px,3vw,24px)!important;background:rgba(28,39,22,.58)!important;backdrop-filter:blur(3px);pointer-events:auto!important;z-index:1000!important}
+#market-modal.field-seed-mode .market-window{position:relative!important;left:auto!important;top:auto!important;transform:none!important;width:min(760px,100%)!important;max-height:min(86dvh,760px)!important;overflow-y:auto!important;padding:clamp(13px,2.5vw,22px)!important;border:4px solid #fff8e8!important;border-radius:22px!important;background:linear-gradient(160deg,#fffdf5 0%,#f6edda 100%)!important;box-shadow:0 8px 0 #a77b43,0 24px 65px #14201480!important}
+#market-modal.field-seed-mode .market-header{align-items:center;padding:0 0 12px;border-bottom:1px solid #ead9b8}
+#market-modal.field-seed-mode .market-header h2{font-size:clamp(20px,4vw,29px)!important;line-height:1.15}
+#market-modal.field-seed-mode .market-intro{display:block;margin:10px 0 14px;font-size:12px;line-height:1.45}
+#market-modal.field-seed-mode .market-items{display:block!important}
+#market-modal.field-seed-mode .inventory-section{padding:0;border:0;background:transparent}
+#market-modal.field-seed-mode .seed-picker-context{margin-bottom:12px;padding:10px 12px;border-radius:12px;background:#eef5e4;border:1px solid #d8e7c7}
+#market-modal.field-seed-mode .seed-picker-context h3{margin:0 0 3px;font-size:14px;color:#52783a}
+#market-modal.field-seed-mode .seed-picker-context p{margin:0;font-size:11px;line-height:1.4;color:#7d765e}
+#market-modal.field-seed-mode .seed-picker-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+#market-modal.field-seed-mode .field-seed-card{min-width:0;display:grid!important;grid-template-columns:56px minmax(0,1fr)!important;grid-template-rows:auto auto!important;align-items:center;gap:8px 11px;padding:11px!important;border:1px solid #e6d7b9!important;border-radius:15px!important;background:#fffdf7!important;box-shadow:0 2px 0 #e6d4b0}
+#market-modal.field-seed-mode .field-seed-card.chosen{border:2px solid #86b84e!important;background:#f3f9e9!important;box-shadow:0 0 0 2px #e0edce}
+#market-modal.field-seed-mode .field-seed-card .market-art{grid-column:1!important;grid-row:1!important;width:56px!important;height:56px!important;flex:none!important;font-size:34px!important;border-radius:13px}
+#market-modal.field-seed-mode .field-seed-card .market-copy{grid-column:2!important;grid-row:1!important;min-width:0!important;width:auto;overflow-wrap:anywhere}
+#market-modal.field-seed-mode .field-seed-card .market-copy strong{font-size:14px!important;line-height:1.2;color:#674d2f}
+#market-modal.field-seed-mode .field-seed-card .seed-stats{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0}
+#market-modal.field-seed-mode .field-seed-card .seed-stats span{padding:3px 6px;border-radius:7px;background:#f4efdf;color:#786447;font-size:10px;font-weight:800;white-space:nowrap}
+#market-modal.field-seed-mode .field-seed-card .market-copy small{font-size:10px!important;line-height:1.35;color:#8c8068}
+#market-modal.field-seed-mode .field-seed-card .market-copy .seed-unlock{display:block;color:#a25f37;font-weight:800}
+#market-modal.field-seed-mode .field-seed-card .market-buy{grid-column:1/-1!important;grid-row:2!important;width:100%!important;min-height:36px;padding:7px 10px;font-size:11px}
+#market-modal.field-seed-mode .field-seed-card.locked{opacity:.78;background:#f7f3e9!important}
+#market-modal.field-seed-mode .market-footer{display:none}
+@media(max-width:520px){#market-modal.field-seed-mode{padding:8px!important;align-items:center!important}#market-modal.field-seed-mode .market-window{max-height:88dvh!important;padding:12px!important;border-width:3px!important}#market-modal.field-seed-mode .market-header h2{font-size:21px!important}#market-modal.field-seed-mode .seed-picker-grid{grid-template-columns:1fr}#market-modal.field-seed-mode .field-seed-card{grid-template-columns:52px minmax(0,1fr)!important;padding:9px!important}#market-modal.field-seed-mode .field-seed-card .market-art{width:52px!important;height:52px!important;font-size:31px!important}}
