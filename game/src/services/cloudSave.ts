@@ -579,3 +579,6 @@ export function initializeCloudSaves(): void {
     else setStatus('signed-out');
   });
 }
+
+export function getCloudSupabaseClient(): SupabaseClient | null { return client; }
+export function getCloudUserId(): string | null { return currentUserId; }
