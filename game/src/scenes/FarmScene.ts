@@ -528,6 +528,7 @@ export class FarmScene extends Phaser.Scene {
     if(changed)this.saveFarm();
   }
   private harvestFruitTree(id:string):void {
+    if (sessionStorage.getItem('happyFarmVisitorModeV1')) return;
     const kind=this.fruitKind(id);if(!kind)return;
     const readyAt=this.fruitTreeReadyAt[id]||0;const cfg=this.fruitConfig(kind);
     if(Date.now()<readyAt){const remaining=readyAt-Date.now();const mins=Math.floor(remaining/60000),secs=Math.ceil((remaining%60000)/1000);this.toast(cfg.name+' tree is growing fruit · '+mins+':'+String(secs).padStart(2,'0')+' remaining.');return;}
@@ -929,6 +930,7 @@ export class FarmScene extends Phaser.Scene {
   private pinchDistance = 0;
 
   private handleWorldTap(pointer: Phaser.Input.Pointer): void {
+    if (sessionStorage.getItem('happyFarmVisitorModeV1')) return;
     const world=this.cameras.main.getWorldPoint(pointer.x,pointer.y);
     if(this.activeTool==='select'){
       // Ready water appears above the Well and is collected with one click.
@@ -1208,6 +1210,8 @@ export class FarmScene extends Phaser.Scene {
 
   private bindWorldInput(): void {
     this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+      const visitorMode=sessionStorage.getItem('happyFarmVisitorModeV1')!==null;
+      if(visitorMode&&!pointer.wasTouch)return;
       if(pointer.wasTouch){
         this.touchPositions.set(pointer.id,{x:pointer.x,y:pointer.y,startX:pointer.x,startY:pointer.y});
         if(this.touchPositions.size===1&&this.activeTool==='move')this.handleWorldTap(pointer);
@@ -1272,8 +1276,8 @@ export class FarmScene extends Phaser.Scene {
         const wasTap=!this.touchGesture&&Math.hypot(pointer.x-touch.startX,pointer.y-touch.startY)<=10;
         this.touchPositions.delete(pointer.id);
         if(this.touchPositions.size===0){
-          if(wasTap&&this.activeTool!=='move')this.handleWorldTap(pointer);
-          this.finishMovingItem();
+          if(!sessionStorage.getItem('happyFarmVisitorModeV1')&&wasTap&&this.activeTool!=='move')this.handleWorldTap(pointer);
+          if(!sessionStorage.getItem('happyFarmVisitorModeV1'))this.finishMovingItem();
           this.touchGesture=false;this.pinchDistance=0;this.cameraDragging=false;
         } else {
           const pts=Array.from(this.touchPositions.values());
