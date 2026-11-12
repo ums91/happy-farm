@@ -497,12 +497,14 @@ export class FarmScene extends Phaser.Scene {
       const source=this.textures.get(texture).getSourceImage() as HTMLImageElement;
       const slug=asset;
       const tree=/tree|pine|evergreen|blossom/.test(slug);
+      const tableOrSeat=/picnic_table|park_bench|wooden_park_bench|bench/.test(slug);
+      const tinyProp=/birdhouse|bird_bath|sign|lamp|flower_pot|planter|rock|stone|firewood|hay|crate|barrel|pump|path|fence|hedge|bush|flowerbed|flower_bush|flower_hedge/.test(slug);
       const large=/gazebo|arch|swing|windmill|fountain|well|pond|waterfall|bridge|cart|market|campfire/.test(slug);
-      const low=/hedge|bush|flower|fence|path|rock|stone|firewood|hay/.test(slug);
-      // Scale by object class, not one shared box: trees stay tall, ground props stay grounded,
-      // and landmarks retain enough visual weight to read as buildings/features.
-      const maxW=tree?88:large?102:low?64:76;
-      const maxH=tree?112:large?88:low?48:66;
+      // Use building-relative world sizes: furniture and garden details should
+      // occupy only a fraction of a tile, while trees and landmarks can rise above it.
+      // Keep the picnic table/benches deliberately compact so they read as furniture.
+      const maxW=tree?76:tableOrSeat?42:tinyProp?34:large?82:58;
+      const maxH=tree?98:tableOrSeat?28:tinyProp?32:large?70:48;
       const scale=Math.min(maxW/source.width,maxH/source.height);
       const displayW=source.width*scale;
       const shadow=this.add.ellipse(p.x,p.y+1,Math.max(24,displayW*0.66),tree?11:large?15:9,0x34502a,0.22)
@@ -576,12 +578,16 @@ export class FarmScene extends Phaser.Scene {
       const bounds={width:TILE_W*4,height:TILE_H*4};
       const actor=this.add.container(center.x,center.y);actor.setDepth(center.y+24+index*0.01);
       this.animalReservedCells.add(this.animalCellKey(homeTile));
-      const scale=cow?(baby?0.19:0.275):1;
-      actor.setScale(scale);
-      actor.add(this.add.ellipse(0,6,cow?40:26,cow?8:6,0x263e25,0.2));
+      // Keep animal sprites at a consistent world scale. The old cow container
+      // multiplier (0.275) was applied on top of setDisplaySize and made cows
+      // disproportionately tiny beside hens and buildings.
+      actor.setScale(1);
+      const animalWidth=animal.id==='chick'?17:cow?(baby?28:44):27;
+      const animalHeight=animal.id==='chick'?16:cow?(baby?20:30):26;
+      actor.add(this.add.ellipse(0,6,cow?(baby?28:40):animal.id==='chick'?17:24,cow?(baby?6:8):6,0x263e25,0.2));
       const texture=animal.id==='chick'?'animal-chick':cow?'animal-cow':'animal-hen';
       if(this.textures.exists(texture)){
-        const sprite=this.add.sprite(0,-2,texture).setDisplaySize(animal.id==='chick'?22:cow?46:30,animal.id==='chick'?20:cow?31:30).setAlpha(1).setVisible(true);
+        const sprite=this.add.sprite(0,-2,texture).setDisplaySize(animalWidth,animalHeight).setAlpha(1).setVisible(true);
         sprite.setDepth(2);
         actor.add(sprite);
         this.animalSprites.set(actor,sprite);
