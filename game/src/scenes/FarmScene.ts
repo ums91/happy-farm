@@ -807,7 +807,7 @@ export class FarmScene extends Phaser.Scene {
     // In select mode, collect finished produce directly from the individual animal.
     if(this.activeTool==='select'){
       // Ready egg/milk icons sit above the coop/shed; one click collects the available batch.
-      const buildingHit=[...this.buildingProduceBadges.entries()].find(([id,badge])=>badge.active&&Phaser.Math.Distance.Between(world.x,world.y,badge.x,badge.y)<24);
+      const buildingHit=[...this.buildingProduceBadges.entries()].find(([,badge])=>badge.active&&Phaser.Math.Distance.Between(world.x,world.y,badge.x,badge.y)<24);
       if(buildingHit){this.collectBuildingProduce(buildingHit[0]);return;}
       // Water icons are lightweight tap targets above eligible growing crops.
       if(this.waterUnits>0){
@@ -1640,7 +1640,6 @@ export class FarmScene extends Phaser.Scene {
     const now = Date.now();
     this.animals.forEach((animal,index)=>{
       const actor=this.animalActors[index],active=animal.assigned!==false&&!!actor?.active;
-      const mature=animal.id==='hen'||animal.id==='cow';
       const baby=this.isBabyAnimal(animal.id);
       // Baby animals have a feeding interval too: the bowl disappears after feeding
       // and returns only when the next growth feeding is due.
