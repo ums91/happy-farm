@@ -1660,3 +1660,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 .farm-backup-actions p{margin:0;color:#75684f;font-size:11px;line-height:1.45}
 .farm-backup-actions button,.farm-backup-actions label{display:block;width:100%;box-sizing:border-box;text-align:center;border:0;border-radius:9px;padding:10px;background:#edf5e9;color:#466c39;font:700 12px inherit;cursor:pointer}
 .farm-backup-actions input{width:100%;font-size:11px;color:#75684f}
+
+
+/* Fit the expanded nine-action toolbar without clipping the animal-feed tools. */
+@media(min-width:701px){.field-toolbar .tool-grid{gap:5px!important;flex-wrap:wrap}.field-toolbar .tool{width:70px;min-width:52px}}
