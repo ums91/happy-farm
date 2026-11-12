@@ -2209,3 +2209,45 @@ body.visitor-mode .audio-dock{display:none!important}
   .farmer-meta>small{font-size:7px!important;line-height:1!important;padding:0!important;margin:0!important}
   .settings-mini{width:25px!important;height:25px!important;flex:0 0 25px!important}
 }
+
+
+/* Desktop HUD vertical trim: remove the unused lower band beneath the farmer
+   profile and water capsule, and make water intentionally slimmer. */
+@media(min-width:701px){
+  .topbar{
+    height:60px!important;
+    min-height:60px!important;
+    flex:0 0 60px!important;
+    padding-top:3px!important;
+    padding-bottom:3px!important;
+    align-items:center!important;
+  }
+  .farmer-hud{
+    height:44px!important;
+    min-height:44px!important;
+    max-height:44px!important;
+    box-sizing:border-box!important;
+    padding:2px 7px!important;
+    align-items:center!important;
+    overflow:hidden!important;
+  }
+  .farmer-hud .avatar{width:34px!important;height:34px!important;flex:0 0 34px!important;font-size:23px!important}
+  .farmer-meta{align-content:center!important;row-gap:1px!important;padding:0!important}
+  .farmer-title{min-height:15px!important;align-items:center!important}
+  .farmer-title strong{font-size:14px!important;line-height:1!important}
+  .farmer-title button,.settings-mini{width:22px!important;height:22px!important;flex:0 0 22px!important}
+  .farmer-meta .level{font-size:8px!important;line-height:12px!important;padding:0 6px!important}
+  .farmer-meta .xp-line,.xp-line{height:5px!important;margin:0!important}
+  .farmer-meta>small{font-size:7px!important;line-height:1!important;padding:0!important}
+  .resources .resource{height:32px!important;min-height:32px!important;padding:2px 6px!important;gap:5px!important}
+  .resources .resource-icon{width:21px!important;height:21px!important;flex:0 0 21px!important;font-size:15px!important}
+  .resources .resource strong{font-size:14px!important;line-height:1!important}
+  .resources .resource button{width:20px!important;height:20px!important;flex:0 0 20px!important;font-size:15px!important}
+}
+@media(min-width:701px) and (max-width:1180px){
+  .topbar{height:60px!important;min-height:60px!important;flex-basis:60px!important}
+  .farmer-hud{height:44px!important;min-height:44px!important}
+  .resources .resource{height:30px!important;min-height:30px!important}
+  .resources .resource-icon{width:19px!important;height:19px!important;flex-basis:19px!important;font-size:13px!important}
+  .resources .resource strong{font-size:13px!important}
+}
