@@ -410,7 +410,7 @@ export class FarmScene extends Phaser.Scene {
       wooden_windmill:'Wooden Windmill',wooden_windmill_sheet1:'Wooden Windmill (Alternate)',wooden_windmill_variant:'Windmill with Flower Cart',wooden_windmill_variant2:'Flowering Windmill Base',
       yellow_flower_bush:'Yellow Rose Bush',yellow_flower_bush_sheet2:'Yellow Rose Bush (Alternate)',yellow_flower_hedge:'Yellow Flower Hedge',yellow_flower_hedge_sheet1:'Yellow Flower Hedge (Alternate)'
     };
-    return names[asset]||asset.split('_').filter(w=>!/^sheet\\d*$/i.test(w)&&!/^variant\\d*$/i.test(w)).map(w=>w[0]?.toUpperCase()+w.slice(1)).join(' ');
+    return names[asset]||asset.split('_').filter(w=>!/^sheet\d*$/i.test(w)&&!/^variant\d*$/i.test(w)).map(w=>w[0]?.toUpperCase()+w.slice(1)).join(' ');
   }
 
   private decorAssetForId(id:string):string|null {
