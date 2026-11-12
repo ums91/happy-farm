@@ -300,11 +300,17 @@ export class FarmScene extends Phaser.Scene {
     this.plotGraphics.clear();
     for(let row=0;row<MAX_FARM_SIZE;row++)for(let col=0;col<MAX_FARM_SIZE;col++){
       if(!this.isFarmTile(col,row))continue;
-      const point=this.toWorld(col,row),shades=[0x9bcf69,0xa5d875,0x94c762,0xaedb7d,0x9fce70],shade=shades[(col*7+row*11)%shades.length]??0x9bcf69;
+      const point=this.toWorld(col,row),shades=[0x9bcf69,0xa5d875,0x94c762,0xaedb7d,0x9fce70,0x98c96b,0xb0d77a],shade=shades[(col*7+row*11)%shades.length]??0x9bcf69;
+      // A soft contact shadow gives each isometric grass tile a little lift from the woodland floor.
+      this.plotGraphics.fillStyle(0x426d37,0.12);this.plotGraphics.fillEllipse(point.x+1,point.y+5,TILE_W*0.88,TILE_H*0.58);
       this.diamond(this.plotGraphics,point.x,point.y,shade,0x78ae54);
-      this.plotGraphics.lineStyle(1,0xd8ef9e,0.28);this.plotGraphics.beginPath();this.plotGraphics.moveTo(point.x-27,point.y-1);this.plotGraphics.lineTo(point.x,point.y-17);this.plotGraphics.lineTo(point.x+24,point.y-1);this.plotGraphics.strokePath();
-      if((col*3+row*5)%13===0)this.drawGrassTuft(point.x,point.y);
-      if((col*11+row*7)%31===0){this.plotGraphics.fillStyle(0x5c9846,0.9);this.plotGraphics.fillEllipse(point.x+13,point.y+3,5,3);this.plotGraphics.fillEllipse(point.x+17,point.y,4,3);}
+      // Fine sunlit grass strokes and darker turf flecks keep the field from reading as a flat grid.
+      this.plotGraphics.lineStyle(1,0xd8ef9e,0.3);this.plotGraphics.beginPath();this.plotGraphics.moveTo(point.x-27,point.y-1);this.plotGraphics.lineTo(point.x,point.y-17);this.plotGraphics.lineTo(point.x+24,point.y-1);this.plotGraphics.strokePath();
+      const detail=(col*17+row*29)%7;
+      this.plotGraphics.fillStyle(0x5f9846,0.24);this.plotGraphics.fillEllipse(point.x-17+detail*2,point.y+1,5,2.5);this.plotGraphics.fillEllipse(point.x+9-detail,point.y-5,4,2);
+      if((col*3+row*5)%7===0)this.drawGrassTuft(point.x-9,point.y+1);
+      if((col*5+row*3)%19===0){this.plotGraphics.fillStyle(0x4f8b40,0.92);this.plotGraphics.fillEllipse(point.x+13,point.y+3,5,3);this.plotGraphics.fillEllipse(point.x+17,point.y,4,3);}
+      if((col*13+row*7)%23===0){const fx=point.x-12,fy=point.y-3;this.plotGraphics.fillStyle(0xf4d77b,0.95);this.plotGraphics.fillCircle(fx,fy,1.7);this.plotGraphics.fillStyle(0xffffff,0.9);this.plotGraphics.fillCircle(fx+2,fy-1,1.2);}
       const plot=this.plots.get(this.key(col,row));if(plot&&plot.state!=='grass')this.redrawPlot(plot);
     }
     this.drawFlowerPatches();
