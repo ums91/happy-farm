@@ -103,6 +103,12 @@
           <form id="cloud-auth-form"><label for="cloud-email">Email</label><input id="cloud-email" type="email" autocomplete="email" required /><label for="cloud-password">Password</label><input id="cloud-password" type="password" autocomplete="current-password" minlength="6" required /><button id="cloud-auth-submit" type="submit">Sign in</button></form>
           <button id="cloud-auth-mode" class="cloud-text-button" type="button">Need an account? Create one</button>
           <div class="cloud-account-actions"><button id="cloud-sync-now" type="button">Sync now</button><button id="cloud-sign-out" type="button">Sign out</button></div>
+          <button id="cloud-recovery-open" class="cloud-text-button" type="button">🛟 View recovery history</button>
+          <section id="recovery-history" class="recovery-history" hidden>
+            <h3>Farm recovery snapshots</h3>
+            <p id="recovery-status" role="status" aria-live="polite">Backups from this device and Supabase will appear here.</p>
+            <div id="recovery-list" class="recovery-list"></div>
+          </section>
           <small>Your device keeps a local backup. Cloud sync is enabled only after you configure Supabase.</small>
         </section>
       </div>
