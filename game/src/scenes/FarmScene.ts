@@ -469,6 +469,12 @@ export class FarmScene extends Phaser.Scene {
       const sprite=this.add.image(p.x,p.y+4,texture).setOrigin(0.5,1).setScale(scale).setDepth(p.y+45);
       this.decorAssetShadows.set(id,shadow);
       this.decorAssetSprites.set(id,sprite);
+      // A light, asynchronous breeze gives foliage life without moving its ground anchor.
+      if(tree){
+        this.tweens.add({targets:sprite,angle:1.15,duration:2600+((pos.col*17+pos.row*11)%700),ease:'Sine.inOut',yoyo:true,repeat:-1,delay:(pos.col*190+pos.row*130)%1100});
+      }else if(/bush|hedge|flower|lavender/.test(slug)){
+        this.tweens.add({targets:sprite,angle:0.65,duration:3200+((pos.col*13+pos.row*7)%900),ease:'Sine.inOut',yoyo:true,repeat:-1,delay:(pos.col*140+pos.row*170)%1300});
+      }
     });
   }
 
