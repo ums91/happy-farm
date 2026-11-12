@@ -314,7 +314,46 @@ export class FarmScene extends Phaser.Scene {
       if((col*13+row*7)%23===0){const fx=point.x-12,fy=point.y-3;this.plotGraphics.fillStyle(0xf4d77b,0.95);this.plotGraphics.fillCircle(fx,fy,1.7);this.plotGraphics.fillStyle(0xffffff,0.9);this.plotGraphics.fillCircle(fx+2,fy-1,1.2);}
       const plot=this.plots.get(this.key(col,row));if(plot&&plot.state!=='grass')this.redrawPlot(plot);
     }
+    this.drawFarmBoundary();
     this.drawFlowerPatches();
+  }
+
+  /**
+   * Softens the playable-land outline with tufts, tiny stones and a shaded
+   * grass fringe. The edge is derived from unlocked neighbours, so it
+   * naturally follows every land expansion rather than assuming a square.
+   */
+  private drawFarmBoundary():void {
+    const g=this.plotGraphics;
+    const edges=[
+      {dc:-1,dr:0,dx:-TILE_W/4,dy:-TILE_H/4},
+      {dc:1,dr:0,dx:TILE_W/4,dy:TILE_H/4},
+      {dc:0,dr:-1,dx:TILE_W/4,dy:-TILE_H/4},
+      {dc:0,dr:1,dx:-TILE_W/4,dy:TILE_H/4}
+    ];
+    for(let row=0;row<MAX_FARM_SIZE;row++)for(let col=0;col<MAX_FARM_SIZE;col++){
+      if(!this.isFarmTile(col,row))continue;
+      const p=this.toWorld(col,row);
+      edges.forEach((edge,index)=>{
+        if(this.isFarmTile(col+edge.dc,row+edge.dr))return;
+        const x=p.x+edge.dx*1.55,y=p.y+edge.dy*1.55;
+        // A low, irregular fringe breaks the hard edge of the isometric tiles.
+        g.fillStyle(0x416d35,0.22);g.fillEllipse(x,y+3,19,6);
+        g.fillStyle(0x5b963f,0.95);g.fillEllipse(x-4,y,8,4);g.fillEllipse(x+3,y-2,7,4);
+        g.lineStyle(1.4,0x477f38,0.9);g.beginPath();
+        g.moveTo(x-2,y+1);g.lineTo(x-5,y-5);
+        g.moveTo(x+1,y+1);g.lineTo(x+3,y-6);
+        g.moveTo(x+4,y+1);g.lineTo(x+7,y-3);g.strokePath();
+        if((col*11+row*7+index*3)%3===0){
+          g.fillStyle(0x9b9277,0.9);g.fillEllipse(x+9,y+2,5,3);
+          g.fillStyle(0xc0b99d,0.8);g.fillCircle(x+8,y+1,1);
+        }
+        if((col*5+row*13+index)%4===0){
+          g.fillStyle(0xe8d98d,0.95);g.fillCircle(x-8,y-3,1.6);
+          g.fillStyle(0xffffff,0.8);g.fillCircle(x-7,y-4,0.8);
+        }
+      });
+    }
   }
 
   private drawFlowerPatches():void {
