@@ -7,6 +7,50 @@ import { initializeSfxControls } from './services/sfx';
 initializeMusicControls();
 initializeSfxControls();
 
+const VISITOR_MODE_KEY='happyFarmVisitorModeV1';
+const VISITOR_BACKUP_KEY='happyFarmVisitorOriginalSaveV1';
+const SAVE_KEY='happyFarmPhaserSaveV1';
+// A closed tab clears sessionStorage. If a visit was interrupted, recover the
+// original local farm before Phaser reads the temporary visitor snapshot.
+if(!sessionStorage.getItem(VISITOR_MODE_KEY)){
+  const interruptedBackup=localStorage.getItem(VISITOR_BACKUP_KEY);
+  if(interruptedBackup){
+    try{JSON.parse(interruptedBackup);localStorage.setItem(SAVE_KEY,interruptedBackup);}catch(error){console.error('Could not recover the local farm after a visitor session:',error);}
+    localStorage.removeItem(VISITOR_BACKUP_KEY);
+  }
+}
+const visitorRaw=sessionStorage.getItem(VISITOR_MODE_KEY);
+if(visitorRaw){
+  let visitor:{farmerName?:string;farmName?:string;level?:number}={};
+  try{visitor=JSON.parse(visitorRaw);}catch{/* Keep the safe read-only visitor shell. */}
+  document.body.classList.add('visitor-mode');
+  const style=document.createElement('style');
+  style.textContent=`
+    body.visitor-mode .top-actions,body.visitor-mode .resources,body.visitor-mode .left-nav,
+    body.visitor-mode .field-toolbar,body.visitor-mode .activity-drawer,body.visitor-mode .footer,
+    body.visitor-mode #settings-open,body.visitor-mode #edit-farm-profile,body.visitor-mode .world-hint{display:none!important}
+    body.visitor-mode #game{pointer-events:none!important}
+    body.visitor-mode .world-panel{padding-bottom:0}
+    body.visitor-mode .visitor-banner{position:fixed;z-index:30000;top:12px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:14px;max-width:calc(100vw - 24px);padding:10px 15px;border:2px solid #b58b4b;border-radius:16px;background:linear-gradient(#fff6d9,#e8c783);box-shadow:0 4px 14px #0004;color:#67451f;font:700 13px system-ui;white-space:nowrap}
+    body.visitor-mode .visitor-banner button{border:1px solid #6d8f3c;border-radius:9px;padding:8px 12px;background:linear-gradient(#b9df82,#83b74d);color:#345b26;font-weight:900;cursor:pointer}
+    @media(max-width:520px){body.visitor-mode .visitor-banner{gap:7px;padding:8px;font-size:10px}body.visitor-mode .visitor-banner button{padding:7px;font-size:10px}}
+  `;
+  document.head.append(style);
+  const banner=document.createElement('div');
+  banner.className='visitor-banner';
+  const label=document.createElement('span');
+  label.textContent='🏡 Visiting '+(visitor.farmName||'Neighbour Farm')+' · '+(visitor.farmerName||'Neighbour')+' · Level '+(visitor.level||1);
+  const exit=document.createElement('button');
+  exit.type='button';exit.textContent='← Return to My Farm';
+  exit.addEventListener('click',()=>{
+    const ownSave=localStorage.getItem(VISITOR_BACKUP_KEY);
+    if(!ownSave){window.alert('Your local farm backup is missing. Visitor mode will stay open to avoid replacing your farm with an empty save.');return;}
+    try{JSON.parse(ownSave);localStorage.setItem(SAVE_KEY,ownSave);localStorage.removeItem(VISITOR_BACKUP_KEY);sessionStorage.removeItem(VISITOR_MODE_KEY);window.location.reload();}
+    catch(error){window.alert('Could not restore your farm: '+(error instanceof Error?error.message:String(error)));}
+  });
+  banner.append(label,exit);document.body.append(banner);
+}
+
 const loadingScreen=document.getElementById('loading-screen');
 const loadingFill=document.getElementById('loading-progress-fill');
 const loadingStatus=document.getElementById('loading-status');
