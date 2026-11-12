@@ -961,25 +961,28 @@ export class FarmScene extends Phaser.Scene {
       return;
     }
     if(this.activeTool==='move'){
-      const hit=Object.keys(this.decor).reverse().find(id=>{
-        const p=this.toWorld(this.decor[id]!.col,this.decor[id]!.row);
-        const dx=Math.abs(world.x-p.x),dy=Math.abs(world.y-p.y);
-        const isTree=id.startsWith('tree')||this.fruitKind(id)!==null;
-        const isBuilding=['farmhouse','barn','coop','pen','silo','bakery','greenhouse','windmill'].includes(id);
-        return isTree?(dx<48&&dy<92):isBuilding?(dx<68&&dy<100):(dx<42&&dy<52);
-      });
+      // Resolve the exact isometric cell first. A ploughed field is a small diamond;
+      // broad tree/building sprite bounds must never steal taps from a neighbouring field.
+      const tile=this.toTile(world.x,world.y);
+      const plot=tile?this.plots.get(this.key(tile.col,tile.row)):undefined;
+      if(plot&&plot.state!=='grass'){
+        this.movingPlotKey=this.key(plot.col,plot.row);this.movingDecor=null;
+        this.movingPreviewTile={col:plot.col,row:plot.row};this.movingPreviewValid=true;
+        this.drawPlacementOverlay();this.toast('Drag the field to a green grid cell.');return;
+      }
+      // Decor is selectable only in its own anchor cell. This avoids the old wide
+      // canopy hitboxes grabbing a nearby field or object.
+      const hit=tile?Object.keys(this.decor).reverse().find(id=>{
+        const pos=this.decor[id];
+        return !!pos&&pos.col===tile.col&&pos.row===tile.row;
+      }):undefined;
       if(hit){
         this.movingDecor=hit;this.movingPlotKey=null;
         const pos=this.decor[hit]!;this.movingPreviewTile={col:pos.col,row:pos.row};
         this.movingPreviewValid=true;this.drawPlacementOverlay();
         this.toast('Drag '+hit+' to a green grid cell.');return;
       }
-      const tile=this.toTile(world.x,world.y),plot=tile?this.plots.get(this.key(tile.col,tile.row)):undefined;
-      if(plot&&plot.state!=='grass'){
-        this.movingPlotKey=this.key(plot.col,plot.row);this.movingDecor=null;
-        this.movingPreviewTile={col:plot.col,row:plot.row};this.movingPreviewValid=true;
-        this.drawPlacementOverlay();this.toast('Drag the field to a green grid cell.');return;
-      }
+      this.toast('Tap the centre tile of a field or farm item to move it.');
       return;
     }
     // Prioritise orchard collection badges over the underlying grass/field tile.
