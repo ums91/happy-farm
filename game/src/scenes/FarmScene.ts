@@ -374,12 +374,11 @@ export class FarmScene extends Phaser.Scene {
 
   private decorDisplayName(asset:string):string {
     const known:Record<string,string>={
-      apple_tree_variant:'Wisteria Tree',
-      apple_tree_variant2:'Sunflower Cart',
-      apple_tree_variant_sheet2:'Decorative Flower Cart'
+      apple_tree_variant2:'Wisteria Tree',
+      apple_tree_variant_sheet2:'Sunflower Cart'
     };
     if(known[asset])return known[asset];
-    const clean=asset.replace(/_sheet_?\\d+$/i,'').replace(/_sheet\\d+$/i,'').replace(/_variant_?\\d*$/i,'').replace(/_variant\\d+$/i,'');
+    const clean=asset.replace(/_sheet_?\d+$/i,'').replace(/_sheet\d+$/i,'').replace(/_variant_?\d*$/i,'').replace(/_variant\d+$/i,'');
     return clean.split('_').filter(Boolean).map(word=>word[0].toUpperCase()+word.slice(1)).join(' ');
   }
 
