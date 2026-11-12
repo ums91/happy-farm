@@ -1707,3 +1707,12 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
   .resources .xp-resource{gap:4px!important}
   .resources .xp-resource strong{font-size:11px!important}
 }
+
+
+/* Independent sound-effects controls, visually grouped with background music. */
+.top-actions .music-controls{flex-wrap:nowrap!important}
+.top-actions .music-controls #sfx-toggle{flex:0 0 auto!important;min-height:29px!important;padding:4px 8px!important;border:1px solid #b9945c!important;border-radius:10px!important;background:linear-gradient(#fff8e8,#e8d5ae)!important;color:#654b2c!important;font-size:10px!important;font-weight:900!important;box-shadow:0 2px 0 #b9945c!important}
+.top-actions .music-controls #sfx-toggle[aria-pressed="false"]{opacity:.65;filter:grayscale(.7)}
+.top-actions .music-controls #sfx-volume{width:42px!important;min-width:32px!important}
+@media(max-width:1180px){.top-actions .music-controls #sfx-volume,.top-actions .music-controls label[for="sfx-volume"]{display:none!important}}
+@media(max-width:700px){.top-actions .music-controls{flex-wrap:wrap!important}.top-actions .music-controls #sfx-toggle{min-height:27px!important;font-size:9px!important;padding:3px 6px!important}.top-actions .music-controls #sfx-volume{display:block!important;max-width:52px!important}}
