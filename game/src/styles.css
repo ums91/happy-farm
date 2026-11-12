@@ -174,6 +174,30 @@ body{background:linear-gradient(180deg,#a7ddf6 0,#d9f1f8 190px,#a9d579 191px,#77
 @media(max-width:520px){.building-actions{flex-direction:column}.building-actions .market-buy{width:100%}}
 
 
+/* Production buildings: clearer recipe cards, stock and batch status */
+.production-building-heading .production-level{float:right;font-size:12px;font-weight:800;color:#54733b;background:#edf5df;border:1px solid #d4e5bd;border-radius:99px;padding:4px 9px}
+.production-status-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.production-status-row h3{margin:0}
+.production-status-row>small{color:#7b705e;font-size:11px}
+.production-recipe-card{align-items:flex-start;gap:10px}
+.production-recipe-card .market-copy{min-width:0;flex:1}
+.production-recipe-card .market-buy{flex:0 0 auto;align-self:center;min-width:105px}
+.production-ingredients{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.production-ingredient,.production-stock-chip{display:inline-flex;align-items:center;gap:3px;padding:4px 7px;border-radius:8px;background:#f4eee1;border:1px solid #e7dcc7;color:#756448;font-size:11px;font-weight:750}
+.production-ingredient.available{background:#edf6e6;border-color:#d5e8c6;color:#416a35}
+.production-ingredient.missing{background:#fff0e8;border-color:#f0d2bf;color:#a45d37}
+.production-active{border:1px solid #d7e8c7;background:linear-gradient(135deg,#f5faed,#fffaf0)}
+.production-ready{color:#28733b;background:#e4f4df;border-radius:99px;padding:4px 9px;font-size:12px}
+.production-countdown{float:right;font-weight:850;color:#527a39}
+.production-idle{background:#f7f4e9}
+.production-stock{display:flex;flex-wrap:wrap;gap:6px}
+@media(max-width:560px){
+ .production-recipe-card{display:grid;grid-template-columns:42px minmax(0,1fr)}
+ .production-recipe-card .market-buy{grid-column:1/-1;width:100%}
+ .production-recipe-card .market-copy small{line-height:1.45}
+ .production-status-row{align-items:flex-start}
+}
+
 /* Phase 4 — quest board and milestone rewards */
 .quest-list{display:grid;grid-template-columns:1fr;gap:9px}
 .quest-card{align-items:center}
