@@ -824,10 +824,15 @@ export class FarmScene extends Phaser.Scene {
   }
   private animateAnimalTrough(kind:AnimalId):void{
     const trough=this.animalTroughs.get(kind);if(!trough?.active)return;
+    const chicken=kind==='hen'||kind==='chick',feedColor=chicken?0xf2b72f:0x82b84b;
     this.tweens.killTweensOf(trough);trough.setScale(1);
-    this.tweens.add({targets:trough,scaleX:1.12,scaleY:0.9,duration:180,yoyo:true,repeat:3,ease:'Sine.inOut'});
-    const nibble=this.add.text(trough.x,trough.y-12,'✦',{fontSize:'12px',color:'#d8e98a'}).setOrigin(.5).setDepth(trough.depth+8);
-    this.tweens.add({targets:nibble,y:nibble.y-13,alpha:0,duration:700,onComplete:()=>nibble.destroy()});
+    this.tweens.add({targets:trough,scaleX:1.08,scaleY:0.94,duration:150,yoyo:true,repeat:5,ease:'Sine.inOut'});
+    for(let i=0;i<7;i++){
+      const morsel=this.add.circle(trough.x+Phaser.Math.Between(-11,11),trough.y-2,Phaser.Math.Between(2,4),feedColor,1).setDepth(trough.depth+9);
+      this.tweens.add({targets:morsel,x:morsel.x+Phaser.Math.Between(-12,12),y:morsel.y-Phaser.Math.Between(9,22),alpha:0,scale:0.35,duration:Phaser.Math.Between(420,760),delay:i*65,ease:'Cubic.out',onComplete:()=>morsel.destroy()});
+    }
+    const nibble=this.add.text(trough.x,trough.y-15,chicken?'✦':'✧',{fontSize:'14px',color:chicken?'#ffe18a':'#d8f0a0',stroke:'#5b4727',strokeThickness:2}).setOrigin(.5).setDepth(trough.depth+10);
+    this.tweens.add({targets:nibble,y:nibble.y-19,alpha:0,scale:1.35,duration:850,ease:'Sine.out',onComplete:()=>nibble.destroy()});
   }
   private moveAnimalToTrough(actor:Phaser.GameObjects.Container,kind:AnimalId,index:number):void{
     const trough=this.animalTroughs.get(kind);if(!actor.active||!trough?.active)return;
@@ -846,9 +851,20 @@ export class FarmScene extends Phaser.Scene {
   private playFeedingAnimation(actor:Phaser.GameObjects.Container):void{
     if(!actor.active)return;
     const baseScale=Math.abs(actor.scaleY),sprite=this.animalSprites.get(actor);
-    if(sprite){this.tweens.killTweensOf(sprite);const cow=sprite.texture.key==='animal-cow';sprite.play(sprite.texture.key==='animal-chick'?'chick-peck':(cow?'cow-eat':'hen-peck'),true);this.tweens.add({targets:sprite,angle:-8,y:3,duration:260,yoyo:true,repeat:3,ease:'Sine.inOut',onComplete:()=>{if(actor.active)this.animateAnimalIdle(actor,sprite);}});}
-    this.tweens.add({targets:actor,scaleY:baseScale*0.94,duration:220,yoyo:true,repeat:2,ease:'Sine.inOut',
-      onComplete:()=>{if(!actor.active)return;actor.setScale(actor.scaleX<0?-baseScale:baseScale,baseScale);const feed=this.add.text(actor.x,actor.y-25,'🌿',{fontSize:'13px'}).setOrigin(.5).setDepth(actor.depth+10);this.tweens.add({targets:feed,y:feed.y-15,alpha:0,duration:850,onComplete:()=>feed.destroy()});}
+    if(sprite){
+      this.tweens.killTweensOf(sprite);
+      const key=sprite.texture.key,cow=key==='animal-cow'||key==='animal-calf',chick=key==='animal-chick';
+      sprite.play(chick?'chick-peck':(cow?'cow-eat':'hen-peck'),true);
+      this.tweens.add({targets:sprite,angle:-10,y:4,duration:210,yoyo:true,repeat:5,ease:'Sine.inOut',onComplete:()=>{if(actor.active&&sprite.active){sprite.setAngle(0).setY(-2);this.animateAnimalIdle(actor,sprite);}}});
+    }
+    this.tweens.add({targets:actor,scaleY:baseScale*0.965,duration:190,yoyo:true,repeat:5,ease:'Sine.inOut',
+      onComplete:()=>{
+        if(!actor.active)return;
+        actor.setScale(actor.scaleX<0?-baseScale:baseScale,baseScale);
+        const chicken=sprite?.texture.key==='animal-hen'||sprite?.texture.key==='animal-chick';
+        const treat=this.add.text(actor.x,actor.y-27,chicken?'🌽':'🌿',{fontSize:'14px',stroke:'#60452b',strokeThickness:2}).setOrigin(.5).setDepth(actor.depth+10);
+        this.tweens.add({targets:treat,y:treat.y-18,alpha:0,scale:1.2,duration:950,ease:'Sine.out',onComplete:()=>treat.destroy()});
+      }
     });
   }
 
