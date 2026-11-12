@@ -255,8 +255,45 @@ export class FarmScene extends Phaser.Scene {
   private expandLand(size:1|2|3|4):void {
     const expansion=this.nextLandExpansion(size);if(!expansion||this.farmerLevel<expansion.level||this.coins<expansion.cost)return;
     this.coins-=expansion.cost;expansion.cells.forEach(cell=>this.landTiles.add(this.key(cell.col,cell.row)));this.landExpansionCountValue++;
-    this.redrawFarmTiles();this.drawScenery();this.renderFruitTreeBadges();this.fitFarmToViewport();this.saveFarm();this.refreshHud();this.renderMarket('buildings');
-    this.toast(`Unlocked ${expansion.size} × ${expansion.size} new farmland!`);
+    this.redrawFarmTiles();this.drawScenery();this.renderFruitTreeBadges();this.fitFarmToViewport();
+    this.playLandClearingAnimation(expansion.cells);
+    this.saveFarm();this.refreshHud();this.renderMarket('buildings');
+    this.toast(`Land cleared! ${expansion.size} × ${expansion.size} new farmland unlocked.`);
+  }
+
+  /**
+   * A short staggered clearing effect on newly purchased tiles: an earthy
+   * reveal fades into the new grass while dust and leaves drift away.
+   * All effects are temporary display objects and never enter the save data.
+   */
+  private playLandClearingAnimation(cells:Array<{col:number;row:number}>):void {
+    cells.forEach((cell,index)=>{
+      const point=this.toWorld(cell.col,cell.row),delay=index*65;
+      const reveal=this.add.graphics().setDepth(12000+cell.row);
+      reveal.fillStyle(0x98734a,0.78);
+      reveal.lineStyle(2,0xf4d58a,0.95);
+      reveal.beginPath();
+      reveal.moveTo(point.x,point.y-TILE_H/2+2);
+      reveal.lineTo(point.x+TILE_W/2-2,point.y);
+      reveal.lineTo(point.x,point.y+TILE_H/2-2);
+      reveal.lineTo(point.x-TILE_W/2+2,point.y);
+      reveal.closePath();reveal.fillPath();reveal.strokePath();
+      this.tweens.add({targets:reveal,alpha:0,duration:520,delay,ease:'Quad.easeOut',onComplete:()=>reveal.destroy()});
+
+      // Dust puffs rise and disperse from the parcel as the soil is revealed.
+      for(let puff=0;puff<3;puff++){
+        const dust=this.add.ellipse(point.x+(puff-1)*13,point.y-3,14+puff*3,8+puff*2,0xe8d6b1,0.72).setDepth(13000+cell.row);
+        this.tweens.add({targets:dust,x:dust.x+(puff-1)*12,y:dust.y-19-puff*3,alpha:0,scaleX:1.9,scaleY:1.7,duration:620+puff*80,delay:delay+puff*55,ease:'Sine.easeOut',onComplete:()=>dust.destroy()});
+      }
+
+      // A few small leaves drift outward, giving the edge a forest-clearing feel.
+      for(let leaf=0;leaf<3;leaf++){
+        const angle=(leaf/3)*Math.PI*2+(index%3)*0.35;
+        const startX=point.x+Math.cos(angle)*12,startY=point.y+Math.sin(angle)*7;
+        const foliage=this.add.ellipse(startX,startY,8,4,leaf===1?0x83ad48:0x6e963e,0.95).setDepth(13500+cell.row).setRotation(angle);
+        this.tweens.add({targets:foliage,x:startX+Math.cos(angle)*25,y:startY+Math.sin(angle)*18-12,angle:foliage.angle+160,alpha:0,scale:0.45,duration:780,delay:delay+leaf*45,ease:'Sine.easeOut',onComplete:()=>foliage.destroy()});
+      }
+    });
   }
   // Crop-field capacity grows with farmer level and purchased land, so expansions create usable growing space too.
   private get plowLimit():number {
