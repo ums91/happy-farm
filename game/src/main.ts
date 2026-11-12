@@ -34,7 +34,7 @@ if(visitorRaw){
     body.visitor-mode [id$="-modal"],body.visitor-mode .modal-backdrop,
     body.visitor-mode .side-panel,body.visitor-mode .drawer,body.visitor-mode .market-window,
     body.visitor-mode .world-label{display:none!important}
-    body.visitor-mode #game{pointer-events:none!important}
+    body.visitor-mode #game{pointer-events:auto!important;touch-action:none}
     body.visitor-mode button,body.visitor-mode input,body.visitor-mode select,
     body.visitor-mode textarea,body.visitor-mode [role="button"]{pointer-events:none!important}
     body.visitor-mode .visitor-banner,body.visitor-mode .visitor-banner *{pointer-events:auto!important}
