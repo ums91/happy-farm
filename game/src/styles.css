@@ -1653,3 +1653,10 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 .recovery-entry button{flex:0 0 auto;border:0;border-radius:8px;padding:8px 11px;background:#4c8747;color:#fff;font-size:11px;font-weight:800;cursor:pointer}
 #cloud-recovery-open{display:block;width:100%;text-align:center;padding:9px;border-radius:9px;background:#edf5e9;text-decoration:none}
 @media(max-width:520px){.cloud-account-card .recovery-history{max-height:32vh;padding:9px}.recovery-entry{align-items:flex-start}.recovery-entry button{padding:7px 8px}}
+
+
+.farm-backup-actions{display:grid;gap:8px;margin:12px 0;padding:12px;border:1px solid #d8c49a;border-radius:14px;background:#fffaf0}
+.farm-backup-actions h3{margin:0;color:#5e813d;font-size:15px}
+.farm-backup-actions p{margin:0;color:#75684f;font-size:11px;line-height:1.45}
+.farm-backup-actions button,.farm-backup-actions label{display:block;width:100%;box-sizing:border-box;text-align:center;border:0;border-radius:9px;padding:10px;background:#edf5e9;color:#466c39;font:700 12px inherit;cursor:pointer}
+.farm-backup-actions input{width:100%;font-size:11px;color:#75684f}
