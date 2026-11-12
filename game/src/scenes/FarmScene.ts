@@ -87,6 +87,7 @@ export class FarmScene extends Phaser.Scene {
   private sceneryLabels: Phaser.GameObjects.Text[] = [];
   private landTiles = new Set<string>();
   private landExpansionCountValue=0;
+  private landExpansionPreviewLabel:Phaser.GameObjects.Text|null=null;
   private displayedLevel=1;
   private farmhouseVisualLevel=1;
   private decor: Record<string,{col:number;row:number}> = {farmhouse:{col:3,row:1}};
@@ -330,6 +331,7 @@ export class FarmScene extends Phaser.Scene {
       const plot=this.plots.get(this.key(col,row));if(plot&&plot.state!=='grass')this.redrawPlot(plot);
     }
     this.drawFarmBoundary();
+    this.drawLandExpansionPreview();
     this.drawFlowerPatches();
   }
 
@@ -369,6 +371,43 @@ export class FarmScene extends Phaser.Scene {
         }
       });
     }
+  }
+
+  /**
+   * Shows the next purchasable land parcel on the actual farm map, similar to
+   * FarmVille's golden expansion outline. The preview is intentionally a ghost
+   * overlay: it never becomes playable until the player purchases it.
+   */
+  private drawLandExpansionPreview():void {
+    this.landExpansionPreviewLabel?.destroy();
+    this.landExpansionPreviewLabel=null;
+    const preferredSize=this.farmerLevel>=24?4:this.farmerLevel>=14?3:this.farmerLevel>=5?2:1;
+    let expansion=this.nextLandExpansion(preferredSize);
+    if(!expansion){
+      for(let size=preferredSize-1;size>=1&&!expansion;size--)expansion=this.nextLandExpansion(size as 1|2|3);
+    }
+    if(!expansion)return;
+    const g=this.plotGraphics;
+    let centerX=0,centerY=0;
+    expansion.cells.forEach(cell=>{
+      const p=this.toWorld(cell.col,cell.row);centerX+=p.x;centerY+=p.y;
+      g.fillStyle(0xffd66b,0.22);g.lineStyle(2.6,0xffd45c,0.98);
+      g.beginPath();g.moveTo(p.x,p.y-TILE_H/2+2);g.lineTo(p.x+TILE_W/2-2,p.y);g.lineTo(p.x,p.y+TILE_H/2-2);g.lineTo(p.x-TILE_W/2+2,p.y);g.closePath();g.fillPath();g.strokePath();
+      g.lineStyle(1,0xfff2bd,0.8);g.beginPath();g.moveTo(p.x-15,p.y);g.lineTo(p.x+15,p.y);g.strokePath();
+    });
+    centerX/=expansion.cells.length;centerY/=expansion.cells.length;
+    const locked=this.farmerLevel<expansion.level;
+    const label=(locked?'🔒 ':'🗺️ ')+expansion.size+' × '+expansion.size+' LAND\n'+(locked?'UNLOCK AT LEVEL '+expansion.level:'🪙 '+expansion.cost+' COINS');
+    const badge=this.add.text(centerX,centerY-TILE_H*0.72,label,{
+      fontFamily:'Arial',fontSize:expansion.size>=3?'12px':'11px',fontStyle:'bold',
+      color:'#fff8dc',align:'center',lineSpacing:2,
+      backgroundColor:locked?'#77694b':'#876022',
+      padding:{x:8,y:6},stroke:'#fff0b8',strokeThickness:1
+    }).setOrigin(0.5).setDepth(24000);
+    badge.setInteractive({useHandCursor:true});
+    badge.on('pointerdown',()=>{this.openMarket();this.renderMarket('buildings');document.querySelectorAll<HTMLButtonElement>('[data-market-tab]').forEach(tab=>tab.classList.toggle('active',tab.dataset.marketTab==='buildings'));});
+    this.tweens.add({targets:badge,y:badge.y-3,duration:1100,ease:'Sine.inOut',yoyo:true,repeat:-1});
+    this.landExpansionPreviewLabel=badge;
   }
 
   private drawFlowerPatches():void {
