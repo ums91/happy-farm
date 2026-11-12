@@ -80,6 +80,7 @@ export class FarmScene extends Phaser.Scene {
   private animalTroughs=new Map<AnimalId,Phaser.GameObjects.Container>();
   private animalHungryBadges=new Map<number,Phaser.GameObjects.Text>();
   private buildingProduceBadges=new Map<'coop'|'barn',Phaser.GameObjects.Text>();
+  private wellWaterBadge:Phaser.GameObjects.Text|null=null;
   private cropWaterBadges=new Map<string,Phaser.GameObjects.Text>();
   private sceneryGraphics: Phaser.GameObjects.Graphics[] = [];
   private sceneryLabels: Phaser.GameObjects.Text[] = [];
@@ -164,7 +165,7 @@ export class FarmScene extends Phaser.Scene {
     this.bindDailyReward();
     initializeCloudSaves();
     this.refreshSelection();
-    this.time.addEvent({ delay: 1000, loop: true, callback: () => { if((this.questRefreshAt>0&&Date.now()>=this.questRefreshAt)||(this.eventStartedAt>0&&Date.now()-this.eventStartedAt>=604800000)){this.ensureQuestAndEventCycles();this.renderSideRail();} this.updateCropLifecycle(); this.updateProduction(); this.updateFruitTrees(); this.updateAnimalHungryIndicators(); this.updateBuildingProduceBadges(); this.updateCropWaterBadges(); this.refreshCropHoverTooltip(); if(this.activeBuilding==='coop'||this.activeBuilding==='barn')this.renderBuildingPanel(this.activeBuilding);else if(this.activeBuilding)this.renderGenericBuildingPanel(this.activeBuilding); } });
+    this.time.addEvent({ delay: 1000, loop: true, callback: () => { if((this.questRefreshAt>0&&Date.now()>=this.questRefreshAt)||(this.eventStartedAt>0&&Date.now()-this.eventStartedAt>=604800000)){this.ensureQuestAndEventCycles();this.renderSideRail();} this.updateCropLifecycle(); this.updateProduction(); this.updateFruitTrees(); this.updateWellWaterBadge(); this.updateAnimalHungryIndicators(); this.updateBuildingProduceBadges(); this.updateCropWaterBadges(); this.refreshCropHoverTooltip(); if(this.activeBuilding==='coop'||this.activeBuilding==='barn')this.renderBuildingPanel(this.activeBuilding);else if(this.activeBuilding)this.renderGenericBuildingPanel(this.activeBuilding); } });
     this.input.on('wheel', (_pointer: Phaser.Input.Pointer, _objects: unknown[], _dx: number, dy: number) => {
       const camera=this.cameras.main;const anchor=camera.getWorldPoint(_pointer.x,_pointer.y);camera.setZoom(Phaser.Math.Clamp(camera.zoom-dy*0.0015,this.minFarmZoom,1.8));const after=camera.getWorldPoint(_pointer.x,_pointer.y);camera.scrollX+=anchor.x-after.x;camera.scrollY+=anchor.y-after.y;
     });
@@ -402,7 +403,7 @@ export class FarmScene extends Phaser.Scene {
     Object.keys(this.decor).forEach(id=>{
       const kind=this.fruitKind(id);if(!kind)return;
       const p=this.toWorld(this.decor[id]!.col,this.decor[id]!.row);
-      const badge=this.add.text(p.x+26,p.y-91,'',{fontFamily:'Arial',fontSize:'13px',fontStyle:'bold',color:'#fff7cf',backgroundColor:'#315b2b',padding:{x:5,y:3},stroke:'#203d1f',strokeThickness:2}).setOrigin(.5).setDepth(20000);
+      const badge=this.add.text(p.x,p.y-104,'',{fontFamily:'Arial',fontSize:'15px',fontStyle:'bold',color:'#fff7cf',backgroundColor:'#315b2b',padding:{x:7,y:4},stroke:'#203d1f',strokeThickness:2}).setOrigin(.5).setDepth(20000);
       badge.setInteractive({useHandCursor:true});badge.on('pointerdown',()=>this.harvestFruitTree(id));
       this.fruitTreeBadges[id]=badge;
     });
@@ -413,8 +414,8 @@ export class FarmScene extends Phaser.Scene {
     Object.keys(this.decor).forEach(id=>{
       const kind=this.fruitKind(id);if(!kind)return;
       if(!this.fruitTreeReadyAt[id]){this.fruitTreeReadyAt[id]=now+this.fruitConfig(kind).interval;changed=true;}
-      const remaining=this.fruitTreeReadyAt[id]!-now;const badge=this.fruitTreeBadges[id];if(!badge)return;const treePos=this.decor[id]!;const treeWorld=this.toWorld(treePos.col,treePos.row);badge.setPosition(treeWorld.x+26,treeWorld.y-91);
-      if(remaining<=0){badge.setText(this.fruitConfig(kind).emoji+' Ready!').setVisible(true).setBackgroundColor('#397b27');}
+      const remaining=this.fruitTreeReadyAt[id]!-now;const badge=this.fruitTreeBadges[id];if(!badge)return;const treePos=this.decor[id]!;const treeWorld=this.toWorld(treePos.col,treePos.row);badge.setPosition(treeWorld.x,treeWorld.y-104);
+      if(remaining<=0){badge.setText(this.fruitConfig(kind).emoji+' Collect').setVisible(true).setBackgroundColor('#397b27');}
       else {badge.setVisible(false);}
     });
     if(changed)this.saveFarm();
@@ -806,6 +807,8 @@ export class FarmScene extends Phaser.Scene {
     const world=this.cameras.main.getWorldPoint(pointer.x,pointer.y);
     // In select mode, collect finished produce directly from the individual animal.
     if(this.activeTool==='select'){
+      // Ready water appears above the Well and is collected with one click.
+      if(this.wellWaterBadge?.active&&Phaser.Math.Distance.Between(world.x,world.y,this.wellWaterBadge.x,this.wellWaterBadge.y)<26){this.collectWellWater();return;}
       // Ready egg/milk icons sit above the coop/shed; one click collects the available batch.
       const buildingHit=[...this.buildingProduceBadges.entries()].find(([,badge])=>badge.active&&Phaser.Math.Distance.Between(world.x,world.y,badge.x,badge.y)<24);
       if(buildingHit){this.collectBuildingProduce(buildingHit[0]);return;}
@@ -867,8 +870,10 @@ export class FarmScene extends Phaser.Scene {
       }
       return;
     }
-    // Prioritise orchard trees over the underlying grass/field tile.
+    // Prioritise orchard collection badges over the underlying grass/field tile.
     if(this.activeTool==='select'){
+      const fruitBadgeHit=Object.entries(this.fruitTreeBadges).find(([,badge])=>badge.active&&badge.visible&&Phaser.Math.Distance.Between(world.x,world.y,badge.x,badge.y)<27);
+      if(fruitBadgeHit){this.harvestFruitTree(fruitBadgeHit[0]);return;}
       const fruitTreeHit=Object.keys(this.decor).find(id=>this.fruitKind(id)!==null&&(()=>{
         const p=this.toWorld(this.decor[id]!.col,this.decor[id]!.row);
         return Phaser.Math.Distance.Between(world.x,world.y-38,p.x,p.y-49)<48;
@@ -1715,7 +1720,19 @@ export class FarmScene extends Phaser.Scene {
   }
   private get waterCapacity():number{return this.decor.well?10+Math.max(0,this.buildingLevels.well-1)*5+(this.decor.waterTower?20+Math.max(0,this.buildingLevels.waterTower-1)*10:0):0;}
    private get wellWaterYield():number{return this.decor.well?3+Math.max(0,this.buildingLevels.well-1)*2:0;}
-  private collectWellWater():void{if(!this.decor.well){this.toast('Build a Stone Well to collect water.');return;}const now=Date.now(),cooldown=30*60*1000;if(this.waterCollectedAt&&now-this.waterCollectedAt<cooldown){const left=Math.ceil((cooldown-(now-this.waterCollectedAt))/60000);this.toast('The Well needs '+left+' more minute(s) to refill.');return;}const gained=Math.min(this.wellWaterYield,this.waterCapacity-this.waterUnits);if(gained<=0){this.toast('Water storage is full.');return;}this.waterUnits+=gained;this.waterCollectedAt=now;this.saveFarm();this.refreshHud();if(this.activeBuilding==='well')this.renderGenericBuildingPanel('well');this.toast('Collected '+gained+' water from the Well.');}
+  private updateWellWaterBadge():void{
+     const pos=this.decor.well,ready=!!pos&&this.waterUnits<this.waterCapacity&&(!this.waterCollectedAt||Date.now()-this.waterCollectedAt>=30*60*1000);
+     if(!ready||!pos){if(this.wellWaterBadge){this.wellWaterBadge.destroy();this.wellWaterBadge=null;}return;}
+     const p=this.toWorld(pos.col,pos.row),x=p.x,y=p.y-94;
+     if(!this.wellWaterBadge){
+       this.wellWaterBadge=this.add.text(x,y,'💧 Collect',{fontFamily:'Arial',fontSize:'15px',fontStyle:'bold',color:'#effaff',backgroundColor:'#2478a6',padding:{x:7,y:4},stroke:'#174765',strokeThickness:2}).setOrigin(.5).setDepth(20000);
+       this.wellWaterBadge.setInteractive({useHandCursor:true});
+       this.wellWaterBadge.on('pointerdown',(_pointer:any,_x:number,_y:number,event:any)=>{event?.stopPropagation?.();this.collectWellWater();});
+       this.tweens.add({targets:this.wellWaterBadge,y:y-4,duration:700,yoyo:true,repeat:-1,ease:'Sine.inOut'});
+     }else this.wellWaterBadge.setPosition(x,y).setVisible(true);
+   }
+
+   private collectWellWater():void{if(!this.decor.well){this.toast('Build a Stone Well to collect water.');return;}const now=Date.now(),cooldown=30*60*1000;if(this.waterCollectedAt&&now-this.waterCollectedAt<cooldown){const left=Math.ceil((cooldown-(now-this.waterCollectedAt))/60000);this.toast('The Well needs '+left+' more minute(s) to refill.');return;}const gained=Math.min(this.wellWaterYield,this.waterCapacity-this.waterUnits);if(gained<=0){this.toast('Water storage is full.');return;}this.waterUnits+=gained;this.waterCollectedAt=now;this.updateWellWaterBadge();this.saveFarm();this.refreshHud();if(this.activeBuilding==='well')this.renderGenericBuildingPanel('well');this.toast('Collected '+gained+' water from the Well.');}
   private renderGenericBuildingPanel(id:BuildingId):void {
     if(id==='bakery'||id==='greenhouse'||id==='windmill'){this.renderProductionPanel(id);return;}
     const level=this.buildingLevels[id]||this.buildings.warehouseLevel;const cost=level*350;const names:Record<BuildingId,string>={coop:'Chicken Run',barn:'Cow Pasture',silo:'Grain Silo',bakery:'Village Bakery',greenhouse:'Greenhouse',windmill:'Windmill',stable:'Horse Stable',well:'Stone Well',workshop:'Farm Workshop',waterTower:'Water Tower'};
