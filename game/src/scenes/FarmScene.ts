@@ -2437,7 +2437,7 @@ export class FarmScene extends Phaser.Scene {
     if (farmerSub) farmerSub.textContent = level === 1 ? 'Your farm adventure begins!' : level < 5 ? 'Growing into a skilled farmer!' : 'A flourishing farm awaits!';
     const progress = document.getElementById('progress-text');
     const fill = document.getElementById('progress-fill');
-    if (progress) progress.textContent = `${this.levelProgress} / ${this.xpNeededForNextLevel} XP`;
+    if (progress) progress.textContent = this.farmerLevel >= 100 ? `${this.xp.toLocaleString()} total XP · MAX` : `${this.levelProgress} / ${this.xpNeededForNextLevel} XP · ${this.xp.toLocaleString()} total`;
     if (fill) (fill as HTMLElement).style.width = `${Math.min(100,this.levelProgress/this.xpNeededForNextLevel*100)}%`;
     const animalStatus=document.getElementById('animal-status'); if(animalStatus){const now=Date.now();const ready=this.animals.filter(a=>a.readyAt>0&&a.readyAt<=now).length;const producing=this.animals.filter(a=>a.readyAt>now).length;const waiting=this.animals.filter(a=>a.readyAt===0).length;animalStatus.textContent=this.animals.length?this.animals.length+' animal(s) · '+ready+' ready · '+producing+' producing · '+waiting+' waiting · eggs '+this.produce.eggs+' / milk '+this.produce.milk+'.':'No animals yet. Visit the Coop or Dairy Barn to manage housing.';}
     const w=document.getElementById('wheat-count'); if(w) w.textContent=String(this.inventory.wheat);
