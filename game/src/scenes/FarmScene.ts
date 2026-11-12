@@ -1594,7 +1594,7 @@ export class FarmScene extends Phaser.Scene {
         const restored:Record<string,{col:number;row:number}>={};
         for(const [id,value] of Object.entries(save.decor as Record<string,unknown>)) {
           const pos=value as {col?:unknown;row?:unknown};
-          const allowed=id in this.decor || /^(appleTree|pearTree|cherryTree|flowerbed|fountain|scarecrow|bench|bakery|greenhouse|windmill|coop|barn|silo|stable|well|workshop|waterTower)\d*$/.test(id);
+          const allowed=id in this.decor || /^decor_[a-z0-9_]+\d*$/i.test(id) || /^(appleTree|pearTree|cherryTree|flowerbed|fountain|scarecrow|bench|bakery|greenhouse|windmill|coop|barn|silo|stable|well|workshop|waterTower)\d*$/.test(id);
           if(allowed && Number.isInteger(pos?.col) && Number.isInteger(pos?.row) && Number(pos.col)>=0 && Number(pos.col)<COLS && Number(pos.row)>=0 && Number(pos.row)<ROWS) restored[id]={col:Number(pos.col),row:Number(pos.row)};
         }
         this.decor={...this.decor,...restored};
