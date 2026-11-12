@@ -12,7 +12,7 @@ interface AnimalProduce { eggs: number; milk: number }
 type BuildingId = 'coop'|'barn'|'silo'|'bakery'|'greenhouse'|'windmill'|'stable'|'well'|'workshop'|'waterTower';
 type ProductId='flour'|'bread'|'pastry'|'grapes';
 interface ProductionJob { recipe:string; readyAt:number }
-interface FarmSave { version: 18; water?:number; waterCollectedAt?:number; farmExpansionLevel?:number; landTiles?:string[]; landExpansionCount?:number; questRefreshAt?:number; questProgressBaseline?:Partial<Record<'harvests'|'hens'|'cows'|'eggs'|'milk',number>>; eventStartedAt?:number; eventStartHarvests?:number; eventClaimed?:boolean; claimedMilestones?:number[]; harvestedCrops?:Partial<Record<CropId,number>>; fruitInventory?:Record<'apples'|'pears'|'cherries'|'oranges',number>; fruitTreeReadyAt?:Record<string,number>; farmerName?:string; farmName?:string; buildingLevels?:Partial<Record<BuildingId,number>>; productionJobs?:Partial<Record<BuildingId,ProductionJob|null>>; crafted?:Partial<Record<ProductId,number>>; randomQuests?: Array<{id:string;title:string;description:string;target:number;coins:number;xp:number;icon:string;metric:'harvests'|'hens'|'cows'|'eggs'|'milk'}>; claimedQuests?: string[]; ordersCompleted?: Record<string,number>; animals: Animal[]; harvests: number; coins: number; xp: number; selectedCrop?: CropId; decor?: Record<string,{col:number;row:number}>; storedDecor?:string[]; feed: { hen: number; cow: number }; buildings?: BuildingProgress; produce?: AnimalProduce; inventory: Record<CropId, number>; plots: Array<{ col:number; row:number; state:PlotState; watered:boolean; growth:number; crop?:CropId; readyAt?:number; witherAt?:number }> }
+interface FarmSave { version: 19; workshopCompost?:number; water?:number; waterCollectedAt?:number; farmExpansionLevel?:number; landTiles?:string[]; landExpansionCount?:number; questRefreshAt?:number; questProgressBaseline?:Partial<Record<'harvests'|'hens'|'cows'|'eggs'|'milk',number>>; eventStartedAt?:number; eventStartHarvests?:number; eventClaimed?:boolean; claimedMilestones?:number[]; harvestedCrops?:Partial<Record<CropId,number>>; fruitInventory?:Record<'apples'|'pears'|'cherries'|'oranges',number>; fruitTreeReadyAt?:Record<string,number>; farmerName?:string; farmName?:string; buildingLevels?:Partial<Record<BuildingId,number>>; productionJobs?:Partial<Record<BuildingId,ProductionJob|null>>; crafted?:Partial<Record<ProductId,number>>; randomQuests?: Array<{id:string;title:string;description:string;target:number;coins:number;xp:number;icon:string;metric:'harvests'|'hens'|'cows'|'eggs'|'milk'}>; claimedQuests?: string[]; ordersCompleted?: Record<string,number>; animals: Animal[]; harvests: number; coins: number; xp: number; selectedCrop?: CropId; decor?: Record<string,{col:number;row:number}>; storedDecor?:string[]; feed: { hen: number; cow: number }; buildings?: BuildingProgress; produce?: AnimalProduce; inventory: Record<CropId, number>; plots: Array<{ col:number; row:number; state:PlotState; watered:boolean; growth:number; crop?:CropId; readyAt?:number; witherAt?:number }> }
 const CROPS: Record<CropId,{name:string;emoji:string;cost:number;reward:number;xp:number;growMs:number;color:number;unlockLevel:number}> = {
  wheat:{name:'Wheat',emoji:'🌾',cost:8,reward:22,xp:2,growMs:5*60*1000,color:0xe4b83f,unlockLevel:1},
  carrot:{name:'Carrot',emoji:'🥕',cost:14,reward:38,xp:3,growMs:10*60*1000,color:0xef873e,unlockLevel:1},
@@ -74,13 +74,14 @@ export class FarmScene extends Phaser.Scene {
   private buildingLevels: Record<BuildingId,number>={coop:0,barn:0,silo:0,bakery:0,greenhouse:0,windmill:0,stable:0,well:0,workshop:0,waterTower:0};
   private productionJobs: Record<BuildingId,ProductionJob|null>={coop:null,barn:null,silo:null,bakery:null,greenhouse:null,windmill:null,stable:null,well:null,workshop:null,waterTower:null};
   private crafted: Record<ProductId,number>={flour:0,bread:0,pastry:0,grapes:0};
+  private workshopCompost=0;
   private animalActors: Phaser.GameObjects.Container[] = [];
   private animalSprites = new Map<Phaser.GameObjects.Container, Phaser.GameObjects.Sprite>();
   private animalReservedCells=new Set<string>();
   private animalTroughs=new Map<AnimalId,Phaser.GameObjects.Container>();
   private animalHungryBadges=new Map<number,Phaser.GameObjects.Text>();
   private buildingProduceBadges=new Map<'coop'|'barn',Phaser.GameObjects.Text>();
-  private productionReadyBadges=new Map<'bakery'|'greenhouse'|'windmill',Phaser.GameObjects.Text>();
+  private productionReadyBadges=new Map<'bakery'|'greenhouse'|'windmill'|'workshop',Phaser.GameObjects.Text>();
   private wellWaterBadge:Phaser.GameObjects.Text|null=null;
   private cropWaterBadges=new Map<string,Phaser.GameObjects.Text>();
   private sceneryGraphics: Phaser.GameObjects.Graphics[] = [];
@@ -1717,7 +1718,7 @@ export class FarmScene extends Phaser.Scene {
     document.querySelectorAll<HTMLButtonElement>('[data-market-tab]').forEach(tab=>tab.addEventListener('click',()=>{document.querySelectorAll('[data-market-tab]').forEach(x=>x.classList.remove('active'));tab.classList.add('active');const cat=tab.dataset.marketTab||'seeds';const intro=document.getElementById('market-intro');if(intro)intro.textContent=cat==='seeds'?'Choose seeds for your next harvest.':cat==='animals'?'Welcome new animals to your farm.':cat==='trees'?'Browse shade trees and fruit trees for your orchard.':cat==='decor'?'Browse flowers, ornaments, paths and other farm decorations.':cat==='buildings'?'Build and upgrade new farm facilities as your farmer levels up.':cat==='sell'?'Sell harvested crops, orchard fruit, animal produce and crafted goods for coins.':'Buy the correct feed for each animal. Feed is required to produce eggs and milk.';this.renderMarket(cat);}));
     document.addEventListener('keydown',e=>{if(e.key==='Escape'){this.closeMarket();document.getElementById('farm-profile-modal')?.classList.remove('open');document.getElementById('farm-profile-modal')?.setAttribute('aria-hidden','true');}});
     document.getElementById('animal-action')?.addEventListener('click',()=>this.careForAnimals());
-     document.getElementById('market-items')?.addEventListener('click',e=>{const target=e.target as HTMLElement;const seed=target.closest<HTMLButtonElement>('[data-field-seed]');if(seed&&!seed.disabled){this.selectedCrop=seed.dataset.fieldSeed as CropId;this.activeTool='plant';document.querySelectorAll('[data-tool]').forEach(el=>el.classList.toggle('active',(el as HTMLElement).dataset.tool==='plant'));this.closeMarket();this.refreshCropSelector();this.refreshSelection();this.toast(CROPS[this.selectedCrop].name+' selected. Tap each ploughed field to sow.');}const sell=target.closest<HTMLButtonElement>('[data-sell-item]');if(sell&&!sell.disabled)this.sellInventoryItem(sell.dataset.sellItem||'');if(target.closest('#sell-produce'))this.sellProduce();const quest=target.closest<HTMLButtonElement>('[data-claim-quest]');if(quest)this.claimQuest(quest.dataset.claimQuest||'');const order=target.closest<HTMLButtonElement>('[data-fulfil-order]');if(order)this.fulfilOrder(order.dataset.fulfilOrder||'');const warehouse=target.closest<HTMLButtonElement>('#upgrade-warehouse');if(warehouse){const cost=this.buildings.warehouseLevel*1000;if(this.buildings.warehouseLevel<10&&this.coins>=cost){this.coins-=cost;this.buildings.warehouseLevel++;this.buildingLevels.silo=this.buildings.warehouseLevel;this.saveFarm();this.refreshHud();this.renderInventory();this.toast('Silo upgraded. Egg and milk storage expanded!');}}const toggle=target.closest<HTMLButtonElement>('[data-animal-toggle]');if(toggle){const animal=this.animals[Number(toggle.dataset.animalToggle)];if(animal){animal.assigned=animal.assigned===false;this.saveFarm();this.refreshHud();if(this.activeBuilding==='coop'||this.activeBuilding==='barn')this.renderBuildingPanel(this.activeBuilding);else if(this.activeBuilding)this.renderGenericBuildingPanel(this.activeBuilding);else this.renderInventory();this.toast(animal.assigned?'Animal assigned to production.':'Animal is resting.');}}const action=target.closest<HTMLButtonElement>('[data-building-action]')?.dataset.buildingAction;if(action&&(this.activeBuilding==='coop'||this.activeBuilding==='barn'))this.runBuildingAction(this.activeBuilding,action as 'collect'|'feed');const start=target.closest<HTMLButtonElement>('[data-production-start]')?.dataset.productionStart;if(start&&this.activeBuilding)this.startProduction(this.activeBuilding,start);if(target.closest('#collect-production')&&this.activeBuilding)this.collectProduction(this.activeBuilding);const delivery=target.closest<HTMLButtonElement>('[data-fulfil-crafted]')?.dataset.fulfilCrafted;if(delivery)this.fulfilCraftedOrder(delivery);});
+     document.getElementById('market-items')?.addEventListener('click',e=>{const target=e.target as HTMLElement;const seed=target.closest<HTMLButtonElement>('[data-field-seed]');if(seed&&!seed.disabled){this.selectedCrop=seed.dataset.fieldSeed as CropId;this.activeTool='plant';document.querySelectorAll('[data-tool]').forEach(el=>el.classList.toggle('active',(el as HTMLElement).dataset.tool==='plant'));this.closeMarket();this.refreshCropSelector();this.refreshSelection();this.toast(CROPS[this.selectedCrop].name+' selected. Tap each ploughed field to sow.');}const sell=target.closest<HTMLButtonElement>('[data-sell-item]');if(sell&&!sell.disabled)this.sellInventoryItem(sell.dataset.sellItem||'');if(target.closest('#sell-produce'))this.sellProduce();const quest=target.closest<HTMLButtonElement>('[data-claim-quest]');if(quest)this.claimQuest(quest.dataset.claimQuest||'');const order=target.closest<HTMLButtonElement>('[data-fulfil-order]');if(order)this.fulfilOrder(order.dataset.fulfilOrder||'');const warehouse=target.closest<HTMLButtonElement>('#upgrade-warehouse');if(warehouse){const cost=this.buildings.warehouseLevel*1000;if(this.buildings.warehouseLevel<10&&this.coins>=cost){this.coins-=cost;this.buildings.warehouseLevel++;this.buildingLevels.silo=this.buildings.warehouseLevel;this.saveFarm();this.refreshHud();this.renderInventory();this.toast('Silo upgraded. Egg and milk storage expanded!');}}const toggle=target.closest<HTMLButtonElement>('[data-animal-toggle]');if(toggle){const animal=this.animals[Number(toggle.dataset.animalToggle)];if(animal){animal.assigned=animal.assigned===false;this.saveFarm();this.refreshHud();if(this.activeBuilding==='coop'||this.activeBuilding==='barn')this.renderBuildingPanel(this.activeBuilding);else if(this.activeBuilding)this.renderGenericBuildingPanel(this.activeBuilding);else this.renderInventory();this.toast(animal.assigned?'Animal assigned to production.':'Animal is resting.');}}const action=target.closest<HTMLButtonElement>('[data-building-action]')?.dataset.buildingAction;if(action&&(this.activeBuilding==='coop'||this.activeBuilding==='barn'))this.runBuildingAction(this.activeBuilding,action as 'collect'|'feed');const start=target.closest<HTMLButtonElement>('[data-production-start]')?.dataset.productionStart;if(start&&this.activeBuilding)this.startProduction(this.activeBuilding,start);if(target.closest('#collect-production')&&this.activeBuilding)this.collectProduction(this.activeBuilding);const delivery=target.closest<HTMLButtonElement>('[data-fulfil-crafted]')?.dataset.fulfilCrafted;if(delivery)this.fulfilCraftedOrder(delivery);const compost=target.closest<HTMLButtonElement>('[data-apply-compost]');if(compost)this.applyWorkshopCompost(compost.dataset.applyCompost||'');});
   }
   private careForAnimals(): void { if(!this.animals.length){this.openMarket();document.querySelector<HTMLButtonElement>('[data-market-tab=animals]')?.click();return;}let collected=0,fed=0,waiting=0;for(const kind of ['hen','cow'] as AnimalId[]){const result=this.collectAndFeed(kind);collected+=result.collected;fed+=result.fed;waiting+=result.waiting;}this.saveFarm();this.refreshHud();this.toast('Stored '+collected+' product(s) · fed '+fed+' · waiting for feed: '+waiting+'.');}
   private animalProductionDuration(kind:AnimalId):number{return kind==='hen'?10*60*1000:30*60*1000;}
@@ -1852,13 +1853,47 @@ export class FarmScene extends Phaser.Scene {
    private collectWellWater():void{if(!this.decor.well){this.toast('Build a Stone Well to collect water.');return;}const now=Date.now(),cooldown=30*60*1000;if(this.waterCollectedAt&&now-this.waterCollectedAt<cooldown){const left=Math.ceil((cooldown-(now-this.waterCollectedAt))/60000);this.toast('The Well needs '+left+' more minute(s) to refill.');return;}const gained=Math.min(this.wellWaterYield,this.waterCapacity-this.waterUnits);if(gained<=0){this.toast('Water storage is full.');return;}this.waterUnits+=gained;this.waterCollectedAt=now;this.updateWellWaterBadge();this.saveFarm();this.refreshHud();if(this.activeBuilding==='well')this.renderGenericBuildingPanel('well');this.toast('Collected '+gained+' water from the Well.');}
   private renderGenericBuildingPanel(id:BuildingId):void {
     if(id==='bakery'||id==='greenhouse'||id==='windmill'){this.renderProductionPanel(id);return;}
+    if(id==='workshop'){this.renderWorkshopPanel();return;}
+    if(id==='workshop'){this.renderWorkshopPanel();return;}
     const level=this.buildingLevels[id]||this.buildings.warehouseLevel;const cost=level*350;const names:Record<BuildingId,string>={coop:'Chicken Run',barn:'Cow Pasture',silo:'Grain Silo',bakery:'Village Bakery',greenhouse:'Greenhouse',windmill:'Windmill',stable:'Horse Stable',well:'Stone Well',workshop:'Farm Workshop',waterTower:'Water Tower'};
-    const perks:Record<BuildingId,string>={coop:'Expands the chicken run, adding 2 hen spaces and 5 egg storage per level.',barn:'Expands the cow pasture, adding 2 cow spaces and 5 milk storage per level.',silo:'Adds 10 shared animal-product storage spaces per level.',bakery:'A growing production hub for baked-goods recipes.',greenhouse:'A glasshouse for advanced crops and specialist growing.',windmill:'A landmark mill that completes your homestead.',stable:'Unlocks the next chapter of farm companions and stable upgrades.',well:'A reliable water source for your growing homestead.',workshop:'A dedicated place for future tool crafting and farm improvements.',waterTower:'A landmark water system for your expanded farm.'};
+    const perks:Record<BuildingId,string>={coop:'Expands the chicken run, adding 2 hen spaces and 5 egg storage per level.',barn:'Expands the cow pasture, adding 2 cow spaces and 5 milk storage per level.',silo:'Adds 10 shared animal-product storage spaces per level.',bakery:'A growing production hub for baked-goods recipes.',greenhouse:'A glasshouse for advanced crops and specialist growing.',windmill:'A landmark mill that completes your homestead.',stable:'Unlocks the next chapter of farm companions and stable upgrades.',well:'A reliable water source for your growing homestead.',workshop:'Craft nutrient-rich compost from harvested crops and use it to speed up growing fields.',waterTower:'A landmark water system for your expanded farm.'};
     const host=document.getElementById('market-items');if(!host)return;
     const waterPanel=id==='well'?'<section class="inventory-section"><h3>💧 Water supply</h3><p>Water available: <strong>'+this.waterUnits+' / '+this.waterCapacity+'</strong>. The Well collects '+this.wellWaterYield+' water every 30 minutes at its current level. Each growing field uses 1 water and has its remaining growth time cut in half.</p><button class="market-buy" id="collect-well-water" '+(!this.decor.well||this.waterUnits>=this.waterCapacity|| (this.waterCollectedAt>0&&Date.now()-this.waterCollectedAt<30*60*1000)?'disabled':'')+'>💧 Collect '+this.wellWaterYield+' water</button></section>':id==='waterTower'?'<section class="inventory-section"><h3>💧 Expanded water storage</h3><p>Water Tower adds 20 storage capacity, plus 10 for each upgrade level. Current capacity: '+this.waterCapacity+'.</p></section>':'';
     host.innerHTML=waterPanel+'<section class="inventory-section"><h3>🏗️ '+names[id]+' · Level '+level+'</h3><p>'+perks[id]+'</p><div class="building-levels">'+[1,2,3,4,5].map(n=>'<span class="'+(n<=level?'reached':'')+'">★</span>').join('')+'</div><p>Upgrade cost: '+cost+' coins. Maximum level: 5.</p><button class="market-buy" id="upgrade-generic-building" '+(level>=5||this.coins<cost?'disabled':'')+'>'+(level>=5?'Maximum level reached':'🪙 '+cost+' · Upgrade to Level '+(level+1))+'</button></section>';
     host.querySelector<HTMLButtonElement>('#collect-well-water')?.addEventListener('click',()=>this.collectWellWater());
     host.querySelector<HTMLButtonElement>('#upgrade-generic-building')?.addEventListener('click',()=>{if(level>=5||this.coins<cost)return;this.coins-=cost;if(id==='silo')this.buildings.warehouseLevel++;this.buildingLevels[id]=level+1;this.drawScenery();this.saveFarm();this.refreshHud();this.renderGenericBuildingPanel(id);this.toast(names[id]+' upgraded to Level '+(level+1)+'.');});
+  }
+
+  private renderWorkshopPanel():void {
+    const host=document.getElementById('market-items');if(!host)return;
+    const job=this.productionJobs.workshop,remaining=job?Math.max(0,Math.ceil((job.readyAt-Date.now())/1000)):0,level=this.buildingLevels.workshop||1;
+    const ready=!!job&&remaining===0,duration=Math.max(30,Math.round(90*(1-(level-1)*.1)));
+    const growing=Array.from(this.plots.entries()).filter(([,p])=>p.state==='growing').sort((a,b)=>a[1].readyAt-b[1].readyAt);
+    const fields=growing.map(([key,p])=>'<article class="market-item"><div class="market-copy"><strong>'+CROPS[p.crop].emoji+' '+CROPS[p.crop].name+' · Field '+(p.col+1)+', '+(p.row+1)+'</strong><small>'+Math.max(1,Math.ceil((p.readyAt-Date.now())/60000))+' min remaining</small></div><button class="market-buy" data-apply-compost="'+key+'" '+(this.workshopCompost<=0?'disabled':'')+'>🌿 Apply compost</button></article>').join('');
+    const batch=job?'<section class="inventory-section production-active"><div class="production-status-row"><h3>🧪 Compost batch</h3><strong class="'+(ready?'production-ready':'')+'">'+(ready?'Ready to collect':'In production')+'</strong></div><p>🌿 Nutrient-rich compost · '+(ready?'Finished':remaining+'s remaining')+'</p><div class="production-track"><i style="width:'+Math.max(0,Math.min(100,(1-(job.readyAt-Date.now())/(duration*1000))*100))+'%"></i></div><button class="market-buy" id="collect-production" '+(!ready?'disabled':'')+'>Collect 1 compost</button></section>':'<section class="inventory-section"><h3>🧪 Compost recipe</h3><p>Combine 2 Wheat and 1 Carrot. Crafting time: '+duration+' seconds.</p><div class="production-ingredients"><span class="production-ingredient '+(this.inventory.wheat>=2?'available':'missing')+'">🌾 '+this.inventory.wheat+'/2 Wheat</span><span class="production-ingredient '+(this.inventory.carrot>=1?'available':'missing')+'">🥕 '+this.inventory.carrot+'/1 Carrot</span></div><button class="market-buy" data-production-start="compost" '+(this.inventory.wheat<2||this.inventory.carrot<1?'disabled':'')+'>Start compost batch</button></section>';
+    host.innerHTML='<section class="inventory-section production-building-heading"><h3>🛠️ Farm Workshop <span class="production-level">Level '+level+'</span></h3><p>Turn harvested crops into nutrient-rich compost. Apply compost to a growing field to reduce its remaining growth time by 20%.</p><div class="building-levels">'+[1,2,3,4,5].map(n=>'<span class="'+(n<=level?'reached':'')+'">★</span>').join('')+'</div></section>'+batch+'<section class="inventory-section"><div class="production-status-row"><h3>🌿 Compost storage</h3><strong>× '+this.workshopCompost+'</strong></div><p>Each compost batch speeds up one growing field by 20% of its remaining time.</p></section><section class="inventory-section"><h3>🌱 Growing fields · Apply compost</h3><div class="quest-list">'+(fields||'<p>No crops are currently growing. Sow a field first, then return here to apply compost.</p>')+'</div></section><section class="inventory-section"><div class="production-status-row"><h3>⬆️ Workshop upgrade</h3><strong>Level '+level+'/5</strong></div><p>Each upgrade reduces crafting time by 10%. Upgrade cost: '+(level*350)+' coins.</p><button class="market-buy" id="upgrade-generic-building" '+(level>=5||this.coins<level*350?'disabled':'')+'>'+(level>=5?'Maximum level reached':'🪙 '+(level*350)+' · Upgrade to Level '+(level+1))+'</button></section>';
+    host.querySelector<HTMLButtonElement>('[data-production-start]')?.addEventListener('click',()=>this.startWorkshopProduction('compost'));
+    host.querySelector<HTMLButtonElement>('#upgrade-generic-building')?.addEventListener('click',()=>{const cost=level*350;if(level>=5||this.coins<cost)return;this.coins-=cost;this.buildingLevels.workshop=level+1;this.saveFarm();this.refreshHud();this.renderWorkshopPanel();this.toast('Farm Workshop upgraded to Level '+(level+1)+'.');});
+  }
+  private startWorkshopProduction(recipeId:string):void {
+    if(recipeId!=='compost'||this.productionJobs.workshop)return;
+    if(this.inventory.wheat<2||this.inventory.carrot<1){this.toast('You need 2 Wheat and 1 Carrot to make compost.');return;}
+    this.inventory.wheat-=2;this.inventory.carrot-=1;
+    const level=this.buildingLevels.workshop||1,duration=Math.max(30000,90000*(1-(level-1)*.1));
+    this.productionJobs.workshop={recipe:'compost',readyAt:Date.now()+duration};
+    this.saveFarm();this.refreshHud();this.updateProductionReadyBadges();this.renderWorkshopPanel();this.toast('Compost batch started in the Workshop.');
+  }
+  private collectWorkshopProduction():void {
+    const job=this.productionJobs.workshop;if(!job||job.readyAt>Date.now()||job.recipe!=='compost')return;
+    this.workshopCompost++;this.xp+=6;this.productionJobs.workshop=null;
+    this.saveFarm();this.refreshHud();this.updateProductionReadyBadges();this.renderWorkshopPanel();this.toast('Collected 1 compost · +6 XP');
+  }
+  private applyWorkshopCompost(key:string):void {
+    const plot=this.plots.get(key);if(!plot||plot.state!=='growing'||this.workshopCompost<=0){this.toast('Compost can only be applied to a growing field.');return;}
+    const remaining=Math.max(0,plot.readyAt-Date.now());if(remaining<=0){this.updateCropLifecycle();return;}
+    const reduction=Math.max(1000,Math.floor(remaining*.2));this.workshopCompost--;this.scheduleGrowth(plot,Math.max(1000,remaining-reduction));
+    plot.growth=Math.min(99,plot.growth+Math.floor((reduction/Math.max(1,CROPS[plot.crop].growMs))*100));
+    this.redrawPlot(plot);this.saveFarm();this.refreshHud();this.renderWorkshopPanel();this.toast('Compost applied · crop growth accelerated by 20% of remaining time.');
   }
 
   private productionRecipes(id:'bakery'|'greenhouse'|'windmill'):Array<{id:string;name:string;icon:string;seconds:number;inputs:Partial<Record<CropId,number>>;goods:Partial<Record<ProductId,number>>;output:ProductId;quantity:number;coins:number;xp:number}> {
@@ -1868,7 +1903,7 @@ export class FarmScene extends Phaser.Scene {
   }
   private productName(id:ProductId):string{return ({flour:'Flour',bread:'Fresh Bread',pastry:'Country Pastries',grapes:'Greenhouse Grapes'} as Record<ProductId,string>)[id];}
   private updateProductionReadyBadges():void {
-    (['greenhouse','windmill','bakery'] as const).forEach(id=>{
+    (['greenhouse','windmill','bakery','workshop'] as const).forEach(id=>{
       const pos=this.decor[id],job=this.productionJobs[id];
       const ready=!!pos&&!!job&&job.readyAt<=Date.now();
       let badge=this.productionReadyBadges.get(id);
@@ -1876,7 +1911,7 @@ export class FarmScene extends Phaser.Scene {
         if(badge){badge.destroy();this.productionReadyBadges.delete(id);}
         return;
       }
-      const point=this.toWorld(pos.col,pos.row),label=id==='greenhouse'?'🍇 Collect':id==='windmill'?'🌾 Collect':'🍞 Collect';
+      const point=this.toWorld(pos.col,pos.row),label=id==='greenhouse'?'🍇 Collect':id==='windmill'?'🌾 Collect':id==='workshop'?'🌿 Collect':'🍞 Collect';
       if(!badge){
         badge=this.add.text(point.x,point.y-104,label,{fontFamily:'Arial',fontSize:'15px',fontStyle:'bold',color:'#fff9e9',backgroundColor:'#32834b',padding:{x:8,y:5},stroke:'#245b35',strokeThickness:2}).setOrigin(.5).setDepth(20000);
         this.productionReadyBadges.set(id,badge);
@@ -1887,6 +1922,7 @@ export class FarmScene extends Phaser.Scene {
 
   private updateProduction():void {
     if(this.activeBuilding==='bakery'||this.activeBuilding==='greenhouse'||this.activeBuilding==='windmill')this.renderProductionPanel(this.activeBuilding);
+    else if(this.activeBuilding==='workshop')this.renderWorkshopPanel();
   }
   private renderProductionPanel(id:'bakery'|'greenhouse'|'windmill'):void {
     const host=document.getElementById('market-items');if(!host)return;
@@ -1909,8 +1945,9 @@ export class FarmScene extends Phaser.Scene {
     host.querySelector<HTMLButtonElement>('#upgrade-generic-building')?.addEventListener('click',()=>{const cost=level*350;if(level>=5||this.coins<cost)return;this.coins-=cost;this.buildingLevels[id]=level+1;this.saveFarm();this.refreshHud();this.renderProductionPanel(id);this.toast(names[id]+' upgraded to Level '+(level+1)+'.');});
   }
   private startProduction(id:BuildingId,recipeId:string):void {
-    if(id!=='bakery'&&id!=='greenhouse'&&id!=='windmill')return;
+    if(id!=='bakery'&&id!=='greenhouse'&&id!=='windmill'&&id!=='workshop')return;
     if(this.productionJobs[id])return;
+    if(id==='workshop'){this.startWorkshopProduction(recipeId);return;}
     const recipe=this.productionRecipes(id).find(r=>r.id===recipeId);if(!recipe)return;
     if(!Object.entries(recipe.inputs).every(([k,n])=>this.inventory[k as CropId]>=(n||0))||!Object.entries(recipe.goods).every(([k,n])=>this.crafted[k as ProductId]>=(n||0))){this.toast('Not enough ingredients for this recipe.');return;}
     Object.entries(recipe.inputs).forEach(([k,n])=>this.inventory[k as CropId]-=(n||0));
@@ -1922,6 +1959,7 @@ export class FarmScene extends Phaser.Scene {
   private collectProduction(id:BuildingId):void {
     if(id!=='bakery'&&id!=='greenhouse'&&id!=='windmill')return;
     const job=this.productionJobs[id];if(!job||job.readyAt>Date.now())return;
+    if(id==='workshop'){this.collectWorkshopProduction();return;}
     const recipe=this.productionRecipes(id).find(r=>r.id===job.recipe);if(!recipe)return;
     this.crafted[recipe.output]+=recipe.quantity;this.xp+=recipe.xp;this.productionJobs[id]=null;
     this.saveFarm();this.refreshHud();this.updateProductionReadyBadges();this.renderProductionPanel(id);this.toast('Collected '+recipe.quantity+' '+this.productName(recipe.output)+' · +'+recipe.xp+' XP');
@@ -2170,6 +2208,7 @@ export class FarmScene extends Phaser.Scene {
       if(save.fruitInventory)this.fruitInventory={...this.fruitInventory,...save.fruitInventory};
       if(save.harvestedCrops)this.harvestedCrops={...this.harvestedCrops,...save.harvestedCrops};
       if(save.fruitTreeReadyAt&&typeof save.fruitTreeReadyAt==='object')this.fruitTreeReadyAt={...save.fruitTreeReadyAt};
+      if(save.workshopCompost!==undefined)this.workshopCompost=Math.max(0,Math.floor(Number(save.workshopCompost)||0));
       if(save.version>=12){if(save.productionJobs)for(const id of ['bakery','greenhouse','windmill','workshop'] as BuildingId[])this.productionJobs[id]=save.productionJobs[id]||null;if(save.crafted)this.crafted={...this.crafted,...save.crafted};}
       this.buildingLevels.coop=Math.max(this.buildingLevels.coop,this.buildings.coopLevel);this.buildingLevels.barn=Math.max(this.buildingLevels.barn,this.buildings.barnLevel);this.buildingLevels.silo=Math.max(this.buildingLevels.silo,this.buildings.warehouseLevel);this.waterUnits=Math.min(this.waterUnits,this.waterCapacity);
        if (save.version >= 6 && save.produce) this.produce = {...this.produce,...save.produce};
@@ -2208,6 +2247,7 @@ export class FarmScene extends Phaser.Scene {
       buildingLevels:{...this.buildingLevels},
       productionJobs:{...this.productionJobs},
       crafted:{...this.crafted},
+      workshopCompost:this.workshopCompost,
       randomQuests: this.randomQuests,
       questRefreshAt:this.questRefreshAt, questProgressBaseline:{...this.questProgressBaseline}, eventStartedAt:this.eventStartedAt, eventStartHarvests:this.eventStartHarvests, eventClaimed:this.eventClaimed, claimedMilestones:[...this.claimedMilestones],
       ordersCompleted: {...this.ordersCompleted},
