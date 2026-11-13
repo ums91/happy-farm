@@ -2775,3 +2775,59 @@ body.visitor-mode .audio-dock{display:none!important}
   #market-modal .building-actions{grid-template-columns:1fr!important}
   #market-modal .building-actions .market-buy{min-height:40px!important}
 }
+
+
+/* Phone inventory: FarmVille-style category strip and tidy storage cards. */
+@media(max-width:700px){
+  #market-modal.inventory-mode .inventory-category-bar{
+    position:sticky!important;top:0!important;z-index:8!important;
+    display:flex!important;flex-wrap:nowrap!important;gap:5px!important;
+    width:100%!important;margin:0 0 9px!important;padding:5px 2px 8px!important;
+    overflow-x:auto!important;overscroll-behavior-x:contain!important;
+    scrollbar-width:none!important;-webkit-overflow-scrolling:touch!important;
+    background:linear-gradient(#fff9e9 80%,#fff9e900)!important;
+  }
+  #market-modal.inventory-mode .inventory-category-bar::-webkit-scrollbar{display:none!important}
+  #market-modal.inventory-mode .inventory-category-bar button{
+    flex:0 0 auto!important;min-width:64px!important;min-height:34px!important;
+    padding:6px 10px!important;border:1px solid #c9ad78!important;
+    border-radius:18px!important;background:#f6ebd1!important;
+    color:#72532e!important;font-size:9px!important;font-weight:900!important;
+    white-space:nowrap!important;touch-action:manipulation!important;
+  }
+  #market-modal.inventory-mode .inventory-category-bar button.active{
+    background:linear-gradient(#9bc96b,#6e9e43)!important;color:#fff!important;
+    border-color:#5d8738!important;box-shadow:0 2px 0 #527b32!important;
+  }
+  #market-modal.inventory-mode #market-items>.inventory-section[hidden]{display:none!important}
+  #market-modal.inventory-mode #market-items>.inventory-section{
+    margin:0 0 9px!important;padding:9px!important;border-radius:12px!important;
+  }
+  #market-modal.inventory-mode #market-items>.inventory-section>h3{
+    font-size:12px!important;line-height:1.2!important;margin:0 0 7px!important;
+  }
+  #market-modal.inventory-mode .inventory-grid,
+  #market-modal.inventory-mode .quest-list{
+    display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:6px!important;
+  }
+  #market-modal.inventory-mode .market-item{
+    display:grid!important;grid-template-columns:42px minmax(0,1fr) auto!important;
+    align-items:center!important;gap:6px!important;min-height:60px!important;
+    padding:6px!important;border-radius:9px!important;
+  }
+  #market-modal.inventory-mode .market-art{
+    width:38px!important;height:38px!important;max-width:38px!important;
+    flex:0 0 38px!important;font-size:22px!important;
+  }
+  #market-modal.inventory-mode .market-copy{min-width:0!important}
+  #market-modal.inventory-mode .market-copy strong{font-size:10px!important;line-height:1.15!important}
+  #market-modal.inventory-mode .market-copy small{font-size:8px!important;line-height:1.25!important;white-space:normal!important}
+  #market-modal.inventory-mode .inventory-quantity{font-size:10px!important;white-space:nowrap!important}
+  #market-modal.inventory-mode .market-buy{
+    min-height:34px!important;max-width:105px!important;padding:5px 7px!important;
+    font-size:8px!important;line-height:1.15!important;white-space:normal!important;
+  }
+  #market-modal.inventory-mode .inventory-stats{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:5px!important}
+  #market-modal.inventory-mode .inventory-stats h3{grid-column:1/-1!important}
+  #market-modal.inventory-mode .inventory-stats .inventory-stat{min-width:0!important;padding:7px 3px!important;text-align:center!important}
+}
