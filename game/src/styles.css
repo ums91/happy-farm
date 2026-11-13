@@ -2949,3 +2949,13 @@ body.visitor-mode .audio-dock{display:none!important}
   .friends-gift-section h3{font-size:12px}
   .friends-gift-sent{font-size:10px}
 }
+
+
+/* Daily neighbour help action */
+.friend-card .friend-help{
+  grid-column:1/-1;min-height:38px;padding:8px 12px;border:1px solid #78a45b;
+  border-radius:10px;background:linear-gradient(#eff9df,#cfe6b6);color:#385c2b;
+  font-weight:800;cursor:pointer;
+}
+.friend-card .friend-help:disabled{opacity:.65;cursor:wait}
+@media(max-width:650px){.friend-card .friend-help{grid-column:1/-1;min-height:38px;font-size:10px}}
