@@ -4,6 +4,9 @@ create table if not exists public.farmer_coop_progression (
   cycle_number integer not null default 0 check (cycle_number >= 0),
   updated_at timestamptz not null default now()
 );
+alter table public.farmer_coop_progression enable row level security;
+revoke all on public.farmer_coop_progression from anon,authenticated;
+
 insert into public.farmer_coop_progression(singleton,cycle_number)
 values(true,0) on conflict(singleton) do nothing;
 
