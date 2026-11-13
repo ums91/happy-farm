@@ -2831,3 +2831,54 @@ body.visitor-mode .audio-dock{display:none!important}
   #market-modal.inventory-mode .inventory-stats h3{grid-column:1/-1!important}
   #market-modal.inventory-mode .inventory-stats .inventory-stat{min-width:0!important;padding:7px 3px!important;text-align:center!important}
 }
+
+
+/* Mobile-first quest, delivery and daily-gift presentation */
+@media(max-width:700px){
+  .activity-drawer .rail-cards{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:9px!important}
+  .activity-drawer .quest-card{
+    display:grid!important;
+    grid-template-columns:42px minmax(0,1fr)!important;
+    align-items:start!important;
+    gap:8px!important;
+    min-height:0!important;
+    padding:10px!important;
+    border:1px solid #d8c18e!important;
+    border-radius:12px!important;
+    background:linear-gradient(145deg,#fffef8,#f5e8cc)!important;
+    box-shadow:0 2px 0 #d7bf91!important;
+  }
+  .activity-drawer .quest-card .market-art{
+    grid-column:1;grid-row:1;width:42px!important;height:42px!important;
+    flex:0 0 42px!important;font-size:23px!important;border-radius:10px!important;
+  }
+  .activity-drawer .quest-card .market-copy{grid-column:2;grid-row:1;min-width:0!important;width:100%}
+  .activity-drawer .quest-card .market-copy strong{font-size:12px!important;line-height:1.25!important}
+  .activity-drawer .quest-card .market-copy small{display:block;margin-top:4px;font-size:10px!important;line-height:1.35!important;overflow-wrap:anywhere}
+  .activity-drawer .quest-card .quest-track{height:8px!important;margin:8px 0 5px!important}
+  .activity-drawer .quest-card .market-buy{
+    grid-column:1/-1;grid-row:2;width:100%!important;min-height:38px!important;
+    padding:8px 10px!important;border-radius:10px!important;font-size:11px!important;
+    white-space:normal!important;touch-action:manipulation;
+  }
+  .activity-drawer .quest-card .market-buy:disabled{opacity:.68!important}
+  .daily-reward-backdrop{padding:12px!important;align-items:center!important}
+  .daily-reward-card{
+    width:min(390px,calc(100vw - 24px))!important;
+    max-height:calc(100dvh - 24px)!important;
+    overflow-y:auto!important;
+    padding:52px 18px 18px!important;
+    border-width:4px!important;border-radius:20px!important;
+  }
+  .daily-reward-card .daily-reward-sparkle{font-size:44px!important}
+  .daily-reward-card h2{font-size:22px!important;line-height:1.15!important}
+  .daily-reward-card>p{font-size:12px!important;line-height:1.4!important}
+  .daily-reward-prize{margin:10px auto!important;padding:9px 16px!important}
+  .daily-reward-prize strong{font-size:34px!important}
+  .daily-reward-card>button:not(.daily-reward-dismiss){width:100%!important;min-height:46px!important;font-size:16px!important}
+  .daily-reward-card .daily-reward-next{font-size:10px!important;line-height:1.4!important}
+}
+@media(min-width:701px){
+  .activity-drawer .quest-card .market-copy{min-width:0}
+  .activity-drawer .quest-card .market-buy{max-width:116px;white-space:normal}
+}
