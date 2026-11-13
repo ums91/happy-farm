@@ -2973,3 +2973,6 @@ body.visitor-mode .audio-dock{display:none!important}
 .friends-visit-row .friend-info small{display:block;margin-top:2px;color:#806b4a;font-size:10px;overflow-wrap:anywhere}
 .friends-visit-points{white-space:nowrap;color:#47733b;font-size:11px;font-weight:900}
 @media(max-width:650px){.friends-visit-section h3{font-size:12px}.friends-visit-intro{font-size:9px}.friends-visit-row{grid-template-columns:34px minmax(0,1fr) auto;gap:7px;padding:8px}.friends-visit-row .friend-avatar{width:34px;height:34px;font-size:19px}.friends-visit-row .friend-info strong{font-size:10px}.friends-visit-row .friend-info small{font-size:9px}.friends-visit-points{font-size:10px}}
+
+.friends-visit-empty{margin:0;padding:11px;border:1px dashed #d8c49a;border-radius:10px;background:#fffaf0;color:#806b4a;font-size:11px;line-height:1.4}
+@media(max-width:650px){.friends-visit-empty{padding:9px;font-size:9px}}
