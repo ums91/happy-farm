@@ -2932,3 +2932,20 @@ body.visitor-mode .audio-dock{display:none!important}
   .friends-empty p{font-size:10px!important;line-height:1.45!important}
   .friends-footnote{flex:0 0 auto;margin-top:5px!important;padding-top:7px!important;font-size:8px!important;line-height:1.35!important}
 }
+
+
+/* Neighbour gifts */
+.friend-card .friend-gift{
+  grid-column:1/-1;min-height:38px;padding:8px 12px;border:1px solid #b98b45;
+  border-radius:10px;background:linear-gradient(#fff2c9,#f0d28f);color:#67451f;
+  font-weight:800;cursor:pointer;
+}
+.friend-card .friend-gift:disabled{opacity:.65;cursor:wait}
+.friends-gift-section{display:grid;gap:8px;margin:4px 0 14px}
+.friends-gift-section h3{margin:5px 2px;color:#684a25;font-size:14px}
+.friends-gift-sent{margin:0;padding:9px 11px;border:1px solid #e2d2ad;border-radius:10px;background:#fffaf0;color:#765b34;font-size:12px}
+@media(max-width:650px){
+  .friend-card .friend-gift{grid-column:1/-1;min-height:38px;font-size:10px}
+  .friends-gift-section h3{font-size:12px}
+  .friends-gift-sent{font-size:10px}
+}
