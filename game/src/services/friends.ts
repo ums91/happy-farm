@@ -46,6 +46,8 @@ async function render(){
   const me=await syncProfile(api);
   const code=el('my-friend-code');if(code)code.textContent=me.friend_code;
   const name=el('my-farmer-name');if(name)name.textContent=me.farmer_name;
+   const {data:points,error:pointsError}=await api.rpc('hf_get_my_neighbour_points');if(pointsError)throw pointsError;
+   setMessage('🌟 Neighbour points: '+Number(points||0).toLocaleString());
   if(activeTab==='friends'){
    const {data,error}=await api.rpc('hf_list_friends');if(error)throw error;
    const friends=(data||[]) as Friend[];
