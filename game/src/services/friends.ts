@@ -54,24 +54,59 @@ function localAvailableForJob(requirement:string):number{
   return Math.max(0,Math.floor(Number(amount)||0));
  }catch{return 0;}
 }
-function deductLocalContribution(requirement:string,quantity:number):void{
- const item=coopCatalog[requirement];if(!item)throw new Error('Unsupported contribution item.');
- const raw=localStorage.getItem(SAVE_KEY);if(!raw)throw new Error('Your local farm save is missing. Contribution cancelled.');
+const COOP_PENDING_KEY='happyFarmCoopPendingOperationV1';
+type PendingCoopOperation={requestId:string;type:'contribution'|'claim';jobId:string;requirementKey?:string;quantity?:number};
+function readPendingCoopOperation():PendingCoopOperation|null{
+ try{const value=JSON.parse(localStorage.getItem(COOP_PENDING_KEY)||'null') as PendingCoopOperation|null;return value&&value.requestId&&value.jobId&&(value.type==='claim'||(value.type==='contribution'&&value.requirementKey&&Number(value.quantity)>0))?value:null;}catch{return null;}
+}
+function applyCoopOperationLocally(pending:PendingCoopOperation,result:{contributed_now?:number;total_contributed?:number;coins?:number;xp?:number;badge?:string|null}):void{
+ const raw=localStorage.getItem(SAVE_KEY);if(!raw)throw new Error('The server accepted this action, but your local farm save is unavailable. Restore your farm save before retrying.');
  const save=JSON.parse(raw) as Record<string,any>;
- const bucket=item.kind==='crop'?'harvestedCrops':item.kind==='fruit'?'fruitInventory':item.kind==='produce'?'produce':'crafted';
- const current=Number(save[bucket]?.[item.key]);
- if(!Number.isFinite(current)||current<quantity)throw new Error('Your available stock changed. Refresh the job before contributing.');
- save[bucket][item.key]=current-quantity;
+ const applied=Array.isArray(save.cooperativeAppliedOperations)?save.cooperativeAppliedOperations as string[]:[];
+ if(applied.includes(pending.requestId)){localStorage.removeItem(COOP_PENDING_KEY);return;}
+ if(pending.type==='contribution'){
+  const item=coopCatalog[pending.requirementKey||''];if(!item)throw new Error('The contribution is recorded online, but its local inventory item could not be identified. The pending operation has been kept for recovery.');
+  const bucket=item.kind==='crop'?'harvestedCrops':item.kind==='fruit'?'fruitInventory':item.kind==='produce'?'produce':'crafted';
+  const quantity=Number(result.contributed_now)||0,current=Number(save[bucket]?.[item.key]);
+  if(quantity<1||!Number.isFinite(current)||current<quantity)throw new Error('The contribution is recorded online, but local stock could not be reconciled safely. The pending operation has been kept for recovery.');
+  save[bucket][item.key]=current-quantity;
+ }else{
+  save.coins=Math.max(0,Number(save.coins)||0)+Number(result.coins||0);
+  save.xp=Math.max(0,Number(save.xp)||0)+Number(result.xp||0);
+  save.cooperativeBadges=Array.isArray(save.cooperativeBadges)?save.cooperativeBadges:[];
+  if(result.badge&&!save.cooperativeBadges.includes(result.badge))save.cooperativeBadges.push(result.badge);
+ }
+ save.cooperativeAppliedOperations=[...applied,pending.requestId].slice(-100);
  localStorage.setItem(SAVE_KEY,JSON.stringify(save));
  localStorage.setItem('happyFarmLocalUpdatedAtV1',String(Math.max(Date.now(),Number(localStorage.getItem('happyFarmLocalUpdatedAtV1')||0)+1)));
  localStorage.setItem('happyFarmLocalDirtyV1','true');
  queueCloudSave();
+ localStorage.removeItem(COOP_PENDING_KEY);
+}
+async function sendPendingCoopOperation(api:SupabaseClient,pending:PendingCoopOperation):Promise<Record<string,any>>{
+ if(pending.type==='contribution'){
+  const {data,error}=await api.rpc('hf_contribute_cooperative_job',{p_job_id:pending.jobId,p_quantity:pending.quantity,p_request_id:pending.requestId});if(error)throw error;
+  const result=(Array.isArray(data)?data[0]:data) as Record<string,any>|null;if(!result)throw new Error('The server returned no contribution confirmation.');
+  applyCoopOperationLocally(pending,result);return result;
+ }
+ const {data,error}=await api.rpc('hf_claim_cooperative_job_reward',{p_job_id:pending.jobId,p_request_id:pending.requestId});if(error)throw error;
+ const result=(Array.isArray(data)?data[0]:data) as Record<string,any>|null;if(!result)throw new Error('The server returned no reward confirmation.');
+ applyCoopOperationLocally(pending,result);return result;
+}
+async function recoverPendingCoopOperation(api:SupabaseClient):Promise<void>{
+ const pending=readPendingCoopOperation();if(!pending)return;
+ try{
+  await sendPendingCoopOperation(api,pending);
+  setMessage(pending.type==='contribution'?'A pending village contribution was safely reconciled with your farm.':'A pending village reward was safely added to your farm.');
+  window.dispatchEvent(new Event(pending.type==='contribution'?'happyfarm:coop-inventory-changed':'happyfarm:coop-reward-claimed'));
+ }catch(e){setMessage('Pending village action needs recovery: '+(e instanceof Error?e.message:String(e)),true);}
 }
 function formatJobRemaining(value:string):string{
  const ms=Math.max(0,Date.parse(value)-Date.now());const days=Math.floor(ms/86400000),hours=Math.floor(ms%86400000/3600000),minutes=Math.floor(ms%3600000/60000);
  return days?days+'d '+hours+'h':hours?hours+'h '+minutes+'m':minutes+'m';
 }
 async function renderCooperativeJobs(host:HTMLElement,api:SupabaseClient):Promise<void>{
+ await recoverPendingCoopOperation(api);
  host.innerHTML='<div class="friends-loading">🚜 Loading village community jobs…</div>';
  const {data,error}=await api.rpc('hf_list_cooperative_jobs');if(error)throw error;
  const jobs=(data||[]) as CoopJob[];
@@ -96,12 +131,12 @@ async function renderCooperativeJobs(host:HTMLElement,api:SupabaseClient):Promis
   if(quantity<1||quantity>100||quantity>available){setMessage('Choose a valid amount from your available storage (maximum 100 at a time).',true);return;}
   button.disabled=true;button.textContent='Contributing…';
   try{
-   // Recheck local stock immediately before calling the atomic server contribution.
+   if(readPendingCoopOperation())throw new Error('A previous village action is still pending recovery. Refresh the jobs panel before starting another.');
    if(localAvailableForJob(job.requirement_key)<quantity)throw new Error('Your stock changed. Refresh the job and try again.');
-   const {data,error}=await api.rpc('hf_contribute_cooperative_job',{p_job_id:id,p_quantity:quantity});if(error)throw error;
-   const result=(Array.isArray(data)?data[0]:data) as {contributed_now:number;total_contributed:number;my_total:number;job_status:string};
-   const accepted=Number(result?.contributed_now)||0;if(accepted<1)throw new Error('No items were accepted.');
-   deductLocalContribution(job.requirement_key,accepted);
+   const pending:PendingCoopOperation={requestId:crypto.randomUUID(),type:'contribution',jobId:id,requirementKey:job.requirement_key,quantity};
+   localStorage.setItem(COOP_PENDING_KEY,JSON.stringify(pending));
+   const result=await sendPendingCoopOperation(api,pending);
+   const accepted=Number(result.contributed_now)||0;
    window.dispatchEvent(new Event('happyfarm:coop-inventory-changed'));
    setMessage('🌾 Contributed '+accepted+' '+job.requirement_label.toLowerCase()+'. Village progress: '+Number(result.total_contributed).toLocaleString()+'.');
    await renderCooperativeJobs(host,api);
@@ -110,17 +145,12 @@ async function renderCooperativeJobs(host:HTMLElement,api:SupabaseClient):Promis
  host.querySelectorAll<HTMLButtonElement>('[data-claim-coop]').forEach(button=>button.addEventListener('click',async()=>{
   const id=button.dataset.claimCoop||'';button.disabled=true;button.textContent='Claiming…';
   try{
-   const {data,error}=await api.rpc('hf_claim_cooperative_job_reward',{p_job_id:id});if(error)throw error;
-   const reward=(Array.isArray(data)?data[0]:data) as {coins:number;xp:number;badge:string|null};
-   const raw=localStorage.getItem(SAVE_KEY);if(!raw)throw new Error('Reward accepted, but local save is missing. Use cloud recovery before continuing.');
-   const save=JSON.parse(raw) as Record<string,any>;
-   save.coins=Math.max(0,Number(save.coins)||0)+Number(reward.coins||0);
-   save.xp=Math.max(0,Number(save.xp)||0)+Number(reward.xp||0);
-   save.cooperativeBadges=Array.isArray(save.cooperativeBadges)?save.cooperativeBadges:[];
-   if(reward.badge&&!save.cooperativeBadges.includes(reward.badge))save.cooperativeBadges.push(reward.badge);
-   localStorage.setItem(SAVE_KEY,JSON.stringify(save));localStorage.setItem('happyFarmLocalDirtyV1','true');queueCloudSave();
+   if(readPendingCoopOperation())throw new Error('A previous village action is still pending recovery. Refresh the jobs panel before starting another.');
+   const pending:PendingCoopOperation={requestId:crypto.randomUUID(),type:'claim',jobId:id};
+   localStorage.setItem(COOP_PENDING_KEY,JSON.stringify(pending));
+   const reward=await sendPendingCoopOperation(api,pending);
    window.dispatchEvent(new Event('happyfarm:coop-reward-claimed'));
-   setMessage('🎉 Reward claimed! +'+reward.coins+' coins · +'+reward.xp+' XP'+(reward.badge?' · Badge: '+reward.badge:''));
+   setMessage('🎉 Reward claimed! +'+Number(reward.coins||0)+' coins · +'+Number(reward.xp||0)+' XP'+(reward.badge?' · Badge: '+reward.badge:''));
    await renderCooperativeJobs(host,api);
   }catch(e){setMessage(e instanceof Error?e.message:String(e),true);button.disabled=false;button.textContent='🎁 Claim your reward';}
  }));
