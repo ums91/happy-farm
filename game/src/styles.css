@@ -2997,3 +2997,43 @@ body.visitor-mode .audio-dock{display:none!important}
 .ribbon-gold .ribbon-emblem.is-earned .ribbon-medal{box-shadow:0 0 0 3px #ffe8a1,0 3px 0 #a56d0b,0 0 16px #f5c54c99}
 .ribbon-card .market-copy{min-width:0}.ribbon-card .market-copy strong{display:block}.ribbon-card .market-buy{min-width:104px;white-space:normal}
 @media(max-width:650px){.ribbon-card{grid-template-columns:58px minmax(0,1fr)!important;gap:8px!important;padding:9px!important}.ribbon-emblem{width:54px;height:70px;transform:scale(.84);transform-origin:center}.ribbon-card .market-copy{grid-column:2;grid-row:1}.ribbon-card .market-buy{grid-column:1/-1;width:100%;min-height:40px}.ribbon-group>h3{font-size:13px}.ribbon-group>p{font-size:9px}}
+
+
+/* Cooperative farming jobs */
+.coop-jobs-intro{padding:13px 15px;border:1px solid #c7dca9;border-radius:13px;background:linear-gradient(135deg,#f4f9e9,#fff8e5);margin-bottom:12px}
+.coop-jobs-intro strong{display:block;color:#426b32;font:800 16px "Baloo 2",system-ui}
+.coop-jobs-intro p{margin:5px 0 0;color:#78664c;font-size:12px;line-height:1.5}
+.coop-job-card{background:#fffdf5;border:1px solid #e5d3a6;border-radius:14px;padding:13px;margin:10px 0;box-shadow:0 2px 0 #d7c28e}
+.coop-job-heading{display:flex;align-items:center;gap:10px;min-width:0}
+.coop-job-emoji{width:44px;height:44px;display:grid;place-items:center;flex:0 0 44px;border-radius:12px;background:#eaf3d7;font-size:25px}
+.coop-job-heading>div{min-width:0;flex:1}
+.coop-job-heading>div strong{display:block;font:800 15px "Baloo 2",system-ui;color:#60482b}
+.coop-job-heading>div small{display:block;color:#8a785c;font-size:11px;line-height:1.35;margin-top:2px}
+.coop-job-status{font-size:10px;font-weight:900;border-radius:20px;padding:5px 8px;white-space:nowrap}
+.coop-job-status.active{color:#477a34;background:#e6f4db}.coop-job-status.complete{color:#856018;background:#fff0bd}.coop-job-status.expired{color:#8a6254;background:#f4e4dc}
+.coop-progress-label{display:flex;justify-content:space-between;gap:8px;margin:13px 0 6px;color:#5c4b32;font-size:12px}
+.coop-progress-track{height:11px;border-radius:20px;overflow:hidden;background:#e8e1c9;box-shadow:inset 0 1px 2px #0002}
+.coop-progress-track i{display:block;height:100%;border-radius:20px;background:linear-gradient(90deg,#8cbd59,#4d9b54);transition:width .3s ease}
+.coop-job-meta{display:flex;flex-wrap:wrap;gap:6px 13px;padding:9px 0;border-bottom:1px solid #eee4c9;color:#897657;font-size:10px}
+.coop-reward-row{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:10px 0;color:#745b32;font-size:11px}
+.coop-reward-row b{color:#557e39}
+.coop-job-action{border:1px solid #568b3e;border-radius:9px;padding:10px 13px;background:linear-gradient(#a9d778,#78ad4d);color:#234b25;font:900 12px "Nunito",system-ui;cursor:pointer;min-height:40px}
+.coop-job-action:disabled{opacity:.6;cursor:not-allowed}
+.coop-contribute-row{display:flex;align-items:center;gap:9px;justify-content:space-between;margin-top:3px}
+.coop-contribute-row label{display:flex;align-items:center;gap:6px;color:#715b3c;font-size:11px;font-weight:800}
+.coop-contribute-row input{width:76px;min-height:38px;border:1px solid #d9c99d;border-radius:8px;background:#fff;padding:7px;color:#60482b;font:800 13px "Nunito",system-ui}
+.coop-job-note{color:#947e5a;font-size:11px;line-height:1.45;margin:8px 0 1px}
+@media(max-width:650px){
+ .friends-modal-card{width:100%;max-width:100%;max-height:calc(100dvh - 14px);margin:7px}
+ .friends-tabs{display:flex;overflow-x:auto;flex-wrap:nowrap;gap:5px;padding:7px 0;scrollbar-width:thin}
+ .friends-tabs button{flex:0 0 auto;white-space:nowrap}
+ .coop-job-card{padding:10px;margin:8px 0}
+ .coop-job-heading{gap:7px}.coop-job-emoji{width:38px;height:38px;flex-basis:38px;font-size:22px}
+ .coop-job-heading>div strong{font-size:13px}.coop-job-heading>div small{font-size:10px}
+ .coop-job-status{font-size:9px;padding:4px 6px}
+ .coop-contribute-row{align-items:stretch;flex-wrap:wrap}
+ .coop-contribute-row label{flex:1}
+ .coop-contribute-row input{width:72px}
+ .coop-contribute-row .coop-job-action{flex:1}
+ .coop-reward-row{font-size:10px}
+}
