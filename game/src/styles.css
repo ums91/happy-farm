@@ -2959,3 +2959,17 @@ body.visitor-mode .audio-dock{display:none!important}
 }
 .friend-card .friend-help:disabled{opacity:.65;cursor:wait}
 @media(max-width:650px){.friend-card .friend-help{grid-column:1/-1;min-height:38px;font-size:10px}}
+
+
+/* Neighbour visit history */
+.friends-visit-section{display:grid;gap:9px;margin:4px 0 14px}
+.friends-visit-section h3{margin:5px 2px 0;color:#684a25;font-size:14px}
+.friends-visit-intro{margin:0 2px 4px;color:#806b4a;font-size:11px;line-height:1.45}
+.friends-visit-list{display:grid;gap:7px}
+.friends-visit-row{display:grid;grid-template-columns:40px minmax(0,1fr) auto;align-items:center;gap:9px;padding:9px 10px;border:1px solid #e2d2ad;border-radius:11px;background:linear-gradient(145deg,#fffef8,#f7edd8)}
+.friends-visit-row .friend-avatar{width:38px;height:38px;font-size:21px}
+.friends-visit-row .friend-info{min-width:0}
+.friends-visit-row .friend-info strong{display:block;color:#684a25;font-size:12px}
+.friends-visit-row .friend-info small{display:block;margin-top:2px;color:#806b4a;font-size:10px;overflow-wrap:anywhere}
+.friends-visit-points{white-space:nowrap;color:#47733b;font-size:11px;font-weight:900}
+@media(max-width:650px){.friends-visit-section h3{font-size:12px}.friends-visit-intro{font-size:9px}.friends-visit-row{grid-template-columns:34px minmax(0,1fr) auto;gap:7px;padding:8px}.friends-visit-row .friend-avatar{width:34px;height:34px;font-size:19px}.friends-visit-row .friend-info strong{font-size:10px}.friends-visit-row .friend-info small{font-size:9px}.friends-visit-points{font-size:10px}}
