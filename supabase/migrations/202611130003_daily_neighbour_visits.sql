@@ -57,3 +57,14 @@ grant execute on function public.hf_record_friend_visit(uuid) to authenticated;
 grant execute on function public.hf_list_my_friend_visits() to authenticated;
 revoke all on function public.hf_record_friend_visit(uuid) from public,anon;
 revoke all on function public.hf_list_my_friend_visits() from public,anon;
+
+create or replace function public.hf_get_my_visit_points()
+returns bigint language plpgsql stable security definer set search_path=public as $$
+declare total bigint;
+begin
+  if auth.uid() is null then raise exception 'Sign in to view visit points.'; end if;
+  select visit_points into total from public.farmer_profiles where user_id=auth.uid();
+  return coalesce(total,0);
+end $$;
+grant execute on function public.hf_get_my_visit_points() to authenticated;
+revoke all on function public.hf_get_my_visit_points() from public,anon;
