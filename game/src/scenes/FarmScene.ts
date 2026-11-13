@@ -1862,13 +1862,20 @@ export class FarmScene extends Phaser.Scene {
       if(index>=this.animals.length||!this.animalActors[index]?.active){badge.destroy();this.animalProduceBadges.delete(index);}
     }
   }
+  private openFeedMarketFor(kind:AnimalId):void{
+    const feedType=this.animalFeedType(kind);
+    this.openMarket();
+    const tab=document.querySelector<HTMLButtonElement>('[data-market-tab="feed"]');
+    tab?.click();
+    this.toast('Out of '+(feedType==='hen'?'chicken':'cow')+' feed · Buy feed to continue.');
+  }
   private feedAnimalAt(index:number,kind:AnimalId):void{
     const animal=this.animals[index],actor=this.animalActors[index];
     if(!animal||animal.id!==kind||animal.assigned===false){this.toast('Select a '+(kind==='hen'||kind==='chick'?'hen or chick':'cow or calf')+' to feed.');return;}
     const feedType=this.animalFeedType(kind);
     if(this.isBabyAnimal(kind)){
       if(animal.readyAt>Date.now()){this.toast('This young animal has been fed. It will need feed again later.');return;}
-      if(this.feed[feedType]<=0){this.toast('No '+feedType+' feed in storage. Visit the Market to buy feed.');return;}
+      if(this.feed[feedType]<=0){this.openFeedMarketFor(kind);return;}
       this.feed[feedType]--;playSfx('feed');animal.growthFeedings=(animal.growthFeedings||0)+1;
       animal.readyAt=Date.now()+this.animalProductionDuration(feedType);
       if(actor){this.moveAnimalToTrough(actor,kind,this.animals.slice(0,index).filter(a=>a.id===kind).length);const sprite=this.animalSprites.get(actor);if(sprite)this.sizeAnimalSprite(actor,sprite);}
