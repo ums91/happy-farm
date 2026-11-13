@@ -59,9 +59,11 @@ function deductLocalContribution(requirement:string,quantity:number):void{
  const raw=localStorage.getItem(SAVE_KEY);if(!raw)throw new Error('Your local farm save is missing. Contribution cancelled.');
  const save=JSON.parse(raw) as Record<string,any>;
  const bucket=item.kind==='crop'?'harvestedCrops':item.kind==='fruit'?'fruitInventory':item.kind==='produce'?'produce':'crafted';
- if(!save[bucket]||!Number.isFinite(Number(save[bucket][item.key]))||Number(save[bucket][item.key])<quantity)throw new Error('Your available stock changed. Refresh the job before contributing.');
- save[bucket][item.key]=Number(save[bucket][item.key])-quantity;
+ const current=Number(save[bucket]?.[item.key]);
+ if(!Number.isFinite(current)||current<quantity)throw new Error('Your available stock changed. Refresh the job before contributing.');
+ save[bucket][item.key]=current-quantity;
  localStorage.setItem(SAVE_KEY,JSON.stringify(save));
+ localStorage.setItem('happyFarmLocalUpdatedAtV1',String(Math.max(Date.now(),Number(localStorage.getItem('happyFarmLocalUpdatedAtV1')||0)+1)));
  localStorage.setItem('happyFarmLocalDirtyV1','true');
  queueCloudSave();
 }
