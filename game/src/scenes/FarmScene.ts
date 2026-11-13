@@ -1810,7 +1810,7 @@ export class FarmScene extends Phaser.Scene {
       if(!pos||ready===0){if(badge){badge.destroy();this.buildingProduceBadges.delete(id);}return;}
       const p=this.toWorld(pos.col,pos.row),label=(id==='coop'?'🥚':'🥛')+(ready>1?' '+ready:'');
       if(!badge){
-        badge=this.add.text(p.x,p.y-(id==='coop'?82:88),label,{fontFamily:'Arial',fontSize:'21px',padding:{x:0,y:0},shadow:{offsetX:0,offsetY:2,color:'#3c2c18',blur:4,fill:true}}).setOrigin(.5).setDepth(20000);
+        badge=this.add.text(p.x,p.y-(id==='coop'?82:88),label,{fontFamily:'Arial',fontSize:this.scale.width<=700?'25px':'21px',padding:{x:0,y:0},shadow:{offsetX:0,offsetY:2,color:'#3c2c18',blur:4,fill:true}}).setOrigin(.5).setDepth(20000);
         this.buildingProduceBadges.set(id,badge);
         this.tweens.add({targets:badge,y:badge.y-4,duration:700,yoyo:true,repeat:-1,ease:'Sine.inOut'});
       }else if(badge.text!==label)badge.setText(label);
@@ -1854,7 +1854,7 @@ export class FarmScene extends Phaser.Scene {
         // Parent the tiny, transparent symbol to the animal container so it follows
         // every tween/wander frame with no one-second positional update delay.
         badge=this.add.text(0,-25,symbol,{
-          fontFamily:'Arial',fontSize:'9px',fontStyle:'bold',color:'#ffffff',
+          fontFamily:'Arial',fontSize:this.scale.width<=700?'12px':'9px',fontStyle:'bold',color:'#ffffff',
           padding:{x:0,y:0},stroke:'#49331f',strokeThickness:1,
           shadow:{offsetX:0,offsetY:1,color:'#382718',blur:1,fill:true}
         }).setOrigin(.5).setDepth(30);
