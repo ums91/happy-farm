@@ -1068,8 +1068,20 @@ export class FarmScene extends Phaser.Scene {
     if(plot){
       this.selected=plot;
       if(this.activeTool==='select'){
-        if(plot.state==='tilled')this.openFieldSeedPicker();
-        else if(['growing','ready','withered'].includes(plot.state))this.showCropActionPopup(plot,pointer.x,pointer.y);
+        if(plot.state==='tilled'){
+          this.openFieldSeedPicker();
+        }else if(plot.state==='ready'){
+          // FarmVille-style quick harvest: tapping a ripe field collects it
+          // immediately, without requiring the player to switch tools first.
+          const previousTool=this.activeTool;
+          this.activeTool='harvest';
+          this.applyTool(plot);
+          this.activeTool=previousTool;
+          this.refreshSelection();this.drawSelection();
+          return;
+        }else if(['growing','withered'].includes(plot.state)){
+          this.showCropActionPopup(plot,pointer.x,pointer.y);
+        }
         this.refreshSelection();this.drawSelection();return;
       }
       if(this.activeTool==='plant'){
