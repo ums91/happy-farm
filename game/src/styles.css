@@ -2719,3 +2719,59 @@ body.visitor-mode .audio-dock{display:none!important}
   #market-modal.field-seed-mode .field-seed-card .market-buy{width:76px!important;font-size:8px!important}
   #market-modal.field-seed-mode .field-seed-card .seed-stats span{font-size:7px!important}
 }
+
+
+/* FarmVille-style animal care on phones: readable roster, progress and
+   one-tap feed/collect actions in coop and barn panels. */
+@media(max-width:700px){
+  #market-modal .production-building-heading{padding:10px!important}
+  #market-modal .production-building-heading h3{font-size:15px!important}
+  #market-modal .production-building-heading p{font-size:10px!important;line-height:1.35!important}
+  #market-modal .inventory-section{margin-bottom:8px!important}
+  #market-modal .inventory-section>h3{font-size:13px!important}
+  #market-modal .animal-progress{
+    display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;
+    gap:7px 8px!important;padding:10px!important;margin:7px 0!important;
+    border-radius:12px!important;min-width:0!important;
+  }
+  #market-modal .animal-progress .production-status-row{
+    display:flex!important;flex-wrap:wrap!important;align-items:center!important;
+    justify-content:space-between!important;gap:4px 7px!important;
+    grid-column:1/-1!important;min-width:0!important;
+  }
+  #market-modal .animal-progress .production-status-row strong{
+    font-size:12px!important;white-space:nowrap!important
+  }
+  #market-modal .animal-progress .production-level{
+    font-size:9px!important;line-height:1.2!important;white-space:normal!important;
+    text-align:right!important
+  }
+  #market-modal .animal-progress>small{font-size:9px!important;line-height:1.2!important}
+  #market-modal .animal-progress .production-track{
+    grid-column:1/-1!important;height:10px!important;margin:0!important
+  }
+  #market-modal .animal-progress .market-buy{
+    grid-column:1/-1!important;width:100%!important;min-height:38px!important;
+    margin:0!important;font-size:10px!important;touch-action:manipulation!important
+  }
+  #market-modal .building-actions{
+    display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:7px!important;margin-top:8px!important
+  }
+  #market-modal .building-actions .market-buy{
+    min-width:0!important;width:100%!important;min-height:42px!important;
+    padding:7px 5px!important;font-size:10px!important;line-height:1.2!important;
+    white-space:normal!important;touch-action:manipulation!important
+  }
+  #market-modal .building-actions .feed-restock-action{grid-column:1/-1!important}
+  #market-modal .production-track{height:10px!important}
+  #market-modal .production-status-row{gap:5px!important}
+  #market-modal .production-status-row>strong{font-size:12px!important}
+}
+@media(max-width:390px){
+  #market-modal .animal-progress{padding:8px!important;gap:6px!important}
+  #market-modal .animal-progress .production-status-row strong{font-size:11px!important}
+  #market-modal .animal-progress .production-level{font-size:8px!important}
+  #market-modal .building-actions{grid-template-columns:1fr!important}
+  #market-modal .building-actions .market-buy{min-height:40px!important}
+}
