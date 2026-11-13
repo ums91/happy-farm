@@ -42,6 +42,16 @@ alter table public.farmer_coop_contributions enable row level security;
 revoke all on public.farmer_coop_jobs from anon, authenticated;
 revoke all on public.farmer_coop_contributions from anon, authenticated;
 
+create table if not exists public.farmer_coop_reward_claims (
+  id uuid primary key default gen_random_uuid(),
+  job_id uuid not null references public.farmer_coop_jobs(id) on delete cascade,
+  farmer_id uuid not null references auth.users(id) on delete cascade,
+  claimed_at timestamptz not null default now(),
+  constraint farmer_coop_reward_once unique(job_id,farmer_id)
+);
+alter table public.farmer_coop_reward_claims enable row level security;
+revoke all on public.farmer_coop_reward_claims from anon,authenticated;
+
 create or replace function public.hf_seed_cooperative_jobs()
 returns void language plpgsql security definer set search_path=public as $$
 begin
