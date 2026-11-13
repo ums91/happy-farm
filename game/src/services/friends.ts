@@ -34,6 +34,88 @@ async function visitFriend(friend:Friend,button:HTMLButtonElement){
   window.location.reload();
  }catch(e){button.disabled=false;button.textContent='🏡 Visit Farm';setMessage(e instanceof Error?e.message:String(e),true);}
 }
+
+type CoopJob={job_id:string;title:string;description:string;requirement_key:string;requirement_label:string;requirement_emoji:string;target_quantity:number;contributed_quantity:number;starts_at:string;ends_at:string;status:'active'|'completed'|'expired';reward_coins:number;reward_xp:number;reward_badge:string|null;my_contribution:number;my_reward_claimed:boolean;participant_count:number};
+const coopCatalog:Record<string,{kind:'crop'|'fruit'|'produce'|'crafted';key:string;emoji:string;label:string}>={
+ wheat:{kind:'crop',key:'wheat',emoji:'🌾',label:'Wheat'},carrot:{kind:'crop',key:'carrot',emoji:'🥕',label:'Carrots'},
+ corn:{kind:'crop',key:'corn',emoji:'🌽',label:'Corn'},strawberry:{kind:'crop',key:'strawberry',emoji:'🍓',label:'Strawberries'},
+ tomato:{kind:'crop',key:'tomato',emoji:'🍅',label:'Tomatoes'},pumpkin:{kind:'crop',key:'pumpkin',emoji:'🎃',label:'Pumpkins'},
+ blueberry:{kind:'crop',key:'blueberry',emoji:'🫐',label:'Blueberries'},watermelon:{kind:'crop',key:'watermelon',emoji:'🍉',label:'Watermelons'},
+ apples:{kind:'fruit',key:'apples',emoji:'🍎',label:'Apples'},pears:{kind:'fruit',key:'pears',emoji:'🍐',label:'Pears'},
+ cherries:{kind:'fruit',key:'cherries',emoji:'🍒',label:'Cherries'},oranges:{kind:'fruit',key:'oranges',emoji:'🍊',label:'Oranges'},
+ eggs:{kind:'produce',key:'eggs',emoji:'🥚',label:'Eggs'},milk:{kind:'produce',key:'milk',emoji:'🥛',label:'Milk'},
+ flour:{kind:'crafted',key:'flour',emoji:'🌾',label:'Flour'},bread:{kind:'crafted',key:'bread',emoji:'🍞',label:'Bread'},
+ pastry:{kind:'crafted',key:'pastry',emoji:'🥐',label:'Pastries'},grapes:{kind:'crafted',key:'grapes',emoji:'🍇',label:'Grapes'}
+};
+function localAvailableForJob(requirement:string):number{
+ const item=coopCatalog[requirement];if(!item)return 0;
+ try{const save=JSON.parse(localStorage.getItem(SAVE_KEY)||'{}') as Record<string,any>;
+  const amount=item.kind==='crop'?save.harvestedCrops?.[item.key]:item.kind==='fruit'?save.fruitInventory?.[item.key]:item.kind==='produce'?save.produce?.[item.key]:save.crafted?.[item.key];
+  return Math.max(0,Math.floor(Number(amount)||0));
+ }catch{return 0;}
+}
+function deductLocalContribution(requirement:string,quantity:number):void{
+ const item=coopCatalog[requirement];if(!item)throw new Error('Unsupported contribution item.');
+ const raw=localStorage.getItem(SAVE_KEY);if(!raw)throw new Error('Your local farm save is missing. Contribution cancelled.');
+ const save=JSON.parse(raw) as Record<string,any>;
+ const bucket=item.kind==='crop'?'harvestedCrops':item.kind==='fruit'?'fruitInventory':item.kind==='produce'?'produce':'crafted';
+ if(!save[bucket]||!Number.isFinite(Number(save[bucket][item.key]))||Number(save[bucket][item.key])<quantity)throw new Error('Your available stock changed. Refresh the job before contributing.');
+ save[bucket][item.key]=Number(save[bucket][item.key])-quantity;
+ localStorage.setItem(SAVE_KEY,JSON.stringify(save));
+ localStorage.setItem('happyFarmLocalDirtyV1','true');
+ queueCloudSave();
+}
+function formatJobRemaining(value:string):string{
+ const ms=Math.max(0,Date.parse(value)-Date.now());const days=Math.floor(ms/86400000),hours=Math.floor(ms%86400000/3600000),minutes=Math.floor(ms%3600000/60000);
+ return days?days+'d '+hours+'h':hours?hours+'h '+minutes+'m':minutes+'m';
+}
+async function renderCooperativeJobs(host:HTMLElement,api:SupabaseClient):Promise<void>{
+ host.innerHTML='<div class="friends-loading">🚜 Loading village community jobs…</div>';
+ const {data,error}=await api.rpc('hf_list_cooperative_jobs');if(error)throw error;
+ const jobs=(data||[]) as CoopJob[];
+ if(!jobs.length){host.innerHTML='<div class="friends-empty"><strong>No community jobs available</strong><p>Check back soon for the next village goal.</p></div>';return;}
+ host.innerHTML='<div class="coop-jobs-intro"><strong>🤝 Together, our farms grow stronger</strong><p>Contribute crops and animal goods before the timer ends. Every farmer who contributes earns the shared reward when the village completes the goal.</p></div>'+jobs.map(job=>{
+  const pct=Math.min(100,Math.round(job.contributed_quantity/job.target_quantity*100)),done=job.status==='completed',expired=Date.parse(job.ends_at)<=Date.now(),available=localAvailableForJob(job.requirement_key),claimed=job.my_reward_claimed;
+  const eligible=job.my_contribution>0;
+  return '<article class="coop-job-card" data-coop-card="'+escapeHtml(job.job_id)+'"><div class="coop-job-heading"><span class="coop-job-emoji">'+escapeHtml(job.requirement_emoji)+'</span><div><strong>'+escapeHtml(job.title)+'</strong><small>'+escapeHtml(job.description)+'</small></div><span class="coop-job-status '+(done?'complete':expired?'expired':'active')+'">'+(done?'✓ Goal reached':expired?'Ended':'● Live')+'</span></div><div class="coop-progress-label"><strong>'+job.contributed_quantity.toLocaleString()+' / '+job.target_quantity.toLocaleString()+' '+escapeHtml(job.requirement_label)+'</strong><span>'+pct+'%</span></div><div class="coop-progress-track"><i style="width:'+pct+'%"></i></div><div class="coop-job-meta"><span>👩‍🌾 '+Number(job.participant_count||0)+' farmers</span><span>⏳ '+(done?'Completed':formatJobRemaining(job.ends_at)+' left')+'</span><span>🤝 You: '+Number(job.my_contribution||0)+'</span></div><div class="coop-reward-row"><span>🏅 Reward <b>🪙 '+job.reward_coins+'</b> · <b>⭐ '+job.reward_xp+' XP</b>'+(job.reward_badge?' · '+escapeHtml(job.reward_badge):'')+'</span><span>Stock: '+available+'</span></div>'+(done?(eligible?'<button class="coop-job-action" data-claim-coop="'+escapeHtml(job.job_id)+'" '+(claimed?'disabled':'')+'>'+(claimed?'✓ Reward claimed':'🎁 Claim your reward')+'</button>':'<p class="coop-job-note">The village reached its goal. You did not contribute to this job.</p>'):expired?'<p class="coop-job-note">This job expired before the community goal was reached.</p>':available>0?'<div class="coop-contribute-row"><label>Contribute <input type="number" min="1" max="'+Math.min(100,available,job.target_quantity-job.contributed_quantity)+'" value="'+Math.min(5,available,job.target_quantity-job.contributed_quantity)+'" data-coop-qty="'+escapeHtml(job.job_id)+'"></label><button class="coop-job-action" data-contribute-coop="'+escapeHtml(job.job_id)+'">🚜 Contribute goods</button></div>':'<p class="coop-job-note">You need '+escapeHtml(job.requirement_label.toLowerCase())+' in storage to contribute.</p>')+'</article>';
+ }).join('');
+ host.querySelectorAll<HTMLButtonElement>('[data-contribute-coop]').forEach(button=>button.addEventListener('click',async()=>{
+  const id=button.dataset.contributeCoop||'',job=jobs.find(item=>item.job_id===id);if(!job)return;
+  const input=host.querySelector<HTMLInputElement>('[data-coop-qty="'+CSS.escape(id)+'"]');
+  const quantity=Math.floor(Number(input?.value)||0),available=localAvailableForJob(job.requirement_key);
+  if(quantity<1||quantity>100||quantity>available){setMessage('Choose a valid amount from your available storage (maximum 100 at a time).',true);return;}
+  button.disabled=true;button.textContent='Contributing…';
+  try{
+   // Recheck local stock immediately before calling the atomic server contribution.
+   if(localAvailableForJob(job.requirement_key)<quantity)throw new Error('Your stock changed. Refresh the job and try again.');
+   const {data,error}=await api.rpc('hf_contribute_cooperative_job',{p_job_id:id,p_quantity:quantity});if(error)throw error;
+   const result=(Array.isArray(data)?data[0]:data) as {contributed_now:number;total_contributed:number;my_total:number;job_status:string};
+   const accepted=Number(result?.contributed_now)||0;if(accepted<1)throw new Error('No items were accepted.');
+   deductLocalContribution(job.requirement_key,accepted);
+   window.dispatchEvent(new Event('happyfarm:coop-inventory-changed'));
+   setMessage('🌾 Contributed '+accepted+' '+job.requirement_label.toLowerCase()+'. Village progress: '+Number(result.total_contributed).toLocaleString()+'.');
+   await renderCooperativeJobs(host,api);
+  }catch(e){setMessage(e instanceof Error?e.message:String(e),true);button.disabled=false;button.textContent='🚜 Contribute goods';}
+ }));
+ host.querySelectorAll<HTMLButtonElement>('[data-claim-coop]').forEach(button=>button.addEventListener('click',async()=>{
+  const id=button.dataset.claimCoop||'';button.disabled=true;button.textContent='Claiming…';
+  try{
+   const {data,error}=await api.rpc('hf_claim_cooperative_job_reward',{p_job_id:id});if(error)throw error;
+   const reward=(Array.isArray(data)?data[0]:data) as {coins:number;xp:number;badge:string|null};
+   const raw=localStorage.getItem(SAVE_KEY);if(!raw)throw new Error('Reward accepted, but local save is missing. Use cloud recovery before continuing.');
+   const save=JSON.parse(raw) as Record<string,any>;
+   save.coins=Math.max(0,Number(save.coins)||0)+Number(reward.coins||0);
+   save.xp=Math.max(0,Number(save.xp)||0)+Number(reward.xp||0);
+   save.cooperativeBadges=Array.isArray(save.cooperativeBadges)?save.cooperativeBadges:[];
+   if(reward.badge&&!save.cooperativeBadges.includes(reward.badge))save.cooperativeBadges.push(reward.badge);
+   localStorage.setItem(SAVE_KEY,JSON.stringify(save));localStorage.setItem('happyFarmLocalDirtyV1','true');queueCloudSave();
+   window.dispatchEvent(new Event('happyfarm:coop-reward-claimed'));
+   setMessage('🎉 Reward claimed! +'+reward.coins+' coins · +'+reward.xp+' XP'+(reward.badge?' · Badge: '+reward.badge:''));
+   await renderCooperativeJobs(host,api);
+  }catch(e){setMessage(e instanceof Error?e.message:String(e),true);button.disabled=false;button.textContent='🎁 Claim your reward';}
+ }));
+}
+
 function setMessage(message:string,error=false){const node=el('friends-status');if(node){node.textContent=message;node.classList.toggle('is-error',error);}}
 function show(){el('friends-modal')?.classList.add('open');el('friends-modal')?.setAttribute('aria-hidden','false');void render();}
 function hide(){el('friends-modal')?.classList.remove('open');el('friends-modal')?.setAttribute('aria-hidden','true');}
