@@ -25,8 +25,11 @@ async function visitFriend(friend:Friend,button:HTMLButtonElement){
   if(!save||!Array.isArray(save.plots)||!Array.isArray(save.animals)||!save.inventory||!save.feed)throw new Error('This neighbour farm save is incomplete or unavailable.');
   const ownSave=localStorage.getItem(SAVE_KEY);
   if(!ownSave)throw new Error('Your local farm save could not be found. Visit cancelled to protect your farm.');
+  const {data:visitData,error:visitError}=await client.rpc('hf_record_friend_visit',{p_friend_user_id:friend.friend_user_id});
+  if(visitError)throw visitError;
+  const visit=(Array.isArray(visitData)?visitData[0]:visitData) as {points_awarded:number;total_visit_points:number;already_visited:boolean};
   localStorage.setItem(VISITOR_BACKUP_KEY,ownSave);
-  sessionStorage.setItem(VISITOR_MODE_KEY,JSON.stringify({farmerName:friend.farmer_name,farmName:friend.farm_name,level:friend.level}));
+  sessionStorage.setItem(VISITOR_MODE_KEY,JSON.stringify({farmerName:friend.farmer_name,farmName:friend.farm_name,level:friend.level,visitPointsAwarded:Number(visit?.points_awarded)||0}));
   localStorage.setItem(SAVE_KEY,JSON.stringify(save));
   window.location.reload();
  }catch(e){button.disabled=false;button.textContent='🏡 Visit Farm';setMessage(e instanceof Error?e.message:String(e),true);}
@@ -46,8 +49,8 @@ async function render(){
   const me=await syncProfile(api);
   const code=el('my-friend-code');if(code)code.textContent=me.friend_code;
   const name=el('my-farmer-name');if(name)name.textContent=me.farmer_name;
-   const {data:points,error:pointsError}=await api.rpc('hf_get_my_neighbour_points');if(pointsError)throw pointsError;
-   setMessage('🌟 Neighbour points: '+Number(points||0).toLocaleString());
+   const [{data:points,error:pointsError},{data:visitPoints,error:visitPointsError}]=await Promise.all([api.rpc('hf_get_my_neighbour_points'),api.rpc('hf_get_my_visit_points')]);if(pointsError)throw pointsError;if(visitPointsError)throw visitPointsError;
+   setMessage('🌟 Neighbour points: '+Number(points||0).toLocaleString()+' · 🏡 Visit points: '+Number(visitPoints||0).toLocaleString());
   if(activeTab==='friends'){
    const {data,error}=await api.rpc('hf_list_friends');if(error)throw error;
    const friends=(data||[]) as Friend[];
