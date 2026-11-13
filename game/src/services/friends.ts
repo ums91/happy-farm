@@ -10,7 +10,7 @@ type Request=Farmer&{request_id:string;direction:'incoming'|'outgoing';created_a
 let client:SupabaseClient|null=null;
 let userId:string|null=null;
 let initialized=false;
-let activeTab:'friends'|'add'|'requests'|'gifts'|'visits'='friends';
+let activeTab:'friends'|'add'|'requests'|'gifts'|'visits'|'jobs'='friends';
 const el=(id:string)=>document.getElementById(id);
 function escapeHtml(value:unknown):string{return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]||ch));}
 function getLocalProfile(){try{const s=JSON.parse(localStorage.getItem(SAVE_KEY)||'{}');const xp=Math.max(0,Number(s.xp)||0);let level=1,total=0;while(level<100){const next=120+14*(level-1)*(level-1);if(xp<total+next)break;total+=next;level++;}return{farmerName:String(s.farmerName||'New Farmer').slice(0,24),farmName:String(s.farmName||'My Farm').slice(0,28),level,xp};}catch{return{farmerName:'New Farmer',farmName:'My Farm',level:1,xp:0};}}
@@ -119,7 +119,7 @@ async function renderCooperativeJobs(host:HTMLElement,api:SupabaseClient):Promis
 function setMessage(message:string,error=false){const node=el('friends-status');if(node){node.textContent=message;node.classList.toggle('is-error',error);}}
 function show(){el('friends-modal')?.classList.add('open');el('friends-modal')?.setAttribute('aria-hidden','false');void render();}
 function hide(){el('friends-modal')?.classList.remove('open');el('friends-modal')?.setAttribute('aria-hidden','true');}
-function setTab(tab:'friends'|'add'|'requests'|'gifts'|'visits'){activeTab=tab;document.querySelectorAll<HTMLButtonElement>('[data-friends-tab]').forEach(b=>b.classList.toggle('active',b.dataset.friendsTab===tab));void render();}
+function setTab(tab:'friends'|'add'|'requests'|'gifts'|'visits'|'jobs'){activeTab=tab;document.querySelectorAll<HTMLButtonElement>('[data-friends-tab]').forEach(b=>b.classList.toggle('active',b.dataset.friendsTab===tab));void render();}
 async function syncProfile(api:SupabaseClient){if(!userId)throw new Error('Sign in to create your Farmer ID.');const p=getLocalProfile();const {data,error}=await api.rpc('hf_sync_my_farmer_profile',{p_farmer_name:p.farmerName,p_farm_name:p.farmName,p_level:p.level,p_xp:p.xp});if(error)throw error;return (Array.isArray(data)?data[0]:data) as Farmer;}
 async function render(){
  const host=el('friends-content');if(!host)return;
@@ -152,7 +152,7 @@ async function render(){
    const outgoing=(sent.data||[]) as Array<{receiver_name:string;coins:number;sent_at:string}>;
    host.innerHTML='<section class="friends-gift-section"><h3>🎁 Gifts waiting for you</h3>'+(received.length?received.map(g=>'<article class="friend-card"><div class="friend-avatar">🎁</div><div class="friend-info"><strong>'+escapeHtml(g.sender_name)+'</strong><small>'+escapeHtml(g.sender_farm)+' sent you a gift</small><small>🪙 '+g.coins+' coins</small></div><button type="button" class="friend-visit" data-claim-gift="'+escapeHtml(g.gift_id)+'">Collect</button></article>').join(''):'<div class="friends-empty"><p>No gifts waiting right now. Ask your neighbours to send you one!</p></div>')+'</section><section class="friends-gift-section"><h3>📨 Gifts sent today</h3>'+(outgoing.length?outgoing.map(g=>'<p class="friends-gift-sent">🎁 '+escapeHtml(g.receiver_name)+' · '+g.coins+' coins · Sent</p>').join(''):'<p class="friends-gift-sent">You have not sent any gifts today.</p>')+'</section>';
    host.querySelectorAll<HTMLButtonElement>('[data-claim-gift]').forEach(b=>b.addEventListener('click',async()=>{b.disabled=true;b.textContent='Collecting…';try{const raw=localStorage.getItem(SAVE_KEY);if(!raw)throw new Error('Your local farm save is unavailable. Gift collection was not attempted.');const save=JSON.parse(raw) as Record<string,unknown>;if(!Number.isFinite(Number(save.coins)))throw new Error('Your local farm save is invalid. Gift collection was not attempted.');const {data,error}=await api.rpc('hf_claim_gift',{p_gift_id:b.dataset.claimGift});if(error)throw error;const amount=Number(data)||0;if(amount<=0)throw new Error('This gift has already been collected.');save.coins=Math.max(0,Number(save.coins)||0)+amount;localStorage.setItem(SAVE_KEY,JSON.stringify(save));queueCloudSave();window.location.reload();}catch(e){b.disabled=false;b.textContent='Collect';setMessage(e instanceof Error?e.message:String(e),true);}}));
-  }else if(activeTab==='visits'){
+  }else if(activeTab==='jobs'){\n   await renderCooperativeJobs(host,api);\n  }else if(activeTab==='visits'){
    const [{data:visitsData,error:visitsError},{data:visitorsData,error:visitorsError}]=await Promise.all([api.rpc('hf_list_my_friend_visits'),api.rpc('hf_list_my_farm_visitors')]);
    if(visitsError)throw visitsError;if(visitorsError)throw visitorsError;
    const visits=(visitsData||[]) as Array<{farmer_name:string;farm_name:string;visited_at:string;points_awarded:number}>;
@@ -172,7 +172,7 @@ export function initializeFriends():void{
  el('top-friends')?.addEventListener('click',show);el('friends-close')?.addEventListener('click',hide);
  el('friends-modal')?.addEventListener('click',e=>{if(e.target===e.currentTarget)hide();});
  el('copy-friend-code')?.addEventListener('click',async()=>{const code=el('my-friend-code')?.textContent||'';if(!code||code==='--------')return;try{await navigator.clipboard.writeText(code);setMessage('Friend Code copied. Share it with your neighbour!');}catch{setMessage('Your Friend Code is '+code);}});
- document.querySelectorAll<HTMLButtonElement>('[data-friends-tab]').forEach(b=>b.addEventListener('click',()=>setTab(b.dataset.friendsTab as 'friends'|'add'|'requests'|'gifts'|'visits')));
+ document.querySelectorAll<HTMLButtonElement>('[data-friends-tab]').forEach(b=>b.addEventListener('click',()=>setTab(b.dataset.friendsTab as 'friends'|'add'|'requests'|'gifts'|'visits'|'jobs')));
  client=getCloudSupabaseClient();
  userId=getCloudUserId();
  window.addEventListener('happyfarm:auth-changed',()=>{userId=getCloudUserId();if(el('friends-modal')?.classList.contains('open'))void render();});
