@@ -2120,7 +2120,7 @@ export class FarmScene extends Phaser.Scene {
   private sellProduce(): void { const value=this.produce.eggs*12+this.produce.milk*28; if(value<=0){this.toast('No animal products to sell yet.');return;}const eggs=this.produce.eggs,milk=this.produce.milk;this.produce={eggs:0,milk:0};playSfx('coin');this.coins+=value;this.xp+=eggs*2+milk*4;this.saveFarm();this.refreshHud();this.renderInventory();this.toast('Sold '+eggs+' eggs and '+milk+' milk for '+value+' coins!'); }
   private openMarket(): void {
     const modal=document.getElementById('market-modal');
-    modal?.classList.remove('inventory-mode','field-seed-mode');modal?.classList.add('market-mode');
+    modal?.classList.remove('inventory-mode','field-seed-mode','sell-mode');modal?.classList.add('market-mode');
     const title=modal?.querySelector('.market-header h2'); if(title) title.textContent='Farm Market';
     modal?.querySelector('.market-tabs')?.classList.remove('inventory-hidden');
     const intro=document.getElementById('market-intro'); if(intro) intro.textContent='Seeds, animals and supplies for a thriving farm.';
