@@ -133,6 +133,9 @@ export class FarmScene extends Phaser.Scene {
   constructor() { super('FarmScene'); }
 
   create(): void {
+    document.getElementById('level-up-continue')?.addEventListener('click',()=>this.closeLevelUpCelebration());
+    document.getElementById('level-up-close')?.addEventListener('click',()=>this.closeLevelUpCelebration());
+    document.getElementById('level-up-modal')?.addEventListener('click',event=>{if(event.target===event.currentTarget)this.closeLevelUpCelebration();});
     this.fitFarmToViewport();
     this.scale.on('resize', () => this.fitFarmToViewport());
     this.plotGraphics = this.add.graphics().setDepth(-5);
@@ -2617,13 +2620,57 @@ export class FarmScene extends Phaser.Scene {
     }
   }
 
+
+  private levelUnlocks(fromLevel:number,toLevel:number):string[]{
+    const unlocks:string[]=[];
+    for(const [id,crop] of Object.entries(CROPS))if(crop.unlockLevel>fromLevel&&crop.unlockLevel<=toLevel)unlocks.push(crop.emoji+' '+crop.name+' seeds');
+    const buildings=[{level:4,name:'Chicken Coop'},{level:5,name:'Stone Well'},{level:7,name:'Cow Shed'},{level:10,name:'Grain Silo'},{level:14,name:'Village Bakery'},{level:20,name:'Greenhouse'},{level:27,name:'Windmill'},{level:42,name:'Horse Stable'},{level:52,name:'Farm Workshop'},{level:64,name:'Water Tower'}];
+    for(const item of buildings)if(item.level>fromLevel&&item.level<=toLevel)unlocks.push('🏗️ '+item.name);
+    DECOR_ASSET_ORDER.forEach((asset,index)=>{
+      const level=Math.min(95,3+Math.floor(index*92/DECOR_ASSET_ORDER.length));
+      if(level>fromLevel&&level<=toLevel)unlocks.push('🌿 '+this.decorDisplayName(asset));
+    });
+    return [...new Set(unlocks)];
+  }
+
+  private showLevelUpCelebration(fromLevel:number,toLevel:number,bonus:number):void{
+    const modal=document.getElementById('level-up-modal');
+    const level=document.getElementById('level-up-number');
+    const reward=document.getElementById('level-up-coins');
+    const unlocked=document.getElementById('level-up-unlocks');
+    const heading=document.getElementById('level-up-heading');
+    if(!modal||!level||!reward||!unlocked)return;
+    level.textContent=String(toLevel);
+    reward.textContent='+'+bonus.toLocaleString()+' coins';
+    if(heading)heading.textContent=toLevel>fromLevel+1?'LEVELS UP!':'LEVEL UP!';
+    const items=this.levelUnlocks(fromLevel,toLevel);
+    unlocked.innerHTML=items.length?'<h3>🎁 New unlocks</h3><ul>'+items.map(item=>'<li>'+item.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</li>').join('')+'</ul>':'<p class="level-up-no-unlocks">No new catalogue items this time. Keep growing your farm!</p>';
+    modal.classList.add('open');
+    modal.setAttribute('aria-hidden','false');
+    playSfx('level');
+    this.saveFarm();
+  }
+
+  private closeLevelUpCelebration():void{
+    const modal=document.getElementById('level-up-modal');
+    modal?.classList.remove('open');
+    modal?.setAttribute('aria-hidden','true');
+  }
+
   private refreshHud(): void {
     const coins = document.getElementById('coins');
     const xp = document.getElementById('xp');
     const waterMeter=document.getElementById('water-count');if(waterMeter)waterMeter.textContent=this.waterUnits+' / '+this.waterCapacity;
     if (coins) coins.textContent = String(this.coins);
     const level = this.farmerLevel;
-    if(level>this.displayedLevel){const bonus=level*20;this.coins+=bonus;this.displayedLevel=level;this.toast('Level '+level+' reached! Farmhouse upgraded · +'+bonus+' coins.');}
+    if(level>this.displayedLevel){
+      const previousLevel=this.displayedLevel;
+      let bonus=0;
+      for(let reached=previousLevel+1;reached<=level;reached++)bonus+=reached*20;
+      this.coins+=bonus;
+      this.displayedLevel=level;
+      this.showLevelUpCelebration(previousLevel,level,bonus);
+    }
     if(level!==this.displayedLevel||level!==this.farmhouseVisualLevel)this.redrawFarmTiles();
     if(level!==this.farmhouseVisualLevel){this.farmhouseVisualLevel=level;this.drawScenery();}
     if (xp) xp.textContent = `Level ${level} · ${this.xp} XP`;
