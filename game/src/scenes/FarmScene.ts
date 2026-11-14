@@ -14,7 +14,7 @@ interface AnimalProduce { eggs: number; milk: number }
 type BuildingId = 'coop'|'barn'|'silo'|'bakery'|'greenhouse'|'windmill'|'stable'|'well'|'workshop'|'waterTower';
 type ProductId='flour'|'bread'|'pastry'|'grapes';
 interface ProductionJob { recipe:string; readyAt:number }
-interface FarmSave { version: 19; workshopCompost?:number; water?:number; waterCollectedAt?:number; farmExpansionLevel?:number; landTiles?:string[]; landExpansionCount?:number; questRefreshAt?:number; questProgressBaseline?:Partial<Record<'harvests'|'hens'|'cows'|'eggs'|'milk',number>>; eventStartedAt?:number; eventStartHarvests?:number; eventClaimed?:boolean; claimedMilestones?:number[]; claimedRibbons?:string[]; harvestedCrops?:Partial<Record<CropId,number>>; fruitInventory?:Record<'apples'|'pears'|'cherries'|'oranges',number>; fruitTreeReadyAt?:Record<string,number>; farmerName?:string; farmName?:string; buildingLevels?:Partial<Record<BuildingId,number>>; productionJobs?:Partial<Record<BuildingId,ProductionJob|null>>; crafted?:Partial<Record<ProductId,number>>; randomQuests?: Array<{id:string;title:string;description:string;target:number;coins:number;xp:number;icon:string;metric:'harvests'|'hens'|'cows'|'eggs'|'milk'}>; claimedQuests?: string[]; ordersCompleted?: Record<string,number>; animals: Animal[]; harvests: number; coins: number; xp: number; selectedCrop?: CropId; decor?: Record<string,{col:number;row:number}>; storedDecor?:string[]; feed: { hen: number; cow: number }; buildings?: BuildingProgress; produce?: AnimalProduce; inventory: Record<CropId, number>; plots: Array<{ col:number; row:number; state:PlotState; watered:boolean; growth:number; crop?:CropId; readyAt?:number; witherAt?:number }> }
+interface FarmSave { version: 19; workshopCompost?:number; water?:number; waterCollectedAt?:number; farmExpansionLevel?:number; landTiles?:string[]; landExpansionCount?:number; questRefreshAt?:number; questProgressBaseline?:Partial<Record<'harvests'|'hens'|'cows'|'eggs'|'milk',number>>; eventStartedAt?:number; eventStartHarvests?:number; eventClaimed?:boolean; claimedMilestones?:number[]; claimedRibbons?:string[]; harvestedCrops?:Partial<Record<CropId,number>>; fruitInventory?:Record<'apples'|'pears'|'cherries'|'oranges',number>; fruitTreeReadyAt?:Record<string,number>; fruitTreeHarvests?:Record<string,number>; fruitTreeDormantUntil?:Record<string,number>; farmerName?:string; farmName?:string; buildingLevels?:Partial<Record<BuildingId,number>>; productionJobs?:Partial<Record<BuildingId,ProductionJob|null>>; crafted?:Partial<Record<ProductId,number>>; randomQuests?: Array<{id:string;title:string;description:string;target:number;coins:number;xp:number;icon:string;metric:'harvests'|'hens'|'cows'|'eggs'|'milk'}>; claimedQuests?: string[]; ordersCompleted?: Record<string,number>; animals: Animal[]; harvests: number; coins: number; xp: number; selectedCrop?: CropId; decor?: Record<string,{col:number;row:number}>; storedDecor?:string[]; feed: { hen: number; cow: number }; buildings?: BuildingProgress; produce?: AnimalProduce; inventory: Record<CropId, number>; plots: Array<{ col:number; row:number; state:PlotState; watered:boolean; growth:number; crop?:CropId; readyAt?:number; witherAt?:number }> }
 const CROPS: Record<CropId,{name:string;emoji:string;cost:number;reward:number;xp:number;growMs:number;color:number;unlockLevel:number}> = {
  wheat:{name:'Wheat',emoji:'🌾',cost:8,reward:22,xp:2,growMs:5*60*1000,color:0xe4b83f,unlockLevel:1},
  carrot:{name:'Carrot',emoji:'🥕',cost:14,reward:38,xp:3,growMs:10*60*1000,color:0xef873e,unlockLevel:1},
@@ -99,6 +99,10 @@ export class FarmScene extends Phaser.Scene {
   private fruitInventory:Record<'apples'|'pears'|'cherries'|'oranges',number>={apples:0,pears:0,cherries:0,oranges:0};
   private harvestedCrops:Record<CropId,number>={wheat:0,carrot:0,corn:0,strawberry:0,tomato:0,pumpkin:0,blueberry:0,watermelon:0};
   private fruitTreeReadyAt:Record<string,number>={};
+  private fruitTreeHarvests:Record<string,number>={};
+  private fruitTreeDormantUntil:Record<string,number>={};
+  private readonly fruitTreeHarvestLimit=5;
+  private readonly fruitTreeRestDuration=12*60*60*1000;
   private fruitTreeBadges:Record<string,Phaser.GameObjects.Text>={};
   private movingDecor: string | null = null;
   private pendingDecorId: string | null = null;
@@ -513,7 +517,11 @@ export class FarmScene extends Phaser.Scene {
   }
   private initializeFruitTrees():void {
     const now=Date.now();
-    Object.keys(this.decor).forEach(id=>{const kind=this.fruitKind(id);if(kind&&!this.fruitTreeReadyAt[id])this.fruitTreeReadyAt[id]=now+this.fruitConfig(kind).interval;});
+    Object.keys(this.decor).forEach(id=>{
+      const kind=this.fruitKind(id);if(!kind)return;
+      if(this.fruitTreeHarvests[id]===undefined)this.fruitTreeHarvests[id]=0;
+      if(!this.fruitTreeReadyAt[id]&&!this.fruitTreeDormantUntil[id])this.fruitTreeReadyAt[id]=now+this.fruitConfig(kind).interval;
+    });
     this.saveFarm();
   }
   private renderFruitTreeBadges():void {
@@ -531,24 +539,46 @@ export class FarmScene extends Phaser.Scene {
     const now=Date.now();let changed=false;
     Object.keys(this.decor).forEach(id=>{
       const kind=this.fruitKind(id);if(!kind)return;
-      if(!this.fruitTreeReadyAt[id]){this.fruitTreeReadyAt[id]=now+this.fruitConfig(kind).interval;changed=true;}
-      const remaining=this.fruitTreeReadyAt[id]!-now;const badge=this.fruitTreeBadges[id];if(!badge)return;const treePos=this.decor[id]!;const treeWorld=this.toWorld(treePos.col,treePos.row);badge.setPosition(treeWorld.x,treeWorld.y-104);
-      if(remaining<=0){badge.setText(this.fruitConfig(kind).emoji+' Collect').setVisible(true).setBackgroundColor('#397b27');}
-      else {badge.setVisible(false);}
+      if(this.fruitTreeHarvests[id]===undefined){this.fruitTreeHarvests[id]=0;changed=true;}
+      const dormantUntil=this.fruitTreeDormantUntil[id]||0;
+      if(dormantUntil>0&&dormantUntil<=now){
+        this.fruitTreeDormantUntil[id]=0;this.fruitTreeHarvests[id]=0;
+        this.fruitTreeReadyAt[id]=now+this.fruitConfig(kind).interval;changed=true;
+      }else if(!dormantUntil&&!this.fruitTreeReadyAt[id]){
+        this.fruitTreeReadyAt[id]=now+this.fruitConfig(kind).interval;changed=true;
+      }
+      const badge=this.fruitTreeBadges[id];if(!badge)return;
+      const treePos=this.decor[id]!;const treeWorld=this.toWorld(treePos.col,treePos.row);badge.setPosition(treeWorld.x,treeWorld.y-104);
+      if(dormantUntil>now){
+        const left=Math.ceil((dormantUntil-now)/3600000);
+        badge.setText('💤 Resting · '+left+'h').setVisible(true).setBackgroundColor('#786b55');
+      }else{
+        const remaining=(this.fruitTreeReadyAt[id]||0)-now;
+        if(remaining<=0)badge.setText(this.fruitConfig(kind).emoji+' Collect · '+(this.fruitTreeHarvestLimit-this.fruitTreeHarvests[id])+' left').setVisible(true).setBackgroundColor('#397b27');
+        else badge.setVisible(false);
+      }
     });
     if(changed)this.saveFarm();
   }
   private harvestFruitTree(id:string):void {
     if (sessionStorage.getItem('happyFarmVisitorModeV1')) return;
     const kind=this.fruitKind(id);if(!kind)return;
-    const readyAt=this.fruitTreeReadyAt[id]||0;const cfg=this.fruitConfig(kind);
-    if(Date.now()<readyAt){const remaining=readyAt-Date.now();const mins=Math.floor(remaining/60000),secs=Math.ceil((remaining%60000)/1000);this.toast(cfg.name+' tree is growing fruit · '+mins+':'+String(secs).padStart(2,'0')+' remaining.');return;}
-    this.fruitInventory[kind]+=1;playSfx('harvest');this.fruitTreeReadyAt[id]=Date.now()+cfg.interval;
+    const now=Date.now(),cfg=this.fruitConfig(kind),dormantUntil=this.fruitTreeDormantUntil[id]||0;
+    if(dormantUntil>now){const hours=Math.ceil((dormantUntil-now)/3600000);this.toast(cfg.name+' tree is resting after '+this.fruitTreeHarvestLimit+' harvests · ready again in about '+hours+'h.');return;}
+    const readyAt=this.fruitTreeReadyAt[id]||0;
+    if(now<readyAt){const remaining=readyAt-now;const mins=Math.floor(remaining/60000),secs=Math.ceil((remaining%60000)/1000);this.toast(cfg.name+' tree is growing fruit · '+mins+':'+String(secs).padStart(2,'0')+' remaining.');return;}
+    this.fruitInventory[kind]+=1;playSfx('harvest');this.fruitTreeHarvests[id]=(this.fruitTreeHarvests[id]||0)+1;
     const reward=kind==='apples'?55:kind==='pears'?65:kind==='oranges'?60:75;
     const treePos=this.toWorld(this.decor[id]!.col,this.decor[id]!.row);
     this.showHarvestReward(treePos.x,treePos.y-72,reward);
+    if(this.fruitTreeHarvests[id]>=this.fruitTreeHarvestLimit){
+      this.fruitTreeReadyAt[id]=0;this.fruitTreeDormantUntil[id]=now+this.fruitTreeRestDuration;
+      this.toast(cfg.name+' tree completed '+this.fruitTreeHarvestLimit+' harvests and is resting for 12 hours.');
+    }else{
+      this.fruitTreeReadyAt[id]=now+cfg.interval;
+      this.toast('Harvested 1 '+cfg.name+' · '+(this.fruitTreeHarvestLimit-this.fruitTreeHarvests[id])+' harvests left before its rest · next fruit in '+Math.round(cfg.interval/60000)+' minutes.');
+    }
     this.saveFarm();this.refreshHud();this.updateFruitTrees();
-    this.toast('Harvested 1 '+cfg.name+' · sell value '+reward+' coins · next fruit in '+Math.round(cfg.interval/60000)+' minutes.');
   }
 
   private decorDisplayName(asset:string):string {
@@ -1022,11 +1052,11 @@ export class FarmScene extends Phaser.Scene {
       const itemName=hit.replace(/([A-Z])/g,' $1').replace(/^./,letter=>letter.toUpperCase());
       if(this.activeTool==='store'){
         if(!window.confirm('Store '+itemName+' in Inventory?\n\nYou can place it on your farm again later.'))return;
-        this.storedDecor.push(hit);delete this.decor[hit];delete this.fruitTreeReadyAt[hit];this.drawScenery();this.renderOwnedAnimals();this.renderFruitTreeBadges();this.saveFarm();this.refreshHud();this.toast(hit+' stored in Inventory. You can place it again anytime.');
+        this.storedDecor.push(hit);delete this.decor[hit];delete this.fruitTreeReadyAt[hit];delete this.fruitTreeHarvests[hit];delete this.fruitTreeDormantUntil[hit];this.drawScenery();this.renderOwnedAnimals();this.renderFruitTreeBadges();this.saveFarm();this.refreshHud();this.toast(hit+' stored in Inventory. You can place it again anytime.');
       }
       else{
         if(!window.confirm('Are you sure you want to permanently remove '+itemName+'?\n\nThis cannot be undone. Choose Cancel to keep it on your farm.'))return;
-        delete this.decor[hit];delete this.fruitTreeReadyAt[hit];this.drawScenery();this.renderOwnedAnimals();this.renderFruitTreeBadges();this.saveFarm();this.refreshHud();this.toast(hit+' removed from your farm permanently.');
+        delete this.decor[hit];delete this.fruitTreeReadyAt[hit];delete this.fruitTreeHarvests[hit];delete this.fruitTreeDormantUntil[hit];this.drawScenery();this.renderOwnedAnimals();this.renderFruitTreeBadges();this.saveFarm();this.refreshHud();this.toast(hit+' removed from your farm permanently.');
       }
       return;
     }
@@ -2437,6 +2467,8 @@ export class FarmScene extends Phaser.Scene {
       if(save.fruitInventory)this.fruitInventory={...this.fruitInventory,...save.fruitInventory};
       if(save.harvestedCrops)this.harvestedCrops={...this.harvestedCrops,...save.harvestedCrops};
       if(save.fruitTreeReadyAt&&typeof save.fruitTreeReadyAt==='object')this.fruitTreeReadyAt={...save.fruitTreeReadyAt};
+      if(save.fruitTreeHarvests&&typeof save.fruitTreeHarvests==='object')this.fruitTreeHarvests={...save.fruitTreeHarvests};
+      if(save.fruitTreeDormantUntil&&typeof save.fruitTreeDormantUntil==='object')this.fruitTreeDormantUntil={...save.fruitTreeDormantUntil};
       if(save.workshopCompost!==undefined)this.workshopCompost=Math.max(0,Math.floor(Number(save.workshopCompost)||0));
       if(save.version>=12){if(save.productionJobs)for(const id of ['bakery','greenhouse','windmill','workshop'] as BuildingId[])this.productionJobs[id]=save.productionJobs[id]||null;if(save.crafted)this.crafted={...this.crafted,...save.crafted};}
       this.buildingLevels.coop=Math.max(this.buildingLevels.coop,this.buildings.coopLevel);this.buildingLevels.barn=Math.max(this.buildingLevels.barn,this.buildings.barnLevel);this.buildingLevels.silo=Math.max(this.buildingLevels.silo,this.buildings.warehouseLevel);this.waterUnits=Math.min(this.waterUnits,this.waterCapacity);
@@ -2475,6 +2507,8 @@ export class FarmScene extends Phaser.Scene {
       harvestedCrops:{...this.harvestedCrops},
       fruitInventory:{...this.fruitInventory},
       fruitTreeReadyAt:{...this.fruitTreeReadyAt},
+      fruitTreeHarvests:{...this.fruitTreeHarvests},
+      fruitTreeDormantUntil:{...this.fruitTreeDormantUntil},
       farmerName:this.farmerName,
       farmName:this.farmName,
       buildingLevels:{...this.buildingLevels},
