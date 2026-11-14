@@ -49,6 +49,11 @@
         <section class="world-panel" aria-label="Farm world">
           <div class="world-label"><span class="live-dot"></span><span id="farm-name-label">MY FARM</span></div>
           <div id="game" class="game-canvas"></div>
+          <div class="farm-zoom-controls" aria-label="Farm zoom controls">
+            <button id="farm-zoom-in" type="button" aria-label="Zoom in" title="Zoom in (+)">＋</button>
+            <button id="farm-zoom-out" type="button" aria-label="Zoom out" title="Zoom out (−)">−</button>
+            <button id="farm-zoom-reset" type="button" aria-label="Reset zoom" title="Fit farm (0)">⌂</button>
+          </div>
           <aside class="audio-dock" aria-label="Audio settings">
             <div class="audio-channel"><button id="music-toggle" type="button" aria-label="Toggle background music" aria-pressed="true" title="Turn background music off">♫</button><label for="music-volume">MUSIC</label><input id="music-volume" type="range" min="0" max="100" step="1" value="35" aria-label="Music volume"><output id="music-volume-value" for="music-volume">35%</output></div>
             <div class="audio-channel"><button id="sfx-toggle" type="button" aria-label="Toggle sound effects" aria-pressed="true" title="Turn sound effects off">♪</button><label for="sfx-volume">SFX</label><input id="sfx-volume" type="range" min="0" max="100" step="1" value="55" aria-label="Sound effects volume"><output id="sfx-volume-value" for="sfx-volume">55%</output></div>
