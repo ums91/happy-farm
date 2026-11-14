@@ -3381,3 +3381,13 @@ body.visitor-mode .audio-dock{display:none!important}
  #market-modal .animal-status-pill{font-size:9px;padding:5px 7px}
  #market-modal .animal-progress .market-buy{width:100%;min-height:36px}
 }
+
+
+/* Decoration catalogue filters: compact, horizontally scrollable on phones. */
+.decor-filter-bar{display:flex;gap:7px;overflow-x:auto;padding:3px 2px 10px;margin:0 0 8px;position:sticky;top:0;z-index:4;background:#fff9e8;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.decor-filter-bar::-webkit-scrollbar{display:none}
+.decor-filter{flex:0 0 auto;border:1px solid #d9c69b;border-radius:20px;padding:8px 12px;background:#f7efd9;color:#765b34;font:800 11px Nunito,sans-serif;white-space:nowrap;touch-action:manipulation}
+.decor-filter.active{background:#6d9e45;border-color:#557d34;color:#fff}
+.decor-catalog-grid{display:grid;grid-template-columns:1fr;gap:8px}
+.decor-catalog-card[hidden]{display:none!important}
+@media(max-width:700px){.decor-filter{min-height:36px;padding:8px 11px;font-size:10px}.decor-filter-bar{margin-left:-3px;margin-right:-3px;padding-left:3px}}
