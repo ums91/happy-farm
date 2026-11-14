@@ -240,42 +240,27 @@ export class FarmScene extends Phaser.Scene {
       };
       // The field PNG is now the only soil layer. Crop sheets are converted
       // into transparent plant overlays with a stable bottom planting anchor.
+      // Preserve each source frame's complete coordinate system. Never crop
+      // to visible-pixel bounds, recenter, or bottom-align: those operations
+      // shift the crop root relative to the ploughed-field PNG.
       const normalizeStages=(key:string,stages:Array<{source:CanvasImageSource;width:number;height:number}>)=>{
         if(stages.length!==5){console.warn('[Happy Farm] Expected five crop stages:',key);return;}
-        const prepared=stages.map(stage=>{
-          const canvas=document.createElement('canvas');canvas.width=stage.width;canvas.height=stage.height;
-          const ctx=canvas.getContext('2d',{willReadFrequently:true});if(!ctx)return null;
-          ctx.drawImage(stage.source,0,0,stage.width,stage.height);
-          const pixels=ctx.getImageData(0,0,stage.width,stage.height),data=pixels.data;
-          clearBorderMatte(data,stage.width,stage.height);
-          clearCropSoil(data,stage.width,stage.height);
-          let minX=stage.width,minY=stage.height,maxX=-1,maxY=-1;
-          for(let y=0;y<stage.height;y++)for(let x=0;x<stage.width;x++){
-            const i=(y*stage.width+x)*4;
-            if(data[i+3]>8){minX=Math.min(minX,x);minY=Math.min(minY,y);maxX=Math.max(maxX,x);maxY=Math.max(maxY,y);}
-          }
-          if(maxX<minX||maxY<minY)return null;
-          ctx.putImageData(pixels,0,0);
-          return {canvas,bounds:{x:minX,y:minY,width:maxX-minX+1,height:maxY-minY+1}};
-        });
-        if(prepared.some(item=>!item)){console.warn('[Happy Farm] Invalid transparent crop frame:',key);return;}
-        const frames=prepared as Array<NonNullable<typeof prepared[number]>>;
-        const maxW=Math.max(...frames.map(frame=>frame.bounds.width));
-        const maxH=Math.max(...frames.map(frame=>frame.bounds.height));
-        const scale=Math.min(118/maxW,118/maxH);
         const atlas=document.createElement('canvas');atlas.width=800;atlas.height=160;
-        const atlasContext=atlas.getContext('2d');if(!atlasContext)return;
-        frames.forEach((frame,index)=>{
-          const {x,y,width,height}=frame.bounds;
-          const drawW=Math.max(1,Math.round(width*scale)),drawH=Math.max(1,Math.round(height*scale));
-          // Bottom-align all five stages so the soil tile remains stationary
-          // as vegetation grows; center each tile horizontally in its frame.
-          atlasContext.drawImage(frame.canvas,x,y,width,height,
-            index*160+Math.round((160-drawW)/2),160-drawH,drawW,drawH);
+        const atlasContext=atlas.getContext('2d',{willReadFrequently:true});if(!atlasContext)return;
+        stages.forEach((stage,index)=>{
+          const frame=document.createElement('canvas');frame.width=160;frame.height=160;
+          const ctx=frame.getContext('2d',{willReadFrequently:true});if(!ctx)return;
+          // Map the entire frame to the shared 160x160 tile coordinate space.
+          ctx.drawImage(stage.source,0,0,stage.width,stage.height,0,0,160,160);
+          const pixels=ctx.getImageData(0,0,160,160),data=pixels.data;
+          clearBorderMatte(data,160,160);
+          clearCropSoil(data,160,160);
+          ctx.putImageData(pixels,0,0);
+          atlasContext.drawImage(frame,index*160,0);
         });
         this.textures.remove(key);
         const texture=this.textures.addCanvas(key,atlas);
-        if(!texture){console.warn('[Happy Farm] Could not register crop atlas:',key);return;}
+        if(!texture){console.warn('[Happy Farm] Could not register aligned crop atlas:',key);return;}
         for(let stage=0;stage<5;stage++)texture.add(String(stage),0,stage*160,0,160,160);
       };
 
@@ -286,54 +271,30 @@ export class FarmScene extends Phaser.Scene {
         if(frameWidth<=0||frameHeight<=0||source.width<frameWidth*5){
           console.warn('[Happy Farm] Invalid five-stage crop sheet:',crop,source.width,source.height);continue;
         }
-        const stages=Array.from({length:5},(_,stage)=>({source,width:frameWidth,height:frameHeight,sx:stage*frameWidth}));
-        const canvases=stages.map(stage=>{
-          const canvas=document.createElement('canvas');canvas.width=stage.width;canvas.height=stage.height;
-          const ctx=canvas.getContext('2d');if(ctx)ctx.drawImage(stage.source,stage.sx,0,stage.width,stage.height,0,0,stage.width,stage.height);
-          return canvas;
+        const stages=Array.from({length:5},(_,stage)=>{
+          const canvas=document.createElement('canvas');canvas.width=frameWidth;canvas.height=frameHeight;
+          const ctx=canvas.getContext('2d');
+          if(ctx)ctx.drawImage(source,stage*frameWidth,0,frameWidth,frameHeight,0,0,frameWidth,frameHeight);
+          return {source:canvas,width:frameWidth,height:frameHeight};
         });
-        normalizeStages(key,canvases.map(canvas=>({source:canvas,width:canvas.width,height:canvas.height})));
+        normalizeStages(key,stages);
       }
 
-      // Tomato is supplied as five individual PNGs; remove their embedded soil
-      // beds using the same process before overlaying the plants on the field.
-      const tomatoStages:Array<{source:CanvasImageSource;width:number;height:number}>=[];
+      // Tomato has individual stage PNGs. Preserve their complete canvas and
+      // authored offsets, removing only matte and embedded soil.
       for(let stage=1;stage<=5;stage++){
         const key=`crop-tomato-${stage}`;
         if(!this.textures.exists(key))continue;
         const source=this.textures.get(key).getSourceImage() as HTMLImageElement;
-        tomatoStages.push({source,width:source.width,height:source.height});
-      }
-      if(tomatoStages.length===5){
-        const prepared=tomatoStages.map(stage=>{
-          const canvas=document.createElement('canvas');canvas.width=stage.width;canvas.height=stage.height;
-          const ctx=canvas.getContext('2d',{willReadFrequently:true});if(!ctx)return null;
-          ctx.drawImage(stage.source,0,0);
-          const pixels=ctx.getImageData(0,0,canvas.width,canvas.height),data=pixels.data;
-          clearBorderMatte(data,canvas.width,canvas.height);
-          clearCropSoil(data,canvas.width,canvas.height);
-          let minX=canvas.width,minY=canvas.height,maxX=-1,maxY=-1;
-          for(let y=0;y<canvas.height;y++)for(let x=0;x<canvas.width;x++){
-            const i=(y*canvas.width+x)*4;
-            if(data[i+3]>8){minX=Math.min(minX,x);minY=Math.min(minY,y);maxX=Math.max(maxX,x);maxY=Math.max(maxY,y);}
-          }
-          if(maxX<minX||maxY<minY)return null;
-          ctx.putImageData(pixels,0,0);
-          return {canvas,bounds:{x:minX,y:minY,width:maxX-minX+1,height:maxY-minY+1}};
-        });
-        if(prepared.every(Boolean)){
-          const frames=prepared as Array<NonNullable<typeof prepared[number]>>;
-          const maxW=Math.max(...frames.map(frame=>frame.bounds.width)),maxH=Math.max(...frames.map(frame=>frame.bounds.height));
-          const scale=Math.min(118/maxW,118/maxH);
-          frames.forEach((frame,index)=>{
-            const output=document.createElement('canvas');output.width=160;output.height=160;
-            const ctx=output.getContext('2d');if(!ctx)return;
-            const {x,y,width,height}=frame.bounds,drawW=Math.round(width*scale),drawH=Math.round(height*scale);
-            ctx.drawImage(frame.canvas,x,y,width,height,Math.round((160-drawW)/2),160-drawH,drawW,drawH);
-            const key=`crop-tomato-${index+1}`;
-            this.textures.remove(key);this.textures.addCanvas(key,output);
-          });
-        }else console.warn('[Happy Farm] Invalid tomato growth frame');
+        const frame=document.createElement('canvas');frame.width=160;frame.height=160;
+        const ctx=frame.getContext('2d',{willReadFrequently:true});if(!ctx)continue;
+        ctx.drawImage(source,0,0,source.width,source.height,0,0,160,160);
+        const pixels=ctx.getImageData(0,0,160,160),data=pixels.data;
+        clearBorderMatte(data,160,160);
+        clearCropSoil(data,160,160);
+        ctx.putImageData(pixels,0,0);
+        this.textures.remove(key);
+        this.textures.addCanvas(key,frame);
       }
       this.createAnimalAnimations();this.renderWoodlandBackdrop();this.redrawFarmTiles();this.drawScenery();this.renderOwnedAnimals();window.dispatchEvent(new Event('happyfarm:ready'));
     });
@@ -1802,7 +1763,7 @@ export class FarmScene extends Phaser.Scene {
     if(sprite){
       // Keep the plant canopy inside its own grid cell. The ploughed-field
       // tile stays full-size beneath it; only the transparent plant overlay shrinks.
-      sprite.setOrigin(0.5,1).setDisplaySize(70,70);
+      sprite.setOrigin(0.5,0.5).setDisplaySize(88,88);
       sprite.setDepth(p.y+18);
       this.cropSprites.set(id,sprite);
     }
