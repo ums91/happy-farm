@@ -210,21 +210,21 @@ export class FarmScene extends Phaser.Scene {
           const i=p*4;
           if(data[i+3]<=8)return false;
           const r=data[i],g=data[i+1],b=data[i+2];
-          const max=Math.max(r,g,b),min=Math.min(r,g,b);
-          const saturation=max===0?0:(max-min)/max;
-          // Earth/loam hues: brown, umber and warm soil edging. Restrict to
-          // mid-value pixels so yellow seeds and bright fruit are not mistaken
-          // for the soil bed.
-          return r>42&&g>20&&b<125&&g<145&&r>g*1.08&&g>b*1.08&&saturation>0.24;
+          // Brown/umber pixels in the lower quarter belong to the baked-in
+          // soil bed. Bright orange roots, fruit and yellow seed highlights
+          // are kept by the red/green upper bounds.
+          return r>38&&r<225&&g>18&&g<165&&b<112&&r>g*1.10&&g>b*1.08;
         };
         let head=0,tail=0;
         const add=(x:number,y:number)=>{
           const p=y*w+x;
           if(!seen[p]&&isSoil(p)){seen[p]=1;queue[tail++]=p;}
         };
-        // The soil bed sits in the lower part of each isometric crop frame.
-        for(let y=Math.floor(h*0.84);y<h;y++){
-          for(let x=Math.floor(w*0.28);x<Math.ceil(w*0.72);x++)add(x,y);
+        // Seed the entire lower edge, not just the center: some supplied
+        // crop beds have transparent margins or an irregular diamond border.
+        for(let x=0;x<w;x++)add(x,h-1);
+        for(let y=Math.floor(h*0.88);y<h;y++){
+          add(0,y);add(w-1,y);
         }
         while(head<tail){
           const p=queue[head++],x=p%w,y=Math.floor(p/w);
@@ -261,7 +261,7 @@ export class FarmScene extends Phaser.Scene {
         const frames=prepared as Array<NonNullable<typeof prepared[number]>>;
         const maxW=Math.max(...frames.map(frame=>frame.bounds.width));
         const maxH=Math.max(...frames.map(frame=>frame.bounds.height));
-        const scale=Math.min(156/maxW,156/maxH);
+        const scale=Math.min(118/maxW,118/maxH);
         const atlas=document.createElement('canvas');atlas.width=800;atlas.height=160;
         const atlasContext=atlas.getContext('2d');if(!atlasContext)return;
         frames.forEach((frame,index)=>{
@@ -323,7 +323,7 @@ export class FarmScene extends Phaser.Scene {
         if(prepared.every(Boolean)){
           const frames=prepared as Array<NonNullable<typeof prepared[number]>>;
           const maxW=Math.max(...frames.map(frame=>frame.bounds.width)),maxH=Math.max(...frames.map(frame=>frame.bounds.height));
-          const scale=Math.min(156/maxW,156/maxH);
+          const scale=Math.min(118/maxW,118/maxH);
           frames.forEach((frame,index)=>{
             const output=document.createElement('canvas');output.width=160;output.height=160;
             const ctx=output.getContext('2d');if(!ctx)return;
@@ -1799,9 +1799,9 @@ export class FarmScene extends Phaser.Scene {
       else console.warn(`[Happy Farm] Missing PNG growth stages for ${plot.crop}`);
     }
     if(sprite){
-      // Plant-only PNGs are bottom-aligned to the field center so that the
-      // roots remain anchored while the crop canopy changes across stages.
-      sprite.setOrigin(0.5,1).setDisplaySize(88,88);
+      // Keep the plant canopy inside its own grid cell. The ploughed-field
+      // tile stays full-size beneath it; only the transparent plant overlay shrinks.
+      sprite.setOrigin(0.5,1).setDisplaySize(70,70);
       sprite.setDepth(p.y+18);
       this.cropSprites.set(id,sprite);
     }
