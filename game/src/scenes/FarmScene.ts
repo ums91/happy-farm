@@ -35,8 +35,10 @@ const DECOR_ASSET_DUPLICATES = new Set<string>(["apple_barrels_crate_sheet2","ap
 const DECOR_ASSETS = DECOR_ASSET_ORDER.filter(asset=>!DECOR_ASSET_DUPLICATES.has(asset));
 const DECOR_ASSET_ALIASES:Record<string,string>={"apple_barrels_crate_sheet2":"apple_barrels_crate","apple_tree_sheet1":"apple_tree","apple_tree_variant_sheet2":"apple_tree_variant","bird_bath_sheet1":"bird_bath","bird_bath_stone_sheet2":"bird_bath_stone","birdhouse_post_sheet1":"birdhouse_post","campfire_stumps_sheet2":"campfire_stumps","evergreen_tree_sheet1":"evergreen_tree","evergreen_tree_variant_sheet2":"evergreen_tree_variant","farm_signpost_sheet1":"farm_signpost","festival_bunting_sheet2":"festival_bunting","flower_arch_bench_sheet1":"flower_arch_bench","flower_archway_sheet2":"flower_archway","flower_cart_sheet2":"flower_cart","flower_gate_arch_sheet1":"flower_gate_arch","large_stone_fountain_sheet2":"large_stone_fountain","lavender_bush_sheet2":"lavender_bush","lily_pond_sheet2":"lily_pond","mossy_rock_cluster_sheet2":"mossy_rock_cluster","mossy_rocks_sheet1":"mossy_rocks","orange_blossom_tree_sheet2":"orange_blossom_tree","orange_fruit_tree_sheet2":"orange_fruit_tree","ornate_lamp_post_sheet2":"ornate_lamp_post","picnic_table_sheet2":"picnic_table","pink_blossom_tree_sheet1":"pink_blossom_tree","pink_blossom_tree_variant_sheet2":"pink_blossom_tree_variant","pink_flower_bush_sheet2":"pink_flower_bush","pink_flower_hedge_sheet1":"pink_flower_hedge","purple_flower_bush_sheet2":"purple_flower_bush","purple_flower_hedge_sheet1":"purple_flower_hedge","red_roof_well_sheet1":"red_roof_well","red_roof_well_variant_sheet2":"red_roof_well_variant","rock_cluster_sheet2":"rock_cluster","rooster_signpost_sheet2":"rooster_signpost","rose_bush_sheet2":"rose_bush","stepping_stone_path_sheet2":"stepping_stone_path","stone_wall_sheet1":"stone_wall","string_lights_sheet2":"string_lights","sunflower_cart_sheet2":"sunflower_cart","tiered_stone_fountain_sheet1":"tiered_stone_fountain","waterfall_pond_sheet2":"waterfall_pond","white_picket_fence_sheet1":"white_picket_fence","white_picket_fence_flowers_sheet2":"white_picket_fence_flowers","wisteria_swing_sheet2":"wisteria_swing","wooden_fence_sheet1":"wooden_fence","wooden_park_bench_sheet2":"wooden_park_bench","wooden_windmill_sheet1":"wooden_windmill","yellow_flower_bush_sheet2":"yellow_flower_bush","yellow_flower_hedge_sheet1":"yellow_flower_hedge"};
 
-const TILE_W = 76;
-const TILE_H = 38;
+// Larger isometric cells give each cultivated bed room for crop artwork
+// from the first seedling through its fully grown stage.
+const TILE_W = 96;
+const TILE_H = 48;
 const ORIGIN_X = 0;
 const ORIGIN_Y = 40;
 
@@ -1639,14 +1641,14 @@ export class FarmScene extends Phaser.Scene {
       this.tomatoSprites.set(id, sprite);
     } else if (['wheat','carrot','corn','strawberry','pumpkin'].includes(plot.crop) && (plot.state === 'growing' || plot.state === 'ready') && this.textures.exists(`crop-${plot.crop}`)) {
       const stage = plot.state === 'ready' ? 4 : Math.min(4, Math.floor(plot.growth / 20));
-      const isNewCompactCrop=plot.crop==='wheat'||plot.crop==='carrot';
-      const size=isNewCompactCrop?(plot.state==='ready'?42:24+stage*4):(plot.state==='ready'?62:34+stage*6);
-      const spriteY=isNewCompactCrop?p.y+3:p.y+9;
-      g.fillStyle(0x342a20,0.18);g.fillEllipse(p.x,p.y+4,isNewCompactCrop?18:Math.min(28,size*0.58),4);
-      const sprite = this.add.image(p.x, spriteY, `crop-${plot.crop}`, stage);
-      // Keep the newer, denser wheat/carrot art compact and anchored to the
-      // centre of its own diamond so neighbouring crop beds never collide.
-      sprite.setOrigin(0.5, isNewCompactCrop?1:0.9).setDisplaySize(size, size).setDepth(p.y + 24);
+      const isNewCrop=plot.crop==='wheat'||plot.crop==='carrot';
+      // Scale plants from a small seedling to a full mature crop. The enlarged
+      // 96x48 isometric cell gives each plant a matching cultivated-bed footprint.
+      const size=plot.state==='ready'?(isNewCrop?76:68):(isNewCrop?30+stage*11:34+stage*7);
+      g.fillStyle(0x342a20,0.18);g.fillEllipse(p.x,p.y+5,Math.min(34,size*0.52),5);
+      const sprite = this.add.image(p.x, p.y+9, `crop-${plot.crop}`, stage);
+      // Keep every stage centred on the same tile anchor.
+      sprite.setOrigin(0.5,0.9).setDisplaySize(size,size).setDepth(p.y+24);
       this.cropSprites.set(id, sprite);
     } else if (plot.state === 'growing' || plot.state === 'ready' || plot.state === 'withered') {
       this.drawCrop(g, p.x, p.y, plot);
