@@ -23,6 +23,21 @@ let context:AudioContext|null=null;
 let enabled=true;
 let volume=0.55;
 let initialized=false;
+let ambientTimer:number|null=null;
+let ambientUnlocked=false;
+
+function stopAmbientBirds():void{
+  if(ambientTimer!==null){window.clearTimeout(ambientTimer);ambientTimer=null;}
+}
+function scheduleAmbientBird():void{
+  stopAmbientBirds();
+  if(!ambientUnlocked||!enabled||document.hidden)return;
+  ambientTimer=window.setTimeout(()=>{
+    ambientTimer=null;
+    if(enabled&&!document.hidden)playSample('bird');
+    scheduleAmbientBird();
+  },26000+Math.random()*22000);
+}
 
 function audioContext():AudioContext|null{
   try{
@@ -75,10 +90,17 @@ export function initializeSfxControls():void{
   const stored=localStorage.getItem(VOLUME_KEY);const parsed=stored===null?.55:Number(stored);
   volume=Number.isFinite(parsed)?Math.min(1,Math.max(0,parsed)):.55;
   const render=()=>{toggle.textContent='♪';toggle.setAttribute('aria-label',enabled?'Turn sound effects off':'Turn sound effects on');toggle.setAttribute('aria-pressed',String(enabled));toggle.title=enabled?'Turn sound effects off':'Turn sound effects on';slider.value=String(Math.round(volume*100));output.value=Math.round(volume*100)+'%';output.textContent=output.value;};
-  toggle.addEventListener('click',()=>{enabled=!enabled;localStorage.setItem(ENABLED_KEY,String(enabled));if(enabled)void audioContext();render();});
+  toggle.addEventListener('click',()=>{enabled=!enabled;localStorage.setItem(ENABLED_KEY,String(enabled));if(enabled){void audioContext();scheduleAmbientBird();}else stopAmbientBirds();render();});
   slider.addEventListener('input',()=>{volume=Math.min(1,Math.max(0,Number(slider.value)/100));localStorage.setItem(VOLUME_KEY,String(volume));render();});
-  document.addEventListener('pointerdown',()=>{if(enabled)void audioContext();},{once:true});
-  document.addEventListener('keydown',()=>{if(enabled)void audioContext();},{once:true});
+  const unlockAudio=():void=>{
+    if(!enabled)return;
+    void audioContext();
+    ambientUnlocked=true;
+    scheduleAmbientBird();
+  };
+  document.addEventListener('pointerdown',unlockAudio,{once:true});
+  document.addEventListener('keydown',unlockAudio,{once:true});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)stopAmbientBirds();else scheduleAmbientBird();});
   window.addEventListener('happyfarm:sfx',event=>{const name=(event as CustomEvent<{sound:SfxName}>).detail?.sound;if(name)playSfx(name);});
   render();
 }
