@@ -3391,3 +3391,11 @@ body.visitor-mode .audio-dock{display:none!important}
 .decor-catalog-grid{display:grid;grid-template-columns:1fr;gap:8px}
 .decor-catalog-card[hidden]{display:none!important}
 @media(max-width:700px){.decor-filter{min-height:36px;padding:8px 11px;font-size:10px}.decor-filter-bar{margin-left:-3px;margin-right:-3px;padding-left:3px}}
+
+
+/* Desktop farm zoom controls. Kept outside the Phaser canvas so they remain clickable. */
+.farm-zoom-controls{position:absolute;z-index:8;right:16px;top:62px;display:flex;flex-direction:column;gap:6px}
+.farm-zoom-controls button{width:40px;height:40px;border:2px solid #fff;border-radius:12px;background:linear-gradient(#fffef7,#f1dfb8);color:#76562f;font:900 23px/1 'Nunito',sans-serif;box-shadow:0 3px 0 #b58a50,0 4px 10px #29431f35;cursor:pointer;touch-action:manipulation}
+.farm-zoom-controls button:hover{filter:brightness(1.06);transform:translateY(-1px)}
+.farm-zoom-controls button:active{transform:translateY(1px);box-shadow:0 1px 0 #b58a50}
+@media(max-width:700px){.farm-zoom-controls{display:none}}
