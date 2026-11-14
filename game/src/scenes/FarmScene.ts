@@ -1734,7 +1734,6 @@ export class FarmScene extends Phaser.Scene {
       plot.readyAt = 0;
       plot.witherAt = 0;
       this.redrawPlot(plot);
-      this.scheduleWithering(plot);
       if (this.selected === plot) this.refreshSelection();
       this.saveFarm();
     }));
