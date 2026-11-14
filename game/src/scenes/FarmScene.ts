@@ -171,14 +171,33 @@ export class FarmScene extends Phaser.Scene {
     }
     this.load.once(Phaser.Loader.Events.COMPLETE, () => {
       for (const crop of ['wheat','carrot'] as const) {
-        const texture=this.textures.get(`crop-${crop}`);
+        const key=`crop-${crop}`;
+        const texture=this.textures.get(key);
         const source=texture.getSourceImage() as HTMLImageElement;
         const frameWidth=Math.floor(source.width/5);
         const frameHeight=source.height;
         if(frameWidth>0&&frameHeight>0&&source.width>=frameWidth*5){
+          // These two imported crop strips contain a solid black matte around
+          // each plant. Remove only near-black backdrop pixels before slicing
+          // the five stages so the farm tiles remain visible behind the crops.
+          const canvas=document.createElement('canvas');
+          canvas.width=source.width;canvas.height=source.height;
+          const context=canvas.getContext('2d',{willReadFrequently:true});
+          if(context){
+            context.drawImage(source,0,0);
+            const pixels=context.getImageData(0,0,canvas.width,canvas.height);
+            const data=pixels.data;
+            for(let i=0;i<data.length;i+=4){
+              if(data[i]!<=12&&data[i+1]!<=12&&data[i+2]!<=12)data[i+3]=0;
+            }
+            context.putImageData(pixels,0,0);
+            this.textures.remove(key);
+            this.textures.addCanvas(key,canvas);
+          }
+          const processed=this.textures.get(key);
           for(let stage=0;stage<5;stage++){
             const frameName=String(stage);
-            if(!texture.has(frameName))texture.add(frameName,0,stage*frameWidth,0,frameWidth,frameHeight);
+            if(!processed.has(frameName))processed.add(frameName,0,stage*frameWidth,0,frameWidth,frameHeight);
           }
         }else{
           console.warn(`[Happy Farm] Invalid five-stage ${crop} sprite sheet dimensions:`,source.width,source.height);
