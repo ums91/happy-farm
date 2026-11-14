@@ -1723,7 +1723,7 @@ export class FarmScene extends Phaser.Scene {
     // soil is never drawn twice and every stage shares one 160x160 canvas.
     if(!usesWholeTilePng){
       const field=this.add.image(p.x,p.y,'field-tilled');
-      field.setOrigin(0.5,0.5).setDisplaySize(94,88).setDepth(p.y-5);
+      field.setOrigin(0.5,0.5).setDisplaySize(88,88).setDepth(p.y-5);
       if(withered)field.setTint(0x8b755f).setAlpha(0.88);
       this.plotOverlays.set(id,field);
     }
@@ -1744,12 +1744,11 @@ export class FarmScene extends Phaser.Scene {
       console.warn(`[Happy Farm] Missing PNG growth stages for ${plot.crop}`);
     }
     if(sprite){
-      // 160x160 crop frames and the ploughed-field PNG share a common
-      // canvas. Render their soil diamonds to the compact 88x44 isometric cell.
-      // Tomato artwork is 512x512 with its soil bed in the lower portion;
-      // anchor that bed to the plot center and size it to the same footprint.
-      if(plot.crop==='tomato')sprite.setDisplaySize(128,128);
-      else sprite.setOrigin(0.5,0.5).setDisplaySize(94,88);
+      // Every field and crop PNG uses the same 160x160 canvas. At 88x88
+      // display size, its isometric soil diamond matches the 88x44 grid cell.
+      // Keep tomato on the same footprint rather than letting it overlap neighbors.
+      if(plot.crop==='tomato')sprite.setDisplaySize(88,88);
+      else sprite.setOrigin(0.5,0.5).setDisplaySize(88,88);
       sprite.setDepth(p.y+18);
       this.cropSprites.set(id,sprite);
     }
