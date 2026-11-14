@@ -37,8 +37,8 @@ const DECOR_ASSET_ALIASES:Record<string,string>={"apple_barrels_crate_sheet2":"a
 
 // Larger isometric cells give each cultivated bed room for crop artwork
 // from the first seedling through its fully grown stage.
-const TILE_W = 96;
-const TILE_H = 48;
+const TILE_W = 88;
+const TILE_H = 44;
 const ORIGIN_X = 0;
 const ORIGIN_Y = 40;
 
@@ -1723,7 +1723,7 @@ export class FarmScene extends Phaser.Scene {
     // soil is never drawn twice and every stage shares one 160x160 canvas.
     if(!usesWholeTilePng){
       const field=this.add.image(p.x,p.y,'field-tilled');
-      field.setOrigin(0.5,0.5).setDisplaySize(102,96).setDepth(p.y-5);
+      field.setOrigin(0.5,0.5).setDisplaySize(94,88).setDepth(p.y-5);
       if(withered)field.setTint(0x8b755f).setAlpha(0.88);
       this.plotOverlays.set(id,field);
     }
@@ -1745,11 +1745,11 @@ export class FarmScene extends Phaser.Scene {
     }
     if(sprite){
       // 160x160 crop frames and the ploughed-field PNG share a common
-      // canvas. Render their soil diamonds to the 96x48 isometric cell.
+      // canvas. Render their soil diamonds to the compact 88x44 isometric cell.
       // Tomato artwork is 512x512 with its soil bed in the lower portion;
       // anchor that bed to the plot center and size it to the same footprint.
-      if(plot.crop==='tomato')sprite.setDisplaySize(140,140);
-      else sprite.setOrigin(0.5,0.5).setDisplaySize(102,96);
+      if(plot.crop==='tomato')sprite.setDisplaySize(128,128);
+      else sprite.setOrigin(0.5,0.5).setDisplaySize(94,88);
       sprite.setDepth(p.y+18);
       this.cropSprites.set(id,sprite);
     }
@@ -1761,7 +1761,7 @@ export class FarmScene extends Phaser.Scene {
     const p = this.toWorld(this.selected.col, this.selected.row);
     this.overlay.lineStyle(3, 0xfff6b2, 1);
     this.overlay.beginPath();
-    const fieldW=96,fieldH=48;
+    const fieldW=TILE_W,fieldH=TILE_H;
     this.overlay.moveTo(p.x, p.y - fieldH / 2);
     this.overlay.lineTo(p.x + fieldW / 2, p.y);
     this.overlay.lineTo(p.x, p.y + fieldH / 2);
