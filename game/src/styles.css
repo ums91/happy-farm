@@ -3341,3 +3341,14 @@ body.visitor-mode .audio-dock{display:none!important}
  #market-modal.inventory-mode .inventory-overview{gap:3px;padding:5px}
  #market-modal.inventory-mode .inventory-overview small{font-size:7px}
 }
+
+
+/* Keep the sell summary fixed while the goods list scrolls independently. */
+#market-modal.sell-mode .market-window{display:flex;flex-direction:column;overflow:hidden;min-height:0}
+#market-modal.sell-mode #market-items{display:block;flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:2px 3px 12px;scrollbar-width:thin}
+#market-modal.sell-mode .sell-overview{position:sticky;top:0;z-index:5}
+#market-modal.sell-mode .inventory-section{display:block}
+@media(max-width:700px){
+ #market-modal.sell-mode .market-window{height:calc(100svh - 20px);max-height:calc(100svh - 20px)}
+ #market-modal.sell-mode #market-items{padding-bottom:calc(14px + env(safe-area-inset-bottom))}
+}
