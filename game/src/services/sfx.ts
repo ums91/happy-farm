@@ -1,6 +1,6 @@
 const ENABLED_KEY='happyFarmSfxEnabledV1';
 const VOLUME_KEY='happyFarmSfxVolumeV1';
-type SfxName='plow'|'plant'|'harvest'|'feed'|'egg'|'milk'|'coin'|'purchase'|'level'|'hen'|'chick'|'cow'|'rooster'|'bird';
+type SfxName='plow'|'plant'|'harvest'|'feed'|'egg'|'milk'|'coin'|'purchase'|'level'|'hen'|'chick'|'cow'|'rooster'|'bird'|'market';
 // CC0 animal recordings/stylized calls from SFXMint. URLs are immutable and may be hotlinked under CC0 1.0.
 const sampleUrls:Partial<Record<SfxName,string>>={
   hen:'https://sfxmint.com/dl/hen-cluck-02.mp3',
@@ -76,6 +76,7 @@ export function playSfx(name:SfxName):void{
     case'egg':tone(ctx,880,t,.12,.12,'sine',1040);tone(ctx,1175,t+.11,.18,.09,'sine',1390);break;
     case'milk':tone(ctx,440,t,.16,.10,'sine',550);tone(ctx,660,t+.12,.20,.09,'sine',880);break;
     case'coin':tone(ctx,1250,t,.09,.12,'sine',1550);tone(ctx,1750,t+.08,.16,.10,'sine',1950);break;
+    case'market':tone(ctx,620,t,.07,.07,'sine',740);tone(ctx,880,t+.06,.09,.06,'sine',990);break;
     case'purchase':tone(ctx,523,t,.12,.10,'sine',659);tone(ctx,659,t+.12,.12,.10,'sine',784);tone(ctx,784,t+.24,.20,.10,'sine',1047);break;
     case'level':[523,659,784,1047,1318].forEach((f,i)=>tone(ctx,f,t+i*.11,.28,.10,'sine',f*1.03));break;
   }
