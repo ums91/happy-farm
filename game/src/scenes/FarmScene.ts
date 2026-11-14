@@ -220,11 +220,12 @@ export class FarmScene extends Phaser.Scene {
           const p=y*w+x;
           if(!seen[p]&&isSoil(p)){seen[p]=1;queue[tail++]=p;}
         };
-        // Seed the entire lower edge, not just the center: some supplied
-        // crop beds have transparent margins or an irregular diamond border.
-        for(let x=0;x<w;x++)add(x,h-1);
-        for(let y=Math.floor(h*0.88);y<h;y++){
-          add(0,y);add(w-1,y);
+        // Scan the bottom 22% of every frame. The bed may stop above the
+        // last row or have transparent padding, and its diamond can span the
+        // full width. Crop foliage is mostly green/yellow and does not match
+        // this dark-brown mask.
+        for(let y=Math.floor(h*0.78);y<h;y++){
+          for(let x=0;x<w;x++)add(x,y);
         }
         while(head<tail){
           const p=queue[head++],x=p%w,y=Math.floor(p/w);
