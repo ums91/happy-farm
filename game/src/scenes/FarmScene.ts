@@ -180,9 +180,10 @@ export class FarmScene extends Phaser.Scene {
           continue;
         }
 
-        // Normalize every crop stage to a 160x160 transparent frame. This
-        // keeps source sheets with different frame sizes/aspect ratios from
-        // being stretched, while bottom-aligning the soil bed on every stage.
+        // Preserve the complete authored tile canvas for every growth stage.
+        // Never crop to visible plant bounds: that changes the soil-bed scale
+        // and anchor independently at each stage. Map each source frame to
+        // the same 160x160 tile canvas used by the empty field renderer.
         const sourceCanvas=document.createElement('canvas');
         sourceCanvas.width=source.width;
         sourceCanvas.height=source.height;
@@ -205,32 +206,14 @@ export class FarmScene extends Phaser.Scene {
           stageContext.drawImage(sourceCanvas,stage*frameWidth,0,frameWidth,frameHeight,0,0,frameWidth,frameHeight);
           const pixels=stageContext.getImageData(0,0,frameWidth,frameHeight);
           const data=pixels.data;
-          let minX=frameWidth,minY=frameHeight,maxX=-1,maxY=-1;
-          for(let y=0;y<frameHeight;y++){
-            for(let x=0;x<frameWidth;x++){
-              const i=(y*frameWidth+x)*4;
-              if(data[i]<=12&&data[i+1]<=12&&data[i+2]<=12)data[i+3]=0;
-              if(data[i+3]>8){
-                if(x<minX)minX=x;
-                if(x>maxX)maxX=x;
-                if(y<minY)minY=y;
-                if(y>maxY)maxY=y;
-              }
-            }
+          for(let i=0;i<data.length;i+=4){
+            // Remove only a pure near-black matte; preserve dark soil outlines.
+            if(data[i]<=3&&data[i+1]<=3&&data[i+2]<=3)data[i+3]=0;
           }
-          if(maxX<minX||maxY<minY){
-            console.warn(`[Happy Farm] Empty growth frame ${stage+1} for ${crop}`);
-            continue;
-          }
-          pixels.data.set(data);
           stageContext.putImageData(pixels,0,0);
-          const contentW=maxX-minX+1,contentH=maxY-minY+1;
-          const scale=Math.min(156/contentW,156/contentH);
-          const drawW=Math.max(1,Math.round(contentW*scale));
-          const drawH=Math.max(1,Math.round(contentH*scale));
-          const destX=stage*160+Math.round((160-drawW)/2);
-          const destY=160-drawH;
-          normalizedContext.drawImage(stageCanvas,minX,minY,contentW,contentH,destX,destY,drawW,drawH);
+          // Fixed full-frame transform preserves the soil base's coordinates
+          // and size across all five stages.
+          normalizedContext.drawImage(stageCanvas,0,0,frameWidth,frameHeight,stage*160,0,160,160);
         }
         this.textures.remove(key);
         const normalized=this.textures.addCanvas(key,normalizedCanvas);
@@ -1744,11 +1727,11 @@ export class FarmScene extends Phaser.Scene {
       console.warn(`[Happy Farm] Missing PNG growth stages for ${plot.crop}`);
     }
     if(sprite){
-      // Keep the field PNG aligned to the full 88x44 grid diamond. Crop artwork
-      // sits slightly inside that footprint so mature foliage and soil beds
-      // do not collide visually with adjacent plots.
-      if(plot.crop==='tomato')sprite.setDisplaySize(76,76);
-      else sprite.setOrigin(0.5,0.5).setDisplaySize(76,76);
+      // Full-tile crop sheets share the same world size and center origin
+      // as the empty ploughed-field PNG. Tomato is plant-only artwork and
+      // keeps its separate bottom anchor.
+      if(plot.crop==='tomato')sprite.setOrigin(0.5,0.82).setDisplaySize(76,76);
+      else sprite.setOrigin(0.5,0.5).setDisplaySize(88,88);
       sprite.setDepth(p.y+18);
       this.cropSprites.set(id,sprite);
     }
