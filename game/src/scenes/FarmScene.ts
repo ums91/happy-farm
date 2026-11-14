@@ -169,10 +169,40 @@ export class FarmScene extends Phaser.Scene {
       this.load.image(`crop-${crop}`, `${import.meta.env.BASE_URL}assets/crops/${crop}/${crop}-growth.png`);
     }
     this.load.once(Phaser.Loader.Events.COMPLETE, () => {
-      // Keep each crop's authored soil tile. Normalize only transparent
-      // margins and pure-black matte pixels; never use colour flood-fill to
-      // erase soil or vegetation. The crop tile itself replaces the empty
-      // ploughed-field tile while a crop is growing.
+      // Remove only dark, neutral background pixels connected to the
+      // frame perimeter. Flood-fill connectivity protects enclosed dark
+      // soil, seed shadows and leaf details from being mistaken for matte.
+      const clearBorderMatte=(data:Uint8ClampedArray,w:number,h:number)=>{
+        const seen=new Uint8Array(w*h);
+        const queue=new Int32Array(w*h);
+        const isMatte=(p:number)=>{
+          const i=p*4;
+          if(data[i+3]===0)return true;
+          const r=data[i],g=data[i+1],b=data[i+2];
+          const hi=Math.max(r,g,b),lo=Math.min(r,g,b);
+          return hi<=96&&(hi-lo)<=34;
+        };
+        let head=0,tail=0;
+        const add=(x:number,y:number)=>{
+          const p=y*w+x;
+          if(!seen[p]&&isMatte(p)){seen[p]=1;queue[tail++]=p;}
+        };
+        for(let x=0;x<w;x++){add(x,0);if(h>1)add(x,h-1);}
+        for(let y=1;y<h-1;y++){add(0,y);if(w>1)add(w-1,y);}
+        while(head<tail){
+          const p=queue[head++],x=p%w,y=Math.floor(p/w);
+          data[p*4+3]=0;
+          for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
+            if(!dx&&!dy)continue;
+            const nx=x+dx,ny=y+dy;
+            if(nx<0||nx>=w||ny<0||ny>=h)continue;
+            add(nx,ny);
+          }
+        }
+      };
+      // Each crop PNG's own isometric soil tile is retained. Crop rendering
+      // uses this single cleaned tile; the empty-field PNG is used only while
+      // a plot is freshly tilled and has no growing crop.
       const normalizeStages=(key:string,stages:Array<{source:CanvasImageSource;width:number;height:number}>)=>{
         if(stages.length!==5){console.warn('[Happy Farm] Expected five crop stages:',key);return;}
         const prepared=stages.map(stage=>{
@@ -180,10 +210,10 @@ export class FarmScene extends Phaser.Scene {
           const ctx=canvas.getContext('2d',{willReadFrequently:true});if(!ctx)return null;
           ctx.drawImage(stage.source,0,0,stage.width,stage.height);
           const pixels=ctx.getImageData(0,0,stage.width,stage.height),data=pixels.data;
+          clearBorderMatte(data,stage.width,stage.height);
           let minX=stage.width,minY=stage.height,maxX=-1,maxY=-1;
           for(let y=0;y<stage.height;y++)for(let x=0;x<stage.width;x++){
             const i=(y*stage.width+x)*4;
-            if(data[i+3]>0&&data[i]<7&&data[i+1]<7&&data[i+2]<7)data[i+3]=0;
             if(data[i+3]>8){minX=Math.min(minX,x);minY=Math.min(minY,y);maxX=Math.max(maxX,x);maxY=Math.max(maxY,y);}
           }
           if(maxX<minX||maxY<minY)return null;
@@ -242,10 +272,10 @@ export class FarmScene extends Phaser.Scene {
           const ctx=canvas.getContext('2d',{willReadFrequently:true});if(!ctx)return null;
           ctx.drawImage(stage.source,0,0);
           const pixels=ctx.getImageData(0,0,canvas.width,canvas.height),data=pixels.data;
+          clearBorderMatte(data,canvas.width,canvas.height);
           let minX=canvas.width,minY=canvas.height,maxX=-1,maxY=-1;
           for(let y=0;y<canvas.height;y++)for(let x=0;x<canvas.width;x++){
             const i=(y*canvas.width+x)*4;
-            if(data[i+3]>0&&data[i]<7&&data[i+1]<7&&data[i+2]<7)data[i+3]=0;
             if(data[i+3]>8){minX=Math.min(minX,x);minY=Math.min(minY,y);maxX=Math.max(maxX,x);maxY=Math.max(maxY,y);}
           }
           if(maxX<minX||maxY<minY)return null;
