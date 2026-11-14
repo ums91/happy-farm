@@ -3352,3 +3352,32 @@ body.visitor-mode .audio-dock{display:none!important}
  #market-modal.sell-mode .market-window{height:calc(100svh - 20px);max-height:calc(100svh - 20px)}
  #market-modal.sell-mode #market-items{padding-bottom:calc(14px + env(safe-area-inset-bottom))}
 }
+
+
+/* Animal roster: prioritize attention states and make progress readable on phones. */
+.animal-progress{display:flex;flex-direction:column;gap:7px;margin:7px 0;padding:11px;border:1px solid #e5d8b7;border-radius:13px;background:#fffaf0}
+.animal-progress-top{display:flex;align-items:center;gap:9px;min-width:0}
+.animal-avatar{width:38px;height:38px;flex:0 0 38px;display:grid;place-items:center;border-radius:11px;background:#edf4df;font-size:23px}
+.animal-identity{display:flex;flex:1;min-width:0;flex-direction:column;gap:2px}
+.animal-identity strong{font-size:12px;color:#70522f}
+.animal-identity small{font-size:9px;color:#9b8968}
+.animal-status-pill{flex:0 0 auto;padding:5px 8px;border-radius:20px;background:#e9eddf;color:#71814d;font-size:9px;font-weight:1000}
+.animal-state-ready{border-color:#9ac477;background:#f4faeb}
+.animal-state-ready .animal-status-pill{background:#d9efc9;color:#3f7b32}
+.animal-state-hungry{border-color:#e9c77d;background:#fff9e9}
+.animal-state-hungry .animal-status-pill{background:#fbe8b9;color:#96651f}
+.animal-state-resting{opacity:.75}
+.animal-progress-detail{display:flex;justify-content:space-between;gap:8px;color:#8a7656;font-size:10px}
+.animal-progress-detail b{color:#6d8f42}
+.animal-track{height:7px;overflow:hidden;border-radius:10px;background:#e9e2cf}
+.animal-track i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#a9d878,#70ad43)}
+.animal-state-ready .animal-track i{background:linear-gradient(90deg,#9edb76,#4e9b39)}
+.animal-state-hungry .animal-track i{background:#e6b85f}
+.animal-progress .market-buy{align-self:flex-end;min-height:32px}
+@media(max-width:700px){
+ #market-modal .animal-progress{gap:6px;margin:6px 0;padding:9px}
+ #market-modal .animal-avatar{width:36px;height:36px;flex-basis:36px;font-size:22px}
+ #market-modal .animal-identity strong{font-size:12px}
+ #market-modal .animal-status-pill{font-size:9px;padding:5px 7px}
+ #market-modal .animal-progress .market-buy{width:100%;min-height:36px}
+}
