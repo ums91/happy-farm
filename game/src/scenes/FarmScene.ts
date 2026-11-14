@@ -2623,7 +2623,7 @@ export class FarmScene extends Phaser.Scene {
 
   private levelUnlocks(fromLevel:number,toLevel:number):string[]{
     const unlocks:string[]=[];
-    for(const [id,crop] of Object.entries(CROPS))if(crop.unlockLevel>fromLevel&&crop.unlockLevel<=toLevel)unlocks.push(crop.emoji+' '+crop.name+' seeds');
+    for(const crop of Object.values(CROPS))if(crop.unlockLevel>fromLevel&&crop.unlockLevel<=toLevel)unlocks.push(crop.emoji+' '+crop.name+' seeds');
     const buildings=[{level:4,name:'Chicken Coop'},{level:5,name:'Stone Well'},{level:7,name:'Cow Shed'},{level:10,name:'Grain Silo'},{level:14,name:'Village Bakery'},{level:20,name:'Greenhouse'},{level:27,name:'Windmill'},{level:42,name:'Horse Stable'},{level:52,name:'Farm Workshop'},{level:64,name:'Water Tower'}];
     for(const item of buildings)if(item.level>fromLevel&&item.level<=toLevel)unlocks.push('🏗️ '+item.name);
     DECOR_ASSET_ORDER.forEach((asset,index)=>{
