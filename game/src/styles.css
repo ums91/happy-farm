@@ -3275,3 +3275,39 @@ body.visitor-mode .audio-dock{display:none!important}
   #market-modal.market-mode .feed-market-item .market-art{width:52px!important;height:52px!important;max-width:52px!important}
   #market-modal.market-mode .market-copy strong{font-size:12px!important}
 }
+
+
+/* Sell market: clear stock levels, earnings and touch targets on phones. */
+.sell-overview{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 12px;padding:12px 15px;border:1px solid #d7bd83;border-radius:14px;background:linear-gradient(135deg,#fff5d6,#f2dda9);box-shadow:inset 0 1px #fff}
+.sell-overview>div{display:flex;flex-direction:column;gap:2px;min-width:0}
+.sell-overview small{font-size:9px;font-weight:1000;letter-spacing:.7px;color:#8a6839}
+.sell-overview strong{font:900 19px 'Baloo 2',Nunito,sans-serif;color:#68451f}
+.market-sell-item{align-items:center}
+.market-sell-item .market-copy small{display:flex;flex-wrap:wrap;gap:3px 9px;align-items:center}
+.market-sell-item .sell-stock{color:#6a573b}
+.market-sell-item .sell-stock b{color:#3c7b2c;font-weight:1000}
+.market-sell-item .sell-unit{color:#8c7049}
+.market-sell-item.out-of-stock{opacity:.62}
+.market-sell-item.out-of-stock .market-art{filter:grayscale(.65)}
+.market-sell-item .market-buy:disabled{background:#d8d0bd!important;color:#827968!important;box-shadow:none!important;opacity:1;cursor:default}
+#market-modal.sell-mode .inventory-section{margin-bottom:12px}
+#market-modal.sell-mode .inventory-section h3{margin-bottom:8px}
+@media(max-width:700px){
+ #market-modal.sell-mode .market-window{width:calc(100vw - 14px);max-height:calc(100svh - 20px);padding:12px 10px}
+ #market-modal.sell-mode .market-header{position:sticky;top:0;z-index:4;padding:5px 2px 9px;background:linear-gradient(#fff9e8 85%,#fff9e800)}
+ #market-modal.sell-mode .market-intro{margin:3px 0 9px;font-size:11px;line-height:1.35}
+ #market-modal.sell-mode .sell-overview{position:sticky;top:55px;z-index:3;padding:9px 11px;margin-bottom:10px}
+ #market-modal.sell-mode .sell-overview strong{font-size:17px}
+ #market-modal.sell-mode .inventory-grid{display:grid;grid-template-columns:1fr;gap:7px}
+ #market-modal.sell-mode .market-sell-item{display:grid;grid-template-columns:42px minmax(0,1fr);gap:7px;padding:8px;min-height:0;border-radius:12px}
+ #market-modal.sell-mode .market-sell-item .market-art{width:40px;height:40px;flex:0 0 40px;font-size:24px}
+ #market-modal.sell-mode .market-sell-item .market-copy{min-width:0}
+ #market-modal.sell-mode .market-sell-item .market-copy strong{font-size:12px;line-height:1.2}
+ #market-modal.sell-mode .market-sell-item .market-copy small{font-size:10px;line-height:1.25}
+ #market-modal.sell-mode .market-sell-item .market-buy{grid-column:1/-1;width:100%;min-height:38px;padding:7px 10px;font-size:12px;border-radius:10px}
+}
+@media(max-width:390px){
+ #market-modal.sell-mode .sell-overview{gap:6px;padding:8px}
+ #market-modal.sell-mode .sell-overview small{font-size:8px}
+ #market-modal.sell-mode .sell-overview strong{font-size:15px}
+}
