@@ -158,10 +158,32 @@ export class FarmScene extends Phaser.Scene {
         this.load.image(`building-${building}-${level}`, `${import.meta.env.BASE_URL}assets/buildings/${building}/${building}-level-${level}.png`);
       }
     }
-    for (const crop of ['wheat','carrot','corn','strawberry','pumpkin'] as const) {
+    // Wheat and carrot use the newly uploaded five-stage horizontal sprite strips.
+    // Load as images first; frame dimensions are derived from the real PNG dimensions
+    // instead of assuming the old 160x160 atlas cells.
+    for (const crop of ['wheat','carrot'] as const) {
+      this.load.image(`crop-${crop}`, `${import.meta.env.BASE_URL}assets/crops/${crop}/${crop}-growth.png`);
+    }
+    for (const crop of ['corn','strawberry','pumpkin'] as const) {
       this.load.spritesheet(`crop-${crop}`, `${import.meta.env.BASE_URL}assets/crops/${crop}/${crop}-growth.png`, { frameWidth: 160, frameHeight: 160 });
     }
-    this.load.once(Phaser.Loader.Events.COMPLETE, () => {this.createAnimalAnimations();this.renderWoodlandBackdrop();this.redrawFarmTiles();this.drawScenery();this.renderOwnedAnimals();window.dispatchEvent(new Event('happyfarm:ready'));});
+    this.load.once(Phaser.Loader.Events.COMPLETE, () => {
+      for (const crop of ['wheat','carrot'] as const) {
+        const texture=this.textures.get(`crop-${crop}`);
+        const source=texture.getSourceImage() as HTMLImageElement;
+        const frameWidth=Math.floor(source.width/5);
+        const frameHeight=source.height;
+        if(frameWidth>0&&frameHeight>0&&source.width>=frameWidth*5){
+          for(let stage=0;stage<5;stage++){
+            const frameName=String(stage);
+            if(!texture.has(frameName))texture.add(frameName,0,stage*frameWidth,0,frameWidth,frameHeight);
+          }
+        }else{
+          console.warn(`[Happy Farm] Invalid five-stage ${crop} sprite sheet dimensions:`,source.width,source.height);
+        }
+      }
+      this.createAnimalAnimations();this.renderWoodlandBackdrop();this.redrawFarmTiles();this.drawScenery();this.renderOwnedAnimals();window.dispatchEvent(new Event('happyfarm:ready'));
+    });
     this.load.start();
     this.loadFarm();
     this.redrawFarmTiles();
