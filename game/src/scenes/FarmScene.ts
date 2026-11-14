@@ -1350,7 +1350,7 @@ export class FarmScene extends Phaser.Scene {
           const distance=Phaser.Math.Distance.Between(pts[0]!.x,pts[0]!.y,pts[1]!.x,pts[1]!.y);
           if(this.pinchDistance>0&&distance>0){
             const anchor=camera.getWorldPoint(midpoint.x,midpoint.y);
-            camera.setZoom(Phaser.Math.Clamp(camera.zoom*(distance/this.pinchDistance),this.minFarmZoom,2.4));
+            camera.setZoom(Phaser.Math.Clamp(camera.zoom*(distance/this.pinchDistance),this.minFarmZoom,3.5));
             const after=camera.getWorldPoint(midpoint.x,midpoint.y);
             camera.scrollX+=anchor.x-after.x;camera.scrollY+=anchor.y-after.y;
           }
