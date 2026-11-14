@@ -1717,7 +1717,10 @@ export class FarmScene extends Phaser.Scene {
   private drawCrop(g: Phaser.GameObjects.Graphics, x: number, y: number, plot: Plot): void {
     const crop=CROPS[plot.crop];
     const stage=plot.state==='ready'?1:plot.state==='withered'?0:Math.max(0.12,plot.growth/100);
-    const h=plot.state==='ready'?58:plot.state==='withered'?8:14+Math.round(stage*42);
+    const h=plot.state==='ready'?64:plot.state==='withered'?8:12+Math.round(stage*52);
+    // Crop canopies expand with growth and deliberately overlap adjacent
+    // isometric plots at maturity, while each plant remains anchored to its soil tile.
+    const canopySpread=0.28+stage*0.72;
     if(plot.state==='withered'){
       g.lineStyle(2,0x927b54,1);g.beginPath();g.moveTo(x,y+2);g.lineTo(x-4,y-h);g.moveTo(x-2,y-5);g.lineTo(x-12,y-11);g.moveTo(x-3,y-8);g.lineTo(x+8,y-13);g.strokePath();
       g.fillStyle(0x9b875b,1);g.fillEllipse(x-8,y-7,8,4);g.fillEllipse(x+7,y-9,8,4);return;
@@ -1727,15 +1730,16 @@ export class FarmScene extends Phaser.Scene {
     if(crop.name==='Carrot'){
       // A broad, irregular canopy of carrot tops: no rectangular sprite tray,
       // and foliage naturally overlaps the neighbouring soil-diamond edges.
-      const offsets=[-31,-22,-13,-4,5,14,23,31];
-      offsets.forEach((ox,n)=>{
+      const offsets=[-44,-35,-26,-17,-8,1,10,19,28,37,44];
+      offsets.forEach((rawOx,n)=>{
+        const ox=rawOx*canopySpread;
         const height=h-(n%3)*5;
         const baseY=y+1+(n%2)*2;
         const crownY=baseY-height;
-        g.lineStyle(2.2,stem,1);g.beginPath();g.moveTo(x+ox,baseY);g.lineTo(x+ox+(n%2?2:-2),crownY+8);g.strokePath();
-        const fan=[-1,0,1,2].map((v,k)=>({x:x+ox+v*5+(k%2?2:-2),y:crownY+(k===1?-8:k===2?-3:4)}));
-        g.fillStyle(leafColor,0.96);g.fillPoints([{x:x+ox,y:crownY+10},...fan,{x:x+ox+3,y:crownY+12}],true);
-        g.fillEllipse(x+ox-4,crownY+3,9,4);g.fillEllipse(x+ox+4,crownY-1,10,4);
+        g.lineStyle(2.3,stem,1);g.beginPath();g.moveTo(x+ox,baseY);g.lineTo(x+ox+(n%2?2:-2),crownY+8);g.strokePath();
+        const fan=[-1,0,1,2].map((v,k)=>({x:x+ox+v*6*canopySpread+(k%2?2:-2),y:crownY+(k===1?-10:k===2?-4:5)}));
+        g.fillStyle(leafColor,0.98);g.fillPoints([{x:x+ox,y:crownY+11},...fan,{x:x+ox+3,y:crownY+13}],true);
+        g.fillEllipse(x+ox-5*canopySpread,crownY+3,11*canopySpread,5);g.fillEllipse(x+ox+5*canopySpread,crownY-1,12*canopySpread,5);
         if(plot.state==='ready'){
           // Only the ripe stage exposes the orange shoulders of the roots.
           g.fillStyle(0xe77b27,1);
@@ -1747,13 +1751,14 @@ export class FarmScene extends Phaser.Scene {
       return;
     }
     if(crop.name==='Wheat'){
-      const offsets=[-34,-26,-18,-10,-2,6,14,22,30];
-      offsets.forEach((ox,n)=>{
+      const offsets=[-46,-38,-30,-22,-14,-6,2,10,18,26,34,42,46];
+      offsets.forEach((rawOx,n)=>{
+        const ox=rawOx*canopySpread;
         const height=h-(n%4)*4;
         const topY=y-height;
-        g.lineStyle(2.1,stem,1);g.beginPath();g.moveTo(x+ox,y+3);g.lineTo(x+ox+(n%2?2:-2),topY+9);g.strokePath();
+        g.lineStyle(2.2,stem,1);g.beginPath();g.moveTo(x+ox,y+3);g.lineTo(x+ox+(n%2?2:-2),topY+9);g.strokePath();
         g.fillStyle(0x6b9e43,1);
-        g.fillEllipse(x+ox-5,topY+15,13,4);g.fillEllipse(x+ox+5,topY+21,13,4);
+        g.fillEllipse(x+ox-6*canopySpread,topY+15,15*canopySpread,5);g.fillEllipse(x+ox+6*canopySpread,topY+21,15*canopySpread,5);
         if(plot.state==='ready'){
           g.lineStyle(1.8,0xc99a37,1);
           for(let k=0;k<5;k++){g.beginPath();g.moveTo(x+ox,topY+7+k*3);g.lineTo(x+ox+(k%2?5:-5),topY+3+k*3);g.strokePath();}
