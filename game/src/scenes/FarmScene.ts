@@ -2350,7 +2350,11 @@ export class FarmScene extends Phaser.Scene {
     const sortInventory=(mode:string)=>{
       host.querySelectorAll<HTMLElement>('.inventory-grid,.quest-list').forEach(list=>{
         const cards=Array.from(list.children).filter((node):node is HTMLElement=>node instanceof HTMLElement&&node.matches('.market-item'));
-        if(mode==='default')return;
+        cards.forEach((card,index)=>{if(card.dataset.defaultSortIndex===undefined)card.dataset.defaultSortIndex=String(index);});
+        if(mode==='default'){
+          cards.sort((a,b)=>Number(a.dataset.defaultSortIndex)-Number(b.dataset.defaultSortIndex)).forEach(card=>list.appendChild(card));
+          return;
+        }
         const quantity=(card:HTMLElement)=>{
           const badge=card.querySelector<HTMLElement>('.inventory-quantity');
           if(badge){const n=badge.textContent?.match(/[\\d,]+/);if(n)return Number(n[0].replace(/,/g,''));}
