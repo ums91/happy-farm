@@ -1676,15 +1676,15 @@ export class FarmScene extends Phaser.Scene {
     const p=this.toWorld(plot.col,plot.row);
     const growing=plot.state==='growing'||plot.state==='ready';
     const withered=plot.state==='withered';
-    const wholeTileCrops=['wheat','carrot','corn','strawberry','pumpkin'] as const;
-    const usesWholeTilePng=growing&&wholeTileCrops.includes(plot.crop as typeof wholeTileCrops[number])&&this.textures.exists(`crop-${plot.crop}`);
+    const wholeTileCrops=['wheat','carrot','corn','strawberry','pumpkin','tomato'] as const;
+    const usesWholeTilePng=growing&&(wholeTileCrops.includes(plot.crop as typeof wholeTileCrops[number])||plot.crop==='tomato')&&(plot.crop==='tomato'?this.textures.exists('crop-tomato-1'):this.textures.exists(`crop-${plot.crop}`));
 
     // The empty ploughed plot is a PNG tile. Crop sheets that already contain
     // their matching soil diamond replace this tile as a complete tile, so
     // soil is never drawn twice and every stage shares one 160x160 canvas.
     if(!usesWholeTilePng){
       const field=this.add.image(p.x,p.y,'field-tilled');
-      field.setOrigin(0.5,0.5).setDisplaySize(92,92).setDepth(p.y-5);
+      field.setOrigin(0.5,0.5).setDisplaySize(102,96).setDepth(p.y-5);
       if(withered)field.setTint(0x8b755f).setAlpha(0.88);
       this.plotOverlays.set(id,field);
     }
@@ -1694,7 +1694,7 @@ export class FarmScene extends Phaser.Scene {
     if(plot.crop==='tomato'){
       const stage=plot.state==='ready'?5:Math.min(5,Math.max(1,Math.floor(plot.growth/20)+1));
       const key=`crop-tomato-${stage}`;
-      if(this.textures.exists(key))sprite=this.add.image(p.x,p.y,key);
+      if(this.textures.exists(key))sprite=this.add.image(p.x,p.y,key).setOrigin(0.5,0.82);
     }else if(wholeTileCrops.includes(plot.crop as typeof wholeTileCrops[number])){
       const stage=plot.state==='ready'?4:Math.min(4,Math.max(0,Math.floor(plot.growth/20)));
       const key=`crop-${plot.crop}`;
@@ -1705,7 +1705,13 @@ export class FarmScene extends Phaser.Scene {
       console.warn(`[Happy Farm] Missing PNG growth stages for ${plot.crop}`);
     }
     if(sprite){
-      sprite.setOrigin(0.5,0.5).setDisplaySize(92,92).setDepth(p.y+18);
+      // 160x160 crop frames and the ploughed-field PNG share a common
+      // canvas. Render their soil diamonds to the 96x48 isometric cell.
+      // Tomato artwork is 512x512 with its soil bed in the lower portion;
+      // anchor that bed to the plot center and size it to the same footprint.
+      if(plot.crop==='tomato')sprite.setDisplaySize(140,140);
+      else sprite.setOrigin(0.5,0.5).setDisplaySize(102,96);
+      sprite.setDepth(p.y+18);
       this.cropSprites.set(id,sprite);
     }
   }
@@ -1716,7 +1722,7 @@ export class FarmScene extends Phaser.Scene {
     const p = this.toWorld(this.selected.col, this.selected.row);
     this.overlay.lineStyle(3, 0xfff6b2, 1);
     this.overlay.beginPath();
-    const fieldW=92,fieldH=46;
+    const fieldW=96,fieldH=48;
     this.overlay.moveTo(p.x, p.y - fieldH / 2);
     this.overlay.lineTo(p.x + fieldW / 2, p.y);
     this.overlay.lineTo(p.x, p.y + fieldH / 2);
