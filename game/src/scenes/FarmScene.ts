@@ -1642,19 +1642,19 @@ export class FarmScene extends Phaser.Scene {
     [[-17,-5],[9,-8],[18,5],[-7,8]].forEach(([dx,dy])=>g.fillEllipse(p.x+dx!,p.y+dy!,3,1.6));
     if (plot.crop === 'tomato' && (plot.state === 'growing' || plot.state === 'ready') && this.textures.exists(`crop-tomato-${1}`)) {
       const stage = plot.state === 'ready' ? 5 : Math.min(5, Math.floor(plot.growth / 20) + 1);
-      const size=plot.state==='ready'?46:26+stage*4;
-      g.fillStyle(0x342a20,0.2);g.fillEllipse(p.x,p.y+5,Math.min(28,size*0.58),5);
+      const size=plot.state==='ready'?62:34+stage*6;
+      g.fillStyle(0x342a20,0.2);g.fillEllipse(p.x,p.y+5,Math.min(36,size*0.62),5);
       const sprite = this.add.image(p.x, p.y + 9, `crop-tomato-${stage}`);
       // Keep the crop artwork centred within the current isometric field diamond.
-      sprite.setOrigin(0.5, 0.88).setDisplaySize(size, size).setDepth(p.y + 24);
+      sprite.setOrigin(0.5, 0.9).setDisplaySize(size, size).setDepth(p.y + 24);
       this.tomatoSprites.set(id, sprite);
     } else if (['wheat','carrot','corn','strawberry','pumpkin'].includes(plot.crop) && (plot.state === 'growing' || plot.state === 'ready') && this.textures.exists(`crop-${plot.crop}`)) {
       const stage = plot.state === 'ready' ? 4 : Math.min(4, Math.floor(plot.growth / 20));
-      const size=plot.state==='ready'?46:26+stage*5;
+      const size=plot.state==='ready'?62:34+stage*6;
       g.fillStyle(0x342a20,0.2);g.fillEllipse(p.x,p.y+5,Math.min(28,size*0.58),5);
       const sprite = this.add.image(p.x, p.y + 9, `crop-${plot.crop}`, stage);
       // Every growth stage shares the centre and baseline of its own soil diamond.
-      sprite.setOrigin(0.5, 0.88).setDisplaySize(size, size).setDepth(p.y + 24);
+      sprite.setOrigin(0.5, 0.9).setDisplaySize(size, size).setDepth(p.y + 24);
       this.cropSprites.set(id, sprite);
     } else if (plot.state === 'growing' || plot.state === 'ready' || plot.state === 'withered') {
       this.drawCrop(g, p.x, p.y, plot);
@@ -1664,16 +1664,16 @@ export class FarmScene extends Phaser.Scene {
   private drawCrop(g: Phaser.GameObjects.Graphics, x: number, y: number, plot: Plot): void {
     const crop=CROPS[plot.crop];
     const stage=plot.state==='ready'?1:plot.state==='withered'?0:Math.max(0.18,plot.growth/100);
-    const h=plot.state==='ready'?27:plot.state==='withered'?8:8+Math.round(stage*18);
+    const h=plot.state==='ready'?34:plot.state==='withered'?8:10+Math.round(stage*23);
     if(plot.state==='withered'){
       g.lineStyle(2,0x927b54,1);g.beginPath();g.moveTo(x,y+2);g.lineTo(x-4,y-h);g.moveTo(x-2,y-5);g.lineTo(x-12,y-11);g.moveTo(x-3,y-8);g.lineTo(x+8,y-13);g.strokePath();
       g.fillStyle(0x9b875b,1);g.fillEllipse(x-8,y-7,8,4);g.fillEllipse(x+7,y-9,8,4);return;
     }
     const stem=plot.watered?0x347e43:0x438b3d;
     const leafColor=plot.watered?0x5eaa4d:0x78b64f;
-    const stems=crop.name==='Wheat'?3:crop.name==='Corn'?2:4;
+    const stems=crop.name==='Wheat'?4:crop.name==='Corn'?3:5;
     for(let n=0;n<stems;n++){
-      const ox=(n-(stems-1)/2)*5;
+      const ox=(n-(stems-1)/2)*6;
       const topY=y-h-(n%2)*3;
       g.lineStyle(crop.name==='Wheat'?2.2:2.8,stem,1);g.beginPath();g.moveTo(x+ox,y+2);g.lineTo(x+ox+(n%2?2:-2),topY);g.strokePath();
       if(crop.name==='Wheat'){
