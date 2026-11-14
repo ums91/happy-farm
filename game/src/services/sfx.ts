@@ -1,6 +1,24 @@
 const ENABLED_KEY='happyFarmSfxEnabledV1';
 const VOLUME_KEY='happyFarmSfxVolumeV1';
-type SfxName='plow'|'plant'|'harvest'|'feed'|'egg'|'milk'|'coin'|'purchase'|'level';
+type SfxName='plow'|'plant'|'harvest'|'feed'|'egg'|'milk'|'coin'|'purchase'|'level'|'hen'|'chick'|'cow'|'rooster'|'bird';
+// CC0 animal recordings/stylized calls from SFXMint. URLs are immutable and may be hotlinked under CC0 1.0.
+const sampleUrls:Partial<Record<SfxName,string>>={
+  hen:'https://sfxmint.com/dl/hen-cluck-02.mp3',
+  chick:'https://sfxmint.com/dl/hen-cluck-02.mp3',
+  cow:'https://sfxmint.com/dl/cow-moo-02.mp3',
+  rooster:'https://sfxmint.com/dl/rooster-crow-02.mp3',
+  bird:'https://sfxmint.com/dl/animal-bird-24.mp3'
+};
+const sampleCache=new Map<string,HTMLAudioElement>();
+function playSample(name:SfxName,rate=1):void{
+  const url=sampleUrls[name];if(!url)return;
+  let source=sampleCache.get(url);
+  if(!source){source=new Audio(url);source.preload='auto';sampleCache.set(url,source);}
+  const audio=source.cloneNode(true) as HTMLAudioElement;
+  audio.volume=Math.min(1,Math.max(0,volume*(name==='bird'?.22:.72)));
+  audio.playbackRate=rate;
+  void audio.play().catch(()=>{/* Browser may require another user gesture before audio playback. */});
+}
 let context:AudioContext|null=null;
 let enabled=true;
 let volume=0.55;
@@ -30,7 +48,11 @@ function noise(ctx:AudioContext,start:number,duration:number,gain:number,filter:
   src.connect(low);low.connect(amp);amp.connect(ctx.destination);src.start(start);src.stop(start+duration);
 }
 export function playSfx(name:SfxName):void{
-  if(!enabled)return;const ctx=audioContext();if(!ctx)return;const t=ctx.currentTime;
+  if(!enabled)return;
+  if(name==='hen'||name==='chick'||name==='cow'||name==='rooster'||name==='bird'){playSample(name,name==='chick'?1.35:1);return;}
+  if(name==='egg')playSample('hen');
+  if(name==='milk')playSample('cow');
+  const ctx=audioContext();if(!ctx)return;const t=ctx.currentTime;
   switch(name){
     case'plow':noise(ctx,t,.22,.12,650);tone(ctx,115,t,.18,.08,'triangle',75);break;
     case'plant':tone(ctx,540,t,.08,.10,'sine',760);tone(ctx,820,t+.07,.10,.07,'sine',980);break;
