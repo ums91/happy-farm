@@ -2111,13 +2111,20 @@ export class FarmScene extends Phaser.Scene {
     const feedable=Math.min(hungry,feedCount);
     const cycle=this.animalProductionDuration(kind);
     const fmt=(ms:number)=>{const s=Math.max(0,Math.ceil(ms/1000));return s>=60?Math.floor(s/60)+'m '+String(s%60).padStart(2,'0')+'s':s+'s';};
-    const rows=family.map((a)=>{
+    const rows=[...family].sort((a,b)=>{
+      const rank=(animal:Animal)=>animal.assigned===false?4:animal.readyAt>0&&animal.readyAt<=now?0:animal.readyAt===0?1:2;
+      return rank(a)-rank(b)||this.animals.indexOf(a)-this.animals.indexOf(b);
+    }).map((a)=>{
       const index=this.animals.indexOf(a),isBaby=a.id===babyKind;
       const remaining=Math.max(0,a.readyAt-now);
+      const statusKey=a.assigned===false?'resting':a.readyAt===0?'hungry':remaining>0?(isBaby?'growing':'producing'):'ready';
       const status=a.assigned===false?'Resting':a.readyAt===0?'Needs feed':remaining>0?(isBaby?'Growing · ':'Producing · ')+fmt(remaining):isBaby?'Ready for next feeding':'Ready to collect';
       const pct=a.assigned===false||a.readyAt===0?0:remaining===0?100:Math.max(0,Math.min(100,(1-remaining/cycle)*100));
-      const progressLabel=isBaby?'Growth feedings: '+(a.growthFeedings||0)+'/3':(kind==='hen'?'Egg':'Milk')+' production';
-      return '<article class="animal-progress"><div class="production-status-row"><strong>'+(isBaby?(id==='coop'?'🐣 Baby Chick':'🐮 Baby Calf'):(id==='coop'?'🐔 Hen':'🐄 Cow'))+'</strong><span class="production-level">'+status+'</span></div><small>'+progressLabel+'</small><div class="production-track"><i style="width:'+pct+'%"></i></div><button class="market-buy" data-animal-toggle="'+index+'">'+(a.assigned===false?'Assign to production':'Set to rest')+'</button></article>';
+      const progressLabel=isBaby?'Growth progress · '+(a.growthFeedings||0)+'/3 feedings':(kind==='hen'?'Egg':'Milk')+' cycle progress';
+      const animalName=isBaby?(id==='coop'?'Baby Chick':'Baby Calf'):(id==='coop'?'Hen':'Cow');
+      const animalIcon=isBaby?(id==='coop'?'🐣':'🐮'):(id==='coop'?'🐔':'🐄');
+      const actionLabel=a.assigned===false?'Resume production':'Set to rest';
+      return '<article class="animal-progress animal-state-'+statusKey+'"><div class="animal-progress-top"><span class="animal-avatar">'+animalIcon+'</span><div class="animal-identity"><strong>'+animalName+'</strong><small>'+progressLabel+'</small></div><span class="animal-status-pill">'+(statusKey==='ready'?'Ready':statusKey==='hungry'?'Hungry':statusKey==='resting'?'Resting':statusKey==='growing'?'Growing':'Producing')+'</span></div><div class="animal-progress-detail"><span>'+status+'</span><b>'+(isBaby?(a.growthFeedings||0)+'/3':statusKey==='ready'?'100%':statusKey==='hungry'?'0%':statusKey==='resting'?'Paused':Math.round(pct)+'%')+'</b></div><div class="production-track animal-track"><i style="width:'+(isBaby?Math.min(100,(a.growthFeedings||0)/3*100):pct)+'%"></i></div><button class="market-buy" data-animal-toggle="'+index+'">'+actionLabel+'</button></article>';
     }).join('');
     const cost=level*250,feedName=id==='coop'?'Chicken Feed':'Cow Feed';
     const host=document.getElementById('market-items');if(!host)return;
