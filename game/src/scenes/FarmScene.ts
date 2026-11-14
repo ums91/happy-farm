@@ -175,30 +175,67 @@ export class FarmScene extends Phaser.Scene {
         const source=texture.getSourceImage() as HTMLImageElement;
         const frameWidth=Math.floor(source.width/5);
         const frameHeight=source.height;
-        if(frameWidth>0&&frameHeight>0&&source.width>=frameWidth*5){
-          // Clean any near-black matte pixels consistently across all five crop
-          // strips before slicing their growth stages.
-          const canvas=document.createElement('canvas');
-          canvas.width=source.width;canvas.height=source.height;
-          const context=canvas.getContext('2d',{willReadFrequently:true});
-          if(context){
-            context.drawImage(source,0,0);
-            const pixels=context.getImageData(0,0,canvas.width,canvas.height);
-            const data=pixels.data;
-            for(let i=0;i<data.length;i+=4){
-              if(data[i]!<=12&&data[i+1]!<=12&&data[i+2]!<=12)data[i+3]=0;
-            }
-            context.putImageData(pixels,0,0);
-            this.textures.remove(key);
-            this.textures.addCanvas(key,canvas);
-          }
-          const processed=this.textures.get(key);
-          for(let stage=0;stage<5;stage++){
-            const frameName=String(stage);
-            if(!processed.has(frameName))processed.add(frameName,0,stage*frameWidth,0,frameWidth,frameHeight);
-          }
-        }else{
+        if(frameWidth<=0||frameHeight<=0||source.width<frameWidth*5){
           console.warn(`[Happy Farm] Invalid five-stage ${crop} sprite sheet dimensions:`,source.width,source.height);
+          continue;
+        }
+
+        // Normalize every crop stage to a 160x160 transparent frame. This
+        // keeps source sheets with different frame sizes/aspect ratios from
+        // being stretched, while bottom-aligning the soil bed on every stage.
+        const sourceCanvas=document.createElement('canvas');
+        sourceCanvas.width=source.width;
+        sourceCanvas.height=source.height;
+        const sourceContext=sourceCanvas.getContext('2d',{willReadFrequently:true});
+        const normalizedCanvas=document.createElement('canvas');
+        normalizedCanvas.width=800;
+        normalizedCanvas.height=160;
+        const normalizedContext=normalizedCanvas.getContext('2d');
+        if(!sourceContext||!normalizedContext){
+          console.warn(`[Happy Farm] Could not create crop canvas for ${crop}`);
+          continue;
+        }
+        sourceContext.drawImage(source,0,0);
+        for(let stage=0;stage<5;stage++){
+          const stageCanvas=document.createElement('canvas');
+          stageCanvas.width=frameWidth;
+          stageCanvas.height=frameHeight;
+          const stageContext=stageCanvas.getContext('2d',{willReadFrequently:true});
+          if(!stageContext)continue;
+          stageContext.drawImage(sourceCanvas,stage*frameWidth,0,frameWidth,frameHeight,0,0,frameWidth,frameHeight);
+          const pixels=stageContext.getImageData(0,0,frameWidth,frameHeight);
+          const data=pixels.data;
+          let minX=frameWidth,minY=frameHeight,maxX=-1,maxY=-1;
+          for(let y=0;y<frameHeight;y++){
+            for(let x=0;x<frameWidth;x++){
+              const i=(y*frameWidth+x)*4;
+              if(data[i]<=12&&data[i+1]<=12&&data[i+2]<=12)data[i+3]=0;
+              if(data[i+3]>8){
+                if(x<minX)minX=x;
+                if(x>maxX)maxX=x;
+                if(y<minY)minY=y;
+                if(y>maxY)maxY=y;
+              }
+            }
+          }
+          if(maxX<minX||maxY<minY){
+            console.warn(`[Happy Farm] Empty growth frame ${stage+1} for ${crop}`);
+            continue;
+          }
+          pixels.data.set(data);
+          stageContext.putImageData(pixels,0,0);
+          const contentW=maxX-minX+1,contentH=maxY-minY+1;
+          const scale=Math.min(156/contentW,156/contentH);
+          const drawW=Math.max(1,Math.round(contentW*scale));
+          const drawH=Math.max(1,Math.round(contentH*scale));
+          const destX=stage*160+Math.round((160-drawW)/2);
+          const destY=160-drawH;
+          normalizedContext.drawImage(stageCanvas,minX,minY,contentW,contentH,destX,destY,drawW,drawH);
+        }
+        this.textures.remove(key);
+        const normalized=this.textures.addCanvas(key,normalizedCanvas);
+        for(let stage=0;stage<5;stage++){
+          normalized.add(String(stage),0,stage*160,0,160,160);
         }
       }
       this.createAnimalAnimations();this.renderWoodlandBackdrop();this.redrawFarmTiles();this.drawScenery();this.renderOwnedAnimals();window.dispatchEvent(new Event('happyfarm:ready'));
