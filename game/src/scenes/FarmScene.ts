@@ -357,8 +357,11 @@ export class FarmScene extends Phaser.Scene {
     if (!this.textures.exists('enchanted-woodland')) return;
     this.woodlandBackdrop?.destroy();
     const source=this.textures.get('enchanted-woodland').getSourceImage() as HTMLImageElement;
-    const scale=Math.max(1420/source.width,790/source.height);
-    this.woodlandBackdrop=this.add.image(0,225,'enchanted-woodland')
+    // The forest art contains the playable clearing in its lower-middle area.
+    // Enlarge it slightly and lift it so the tree line frames the farm instead
+    // of leaving a tall sky band above and a blank grass band below on phones.
+    const scale=Math.max(1420/source.width,930/source.height);
+    this.woodlandBackdrop=this.add.image(0,145,'enchanted-woodland')
       .setOrigin(0.5,0.5)
       .setDisplaySize(source.width*scale,source.height*scale)
       .setDepth(-21);
