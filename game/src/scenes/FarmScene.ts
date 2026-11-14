@@ -163,11 +163,11 @@ export class FarmScene extends Phaser.Scene {
     // Wheat and carrot use the newly uploaded five-stage horizontal sprite strips.
     // Load as images first; frame dimensions are derived from the real PNG dimensions
     // instead of assuming the old 160x160 atlas cells.
-    for (const crop of ['wheat','carrot'] as const) {
+    for (const crop of ['wheat','carrot','corn','strawberry','pumpkin'] as const) {
       this.load.image(`crop-${crop}`, `${import.meta.env.BASE_URL}assets/crops/${crop}/${crop}-growth.png`);
     }
     for (const crop of ['corn','strawberry','pumpkin'] as const) {
-      this.load.spritesheet(`crop-${crop}`, `${import.meta.env.BASE_URL}assets/crops/${crop}/${crop}-growth.png`, { frameWidth: 160, frameHeight: 160 });
+      this.load.image(`crop-${crop}`, `${import.meta.env.BASE_URL}assets/crops/${crop}/${crop}-growth.png`);
     }
     this.load.once(Phaser.Loader.Events.COMPLETE, () => {
       for (const crop of ['wheat','carrot'] as const) {
