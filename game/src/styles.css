@@ -3393,6 +3393,8 @@ body.visitor-mode .audio-dock{display:none!important}
 @media(max-width:700px){.decor-filter{min-height:36px;padding:8px 11px;font-size:10px}.decor-filter-bar{margin-left:-3px;margin-right:-3px;padding-left:3px}}
 
 
+.decor-catalog-summary{display:flex;flex-direction:column;gap:3px;margin:0 0 8px;padding:9px 12px;border:1px solid #e6d6b5;border-radius:12px;background:linear-gradient(135deg,#fff9e8,#f5e7c8);color:#694d2d}.decor-catalog-summary strong{font:900 13px Nunito,sans-serif}.decor-catalog-summary span{font:600 10px Nunito,sans-serif;color:#92734c}.decor-filter{font-size:11px}.decor-catalog-card .market-art{overflow:hidden}.decor-catalog-card .market-thumb{object-fit:contain;max-width:100%;max-height:100%}
+
 /* Desktop farm zoom controls. Kept outside the Phaser canvas so they remain clickable. */
 .farm-zoom-controls{position:absolute;z-index:8;right:16px;top:62px;display:flex;flex-direction:column;gap:6px}
 .farm-zoom-controls button{width:40px;height:40px;border:2px solid #fff;border-radius:12px;background:linear-gradient(#fffef7,#f1dfb8);color:#76562f;font:900 23px/1 'Nunito',sans-serif;box-shadow:0 3px 0 #b58a50,0 4px 10px #29431f35;cursor:pointer;touch-action:manipulation}
