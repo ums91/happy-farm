@@ -200,9 +200,45 @@ export class FarmScene extends Phaser.Scene {
           }
         }
       };
-      // Each crop PNG's own isometric soil tile is retained. Crop rendering
-      // uses this single cleaned tile; the empty-field PNG is used only while
-      // a plot is freshly tilled and has no growing crop.
+      // Crop PNGs include their own brown soil diamonds. Remove the
+      // bottom-connected brown soil component so the field-tilled PNG can be
+      // the one consistent base tile beneath every crop.
+      const clearCropSoil=(data:Uint8ClampedArray,w:number,h:number)=>{
+        const seen=new Uint8Array(w*h);
+        const queue=new Int32Array(w*h);
+        const isSoil=(p:number)=>{
+          const i=p*4;
+          if(data[i+3]<=8)return false;
+          const r=data[i],g=data[i+1],b=data[i+2];
+          const max=Math.max(r,g,b),min=Math.min(r,g,b);
+          const saturation=max===0?0:(max-min)/max;
+          // Earth/loam hues: brown, umber and warm soil edging. Restrict to
+          // mid-value pixels so yellow seeds and bright orange crop produce
+          // are not mistaken for the soil bed.
+          return r>42&&g>20&&b<125&&g<145&&r>g*1.08&&g>b*1.08&&saturation>0.24;
+        };
+        let head=0,tail=0;
+        const add=(x:number,y:number)=>{
+          const p=y*w+x;
+          if(!seen[p]&&isSoil(p)){seen[p]=1;queue[tail++]=p;}
+        };
+        // The soil bed sits in the lower part of each isometric crop frame.
+        for(let y=Math.floor(h*0.72);y<h;y++){
+          for(let x=0;x<w;x++)add(x,y);
+        }
+        while(head<tail){
+          const p=queue[head++],x=p%w,y=Math.floor(p/w);
+          data[p*4+3]=0;
+          for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
+            if(!dx&&!dy)continue;
+            const nx=x+dx,ny=y+dy;
+            if(nx<0||nx>=w||ny<0||ny>=h)continue;
+            add(nx,ny);
+          }
+        }
+      };
+      // The field PNG is now the only soil layer. Crop sheets are converted
+      // into transparent plant overlays with a stable bottom planting anchor.
       const normalizeStages=(key:string,stages:Array<{source:CanvasImageSource;width:number;height:number}>)=>{
         if(stages.length!==5){console.warn('[Happy Farm] Expected five crop stages:',key);return;}
         const prepared=stages.map(stage=>{
@@ -211,6 +247,7 @@ export class FarmScene extends Phaser.Scene {
           ctx.drawImage(stage.source,0,0,stage.width,stage.height);
           const pixels=ctx.getImageData(0,0,stage.width,stage.height),data=pixels.data;
           clearBorderMatte(data,stage.width,stage.height);
+          clearCropSoil(data,stage.width,stage.height);
           let minX=stage.width,minY=stage.height,maxX=-1,maxY=-1;
           for(let y=0;y<stage.height;y++)for(let x=0;x<stage.width;x++){
             const i=(y*stage.width+x)*4;
@@ -273,6 +310,7 @@ export class FarmScene extends Phaser.Scene {
           ctx.drawImage(stage.source,0,0);
           const pixels=ctx.getImageData(0,0,canvas.width,canvas.height),data=pixels.data;
           clearBorderMatte(data,canvas.width,canvas.height);
+          clearCropSoil(data,canvas.width,canvas.height);
           let minX=canvas.width,minY=canvas.height,maxX=-1,maxY=-1;
           for(let y=0;y<canvas.height;y++)for(let x=0;x<canvas.width;x++){
             const i=(y*canvas.width+x)*4;
@@ -1540,7 +1578,7 @@ export class FarmScene extends Phaser.Scene {
     const tip=this.cropHoverTooltip;if(!tip)return;
     this.cropActionPlot=plot;this.hoveredCropPlot=plot;this.hoverPointer={x,y};
     const crop=CROPS[plot.crop],remaining=Math.max(0,plot.readyAt-Date.now()),totalSeconds=Math.ceil(remaining/1000),hours=Math.floor(totalSeconds/3600),mins=Math.floor((totalSeconds%3600)/60),secs=totalSeconds%60;
-    const status=plot.state==='ready'?'Ready to harvest!':plot.state==='withered'?'Withered · Plow to clear':'Harvest in '+(hours>0?hours+'h ':'')+(mins>0?mins+'m ':'')+secs+'s';
+    const status=plot.state==='ready'?'Ready to harvest!':plot.state==='withered'?'Ready to harvest · stays ready':'Harvest in '+(hours>0?hours+'h ':'')+(mins>0?mins+'m ':'')+secs+'s';
     const action=plot.state==='growing'?(plot.watered?'<span>💧 Already watered</span>':this.waterUnits>0?'<button type="button" class="crop-water-action" data-water-plot>💧 Water field · 1</button>':'<span>💧 No water · collect at the Well</span>'):'';
     tip.innerHTML='<strong>'+crop.emoji+' '+crop.name+'</strong><span>'+status+'</span>'+action;
     tip.style.left=Math.max(8,Math.min(this.scale.width-190,x+14))+'px';tip.style.top=Math.max(8,Math.min(this.scale.height-100,y-48))+'px';tip.style.display='flex';tip.style.pointerEvents='auto';
@@ -1624,17 +1662,10 @@ export class FarmScene extends Phaser.Scene {
   }
 
   private resolvePlotState(plot:Plot):void {
-    const now=Date.now();
-    if(plot.state==='growing'&&plot.readyAt>0&&plot.readyAt<=now){
-      plot.state='ready';plot.growth=100;plot.readyAt=0;
-      plot.witherAt=now+Math.max(300000,CROPS[plot.crop].growMs*2);
+    if(plot.state==='growing'&&plot.readyAt>0&&plot.readyAt<=Date.now()){
+      plot.state='ready';plot.growth=100;plot.readyAt=0;plot.witherAt=0;
       this.growthTimers.get(this.key(plot.col,plot.row))?.remove(false);
       this.growthTimers.delete(this.key(plot.col,plot.row));
-      this.scheduleWithering(plot);
-      this.redrawPlot(plot);
-      this.saveFarm();
-    }else if(plot.state==='ready'&&plot.witherAt>0&&plot.witherAt<=now){
-      plot.state='withered';plot.witherAt=0;
       this.redrawPlot(plot);
       this.saveFarm();
     }
@@ -1665,7 +1696,7 @@ export class FarmScene extends Phaser.Scene {
   private applyTool(plot: Plot): void {
     // Resolve elapsed crop timers synchronously before handling a click.
     if(plot.state==='growing'&&plot.readyAt>0&&plot.readyAt<=Date.now()){
-      plot.state='ready';plot.growth=100;plot.readyAt=0;plot.witherAt=Date.now()+Math.max(300000,CROPS[plot.crop].growMs*2);
+      plot.state='ready';plot.growth=100;plot.readyAt=0;plot.witherAt=0;
       this.growthTimers.get(this.key(plot.col,plot.row))?.remove(false);this.growthTimers.delete(this.key(plot.col,plot.row));this.scheduleWithering(plot);this.redrawPlot(plot);
     }
     switch (this.activeTool) {
@@ -1701,25 +1732,12 @@ export class FarmScene extends Phaser.Scene {
       plot.state = 'ready';
       plot.growth = 100;
       plot.readyAt = 0;
-      plot.witherAt = Date.now() + Math.max(300000, CROPS[plot.crop].growMs * 2);
+      plot.witherAt = 0;
       this.redrawPlot(plot);
       this.scheduleWithering(plot);
       if (this.selected === plot) this.refreshSelection();
       this.saveFarm();
     }));
-  }
-
-  private scheduleWithering(plot: Plot): void {
-    const delay = Math.max(0, plot.witherAt - Date.now());
-    this.time.delayedCall(delay, () => {
-      if (plot.state !== 'ready' || !plot.witherAt || plot.witherAt > Date.now()) return;
-      plot.state = 'withered';
-      plot.witherAt = 0;
-      this.redrawPlot(plot);
-      if (this.selected === plot) this.refreshSelection();
-      this.saveFarm();
-      this.toast('A crop has withered. Plow the plot to prepare it again.');
-    });
   }
 
   private updateCropLifecycle(): void {
@@ -1730,7 +1748,7 @@ export class FarmScene extends Phaser.Scene {
         // Fallback when a Phaser timer is delayed or missed: elapsed crops become harvestable.
         plot.state='ready';plot.growth=100;plot.readyAt=0;plot.witherAt=now+Math.max(300000,CROPS[plot.crop].growMs*2);
         this.growthTimers.get(this.key(plot.col,plot.row))?.remove(false);this.growthTimers.delete(this.key(plot.col,plot.row));
-        this.redrawPlot(plot);this.scheduleWithering(plot);changed=true;
+        this.redrawPlot(plot);changed=true;
         continue;
       }
       if (plot.state === 'growing' && plot.readyAt > 0) {
@@ -1744,12 +1762,6 @@ export class FarmScene extends Phaser.Scene {
           this.redrawPlot(plot);
           changed = true;
         }
-      }
-      if (plot.state === 'ready' && plot.witherAt > 0 && plot.witherAt <= now) {
-        plot.state = 'withered';
-        plot.witherAt = 0;
-        this.redrawPlot(plot);
-        changed = true;
       }
     }
     if (changed) {
@@ -1768,19 +1780,14 @@ export class FarmScene extends Phaser.Scene {
 
     const p=this.toWorld(plot.col,plot.row);
     const growing=plot.state==='growing'||plot.state==='ready';
-    const withered=plot.state==='withered';
 
-    // Empty tilled plots use the field PNG. Growing/ready crop PNGs already
-    // contain their own soil tile, so render that tile once instead of layering
-    // a second field underneath it.
-    if(!growing){
-      const field=this.add.image(p.x,p.y,'field-tilled');
-      field.setOrigin(0.5,0.5).setDisplaySize(88,88).setDepth(p.y-5);
-      if(withered)field.setTint(0x8b755f).setAlpha(0.88);
-      this.plotOverlays.set(id,field);
-      return;
-    }
+    // One canonical soil base for freshly tilled, growing and harvest-ready
+    // plots. Crop PNGs have their embedded soil removed at load time.
+    const field=this.add.image(p.x,p.y,'field-tilled');
+    field.setOrigin(0.5,0.5).setDisplaySize(88,88).setDepth(p.y-5);
+    this.plotOverlays.set(id,field);
 
+    if(!growing)return;
     let sprite:Phaser.GameObjects.Image|null=null;
     if(plot.crop==='tomato'){
       const stage=plot.state==='ready'?5:Math.min(5,Math.max(1,Math.floor(plot.growth/20)+1));
@@ -1793,10 +1800,10 @@ export class FarmScene extends Phaser.Scene {
       else console.warn(`[Happy Farm] Missing PNG growth stages for ${plot.crop}`);
     }
     if(sprite){
-      // Center the crop's own soil diamond exactly on the plot center. Do not
-      // bottom-anchor it: that offsets the soil base by half a tile.
-      sprite.setOrigin(0.5,0.5).setDisplaySize(88,88);
-      sprite.setDepth(p.y+5);
+      // Plant-only PNGs are bottom-aligned to the field center so that the
+      // roots remain anchored while the crop canopy changes across stages.
+      sprite.setOrigin(0.5,1).setDisplaySize(88,88);
+      sprite.setDepth(p.y+18);
       this.cropSprites.set(id,sprite);
     }
   }
@@ -2657,14 +2664,15 @@ export class FarmScene extends Phaser.Scene {
       for (const saved of save.plots) {
         const plot = this.plots.get(this.key(saved.col, saved.row));
         if (!plot || !['grass', 'tilled', 'growing', 'ready', 'withered'].includes(saved.state)) continue;
-        plot.state = saved.state;
+        // Legacy withered crops are restored as harvest-ready; crops no
+        // longer expire. Preserve their crop type and farm progress.
+        plot.state = saved.state === 'withered' ? 'ready' : saved.state;
         plot.watered = Boolean(saved.watered);
-        plot.growth = Math.max(0, Math.min(100, Number(saved.growth) || 0));
+        plot.growth = saved.state === 'withered' || saved.state === 'ready' ? 100 : Math.max(0, Math.min(100, Number(saved.growth) || 0));
         if (saved.crop && saved.crop in CROPS) plot.crop = saved.crop;
         plot.readyAt = saved.readyAt || 0;
-        plot.witherAt = save.version >= 5 ? (saved.witherAt || 0) : 0;
-        if (plot.state === 'ready' && plot.witherAt > 0) this.scheduleWithering(plot);
-        if (plot.state === 'growing') { const remaining=plot.readyAt ? plot.readyAt-Date.now() : (plot.watered ? 5000 : CROPS[plot.crop].growMs); if (remaining<=0) {plot.state='ready';plot.growth=100;plot.readyAt=0;plot.witherAt=Date.now()+Math.max(300000,CROPS[plot.crop].growMs*2);this.scheduleWithering(plot);} else this.scheduleGrowth(plot,remaining); }
+        plot.witherAt = 0;
+        if (plot.state === 'growing') { const remaining=plot.readyAt ? plot.readyAt-Date.now() : (plot.watered ? 5000 : CROPS[plot.crop].growMs); if (remaining<=0) {plot.state='ready';plot.growth=100;plot.readyAt=0;plot.witherAt=0;} else this.scheduleGrowth(plot,remaining); }
         this.redrawPlot(plot);
       }
     } catch (error) {
@@ -2833,7 +2841,7 @@ export class FarmScene extends Phaser.Scene {
       host.innerHTML = '<span class="selection-kicker">SELECTED LAND</span><strong>Choose a plot</strong><p>Select a field tile to see what you can do there.</p>';
       return;
     }
-    const names: Record<PlotState, string> = { grass: 'Open grassland', tilled: 'Freshly plowed soil', growing: 'Growing crop', ready: 'Ready to harvest', withered: 'Withered crop · plow to clear' };
+    const names: Record<PlotState, string> = { grass: 'Open grassland', tilled: 'Freshly plowed soil', growing: 'Growing crop', ready: 'Ready to harvest', withered: 'Ready to harvest' };
     const actions: Record<Tool, string> = { select: 'Choose a tool to work this plot.', plow: 'Plow open or withered land to prepare the soil.', plant: `Plant ${CROPS[this.selectedCrop].name} · ${CROPS[this.selectedCrop].cost} coins per field.`, harvest: this.selected.state === 'withered' ? 'This crop has withered. Select Plow to clear the plot.' : 'Harvest ripe crops before their harvest window closes.', move: 'Drag a tree, farmhouse, barn, silo or animal pen to a new grid position.', store: 'Tap a placed tree, decoration or building to move it into your inventory.', remove: 'Tap a placed tree, decoration or building to permanently remove it.', 'feed-hen':'Select Hen Feed, then tap a hungry hen to feed it.', 'feed-cow':'Select Cow Feed, then tap a hungry cow to feed it.' };
     host.innerHTML = `<span class="selection-kicker">LAND · ${this.selected.col + 1}, ${this.selected.row + 1}</span><strong>${names[this.selected.state]}</strong><p>${actions[this.activeTool]}</p>`;
   }
