@@ -163,23 +163,21 @@ export class FarmScene extends Phaser.Scene {
     // Wheat and carrot use the newly uploaded five-stage horizontal sprite strips.
     // Load as images first; frame dimensions are derived from the real PNG dimensions
     // instead of assuming the old 160x160 atlas cells.
+    // Load all five-stage horizontal crop PNG strips as images so their
+    // actual dimensions, not assumed atlas dimensions, define each frame.
     for (const crop of ['wheat','carrot','corn','strawberry','pumpkin'] as const) {
       this.load.image(`crop-${crop}`, `${import.meta.env.BASE_URL}assets/crops/${crop}/${crop}-growth.png`);
     }
-    for (const crop of ['corn','strawberry','pumpkin'] as const) {
-      this.load.image(`crop-${crop}`, `${import.meta.env.BASE_URL}assets/crops/${crop}/${crop}-growth.png`);
-    }
     this.load.once(Phaser.Loader.Events.COMPLETE, () => {
-      for (const crop of ['wheat','carrot'] as const) {
+      for (const crop of ['wheat','carrot','corn','strawberry','pumpkin'] as const) {
         const key=`crop-${crop}`;
         const texture=this.textures.get(key);
         const source=texture.getSourceImage() as HTMLImageElement;
         const frameWidth=Math.floor(source.width/5);
         const frameHeight=source.height;
         if(frameWidth>0&&frameHeight>0&&source.width>=frameWidth*5){
-          // These two imported crop strips contain a solid black matte around
-          // each plant. Remove only near-black backdrop pixels before slicing
-          // the five stages so the farm tiles remain visible behind the crops.
+          // Clean any near-black matte pixels consistently across all five crop
+          // strips before slicing their growth stages.
           const canvas=document.createElement('canvas');
           canvas.width=source.width;canvas.height=source.height;
           const context=canvas.getContext('2d',{willReadFrequently:true});
