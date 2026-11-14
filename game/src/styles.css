@@ -3399,3 +3399,32 @@ body.visitor-mode .audio-dock{display:none!important}
 .farm-zoom-controls button:hover{filter:brightness(1.06);transform:translateY(-1px)}
 .farm-zoom-controls button:active{transform:translateY(1px);box-shadow:0 1px 0 #b58a50}
 @media(max-width:700px){.farm-zoom-controls{display:none}}
+
+
+/* FarmVille-inspired level-up celebration */
+.level-up-backdrop{position:fixed;inset:0;z-index:50000;display:none;align-items:center;justify-content:center;padding:18px;background:radial-gradient(circle at 50% 42%,#284d2cb8,#102619e8 72%);backdrop-filter:blur(7px)}
+.level-up-backdrop.open{display:flex;animation:levelBackdropIn .28s ease-out both}
+.level-up-card{position:relative;isolation:isolate;width:min(520px,100%);max-height:min(90dvh,820px);overflow:auto;padding:28px 30px 26px;border:4px solid #f4d477;border-radius:30px;background:linear-gradient(165deg,#fff9d9 0%,#f8e8ad 42%,#e8c779 100%);box-shadow:0 14px 0 #825a2c,0 24px 65px #0008;text-align:center;color:#65431e;animation:levelCardPop .55s cubic-bezier(.16,1.35,.35,1) both}
+.level-up-card:before{content:"";position:absolute;inset:9px;border:2px dashed #d7aa4d;border-radius:21px;pointer-events:none;z-index:-1}
+.level-up-close{position:absolute;top:12px;right:14px;width:34px;height:34px;border:1px solid #b98a42;border-radius:50%;background:#fff5d8;color:#704a21;font-size:24px;line-height:1;cursor:pointer}
+.level-up-confetti{margin:0 auto 2px;color:#bd852e;font-size:25px;letter-spacing:7px;animation:levelSparkle 1.8s ease-in-out infinite}
+.level-up-medal{display:grid;place-items:center;width:82px;height:82px;margin:2px auto 10px;border:4px solid #f8df8b;border-radius:50%;background:radial-gradient(circle at 35% 25%,#fff4bd,#e6a93d 68%,#b87627);box-shadow:0 5px 0 #a36c2d,0 0 0 6px #f3d98b80;font-size:46px}
+.level-up-eyebrow{font-size:10px;font-weight:1000;letter-spacing:2.5px;color:#9b6b2c}
+.level-up-card h2{margin:5px 0 8px;font-size:clamp(28px,7vw,42px);font-weight:1000;letter-spacing:1px;color:#8a4f20;text-shadow:0 2px #fff3bd}
+.level-up-level{display:flex;align-items:center;justify-content:center;gap:10px;margin:8px auto 10px;color:#775020}
+.level-up-level span{font-size:13px;font-weight:1000;letter-spacing:2px}
+.level-up-level strong{display:grid;place-items:center;min-width:78px;height:78px;padding:0 12px;border:4px solid #fff0ad;border-radius:22px;background:linear-gradient(#82bd4e,#4c8d36);box-shadow:0 5px 0 #376d2c;color:white;font-size:48px;line-height:1}
+.level-up-congrats{margin:10px 0;color:#76542d;font-size:14px;font-weight:700}
+.level-up-coin-reward{display:inline-flex;align-items:center;gap:8px;margin:6px auto 14px;padding:9px 18px;border:2px solid #d6a64a;border-radius:18px;background:#fff4c9;color:#7b501d;font-size:17px}
+.level-up-unlocks{max-height:210px;overflow:auto;margin:0 0 16px;padding:12px 15px;border:1px solid #d5ad5e;border-radius:17px;background:#fff9e6d9;text-align:left}
+.level-up-unlocks h3{margin:0 0 8px;text-align:center;color:#805021;font-size:15px}
+.level-up-unlocks ul{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px 12px;margin:0;padding:0;list-style:none}
+.level-up-unlocks li{padding:7px 9px;border-radius:10px;background:#f4e6bd;color:#684a26;font-size:12px;font-weight:800;overflow-wrap:anywhere}
+.level-up-no-unlocks{margin:0;text-align:center;color:#82633b;font-size:13px}
+.level-up-continue{width:100%;min-height:48px;border:2px solid #4b7d2f;border-radius:16px;background:linear-gradient(#a6d96e,#6fa844);box-shadow:0 4px 0 #47752e;color:#fff;font-size:16px;font-weight:1000;text-shadow:0 1px #456c2e;cursor:pointer}
+.level-up-continue:active{transform:translateY(2px);box-shadow:0 2px 0 #47752e}
+@keyframes levelBackdropIn{from{opacity:0}to{opacity:1}}
+@keyframes levelCardPop{0%{opacity:0;transform:translateY(24px) scale(.78) rotate(-2deg)}70%{transform:translateY(-4px) scale(1.025) rotate(.5deg)}100%{opacity:1;transform:translateY(0) scale(1) rotate(0)}}
+@keyframes levelSparkle{0%,100%{transform:scale(.94);opacity:.75}50%{transform:scale(1.08);opacity:1}}
+@media(max-width:520px){.level-up-backdrop{padding:10px}.level-up-card{max-height:calc(100dvh - 20px);padding:22px 16px 18px;border-radius:24px}.level-up-medal{width:68px;height:68px;font-size:38px}.level-up-level strong{min-width:68px;height:68px;font-size:42px}.level-up-unlocks{max-height:28dvh;padding:9px}.level-up-unlocks ul{grid-template-columns:1fr;gap:5px}.level-up-unlocks li{padding:6px 8px;font-size:12px}.level-up-continue{min-height:46px}}
+@media(prefers-reduced-motion:reduce){.level-up-backdrop.open,.level-up-card,.level-up-confetti{animation:none!important}}
