@@ -1639,11 +1639,14 @@ export class FarmScene extends Phaser.Scene {
       this.tomatoSprites.set(id, sprite);
     } else if (['wheat','carrot','corn','strawberry','pumpkin'].includes(plot.crop) && (plot.state === 'growing' || plot.state === 'ready') && this.textures.exists(`crop-${plot.crop}`)) {
       const stage = plot.state === 'ready' ? 4 : Math.min(4, Math.floor(plot.growth / 20));
-      const size=plot.state==='ready'?62:34+stage*6;
-      g.fillStyle(0x342a20,0.2);g.fillEllipse(p.x,p.y+5,Math.min(28,size*0.58),5);
-      const sprite = this.add.image(p.x, p.y + 9, `crop-${plot.crop}`, stage);
-      // Every growth stage shares the centre and baseline of its own soil diamond.
-      sprite.setOrigin(0.5, 0.9).setDisplaySize(size, size).setDepth(p.y + 24);
+      const isNewCompactCrop=plot.crop==='wheat'||plot.crop==='carrot';
+      const size=isNewCompactCrop?(plot.state==='ready'?42:24+stage*4):(plot.state==='ready'?62:34+stage*6);
+      const spriteY=isNewCompactCrop?p.y+3:p.y+9;
+      g.fillStyle(0x342a20,0.18);g.fillEllipse(p.x,p.y+4,isNewCompactCrop?18:Math.min(28,size*0.58),4);
+      const sprite = this.add.image(p.x, spriteY, `crop-${plot.crop}`, stage);
+      // Keep the newer, denser wheat/carrot art compact and anchored to the
+      // centre of its own diamond so neighbouring crop beds never collide.
+      sprite.setOrigin(0.5, isNewCompactCrop?1:0.9).setDisplaySize(size, size).setDepth(p.y + 24);
       this.cropSprites.set(id, sprite);
     } else if (plot.state === 'growing' || plot.state === 'ready' || plot.state === 'withered') {
       this.drawCrop(g, p.x, p.y, plot);
