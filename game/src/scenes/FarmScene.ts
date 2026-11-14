@@ -234,6 +234,10 @@ export class FarmScene extends Phaser.Scene {
         }
         this.textures.remove(key);
         const normalized=this.textures.addCanvas(key,normalizedCanvas);
+        if(!normalized){
+          console.warn(`[Happy Farm] Could not register normalized crop texture for ${crop}`);
+          continue;
+        }
         for(let stage=0;stage<5;stage++){
           normalized.add(String(stage),0,stage*160,0,160,160);
         }
