@@ -226,11 +226,18 @@ export class FarmScene extends Phaser.Scene {
     const camera=this.cameras.main,width=Math.max(320,this.scale.width),height=Math.max(360,this.scale.height);
     const spanX=Math.max(TILE_W,(this.farmSize-1)*TILE_W+24);
     const spanY=Math.max(TILE_H,(this.farmSize-1)*TILE_H+24);
-    const fitX=(width-56)/spanX;
-    const fitY=(height-(height<700?178:110))/spanY;
-    this.minFarmZoom=Phaser.Math.Clamp(Math.min(1.28,fitX,fitY),0.32,1.28);
-    camera.setZoom(Phaser.Math.Clamp(Math.min(1.28,fitX*1.12,fitY*1.12),this.minFarmZoom,1.28));
-    camera.centerOn(0,ORIGIN_Y+(this.farmSize-1)*TILE_H/2);
+    // Fit the playable diamond to the actual canvas. The previous 1.28 zoom
+    // ceiling left large sky/grass bands around small farms on tall phones.
+    // Keep a small horizontal/vertical safety margin for buildings at the edge.
+    const fitX=(width-36)/spanX;
+    const fitY=(height-(height<700?150:92))/spanY;
+    const maxFit=Math.min(2.15,fitX,fitY);
+    this.minFarmZoom=Phaser.Math.Clamp(maxFit*0.92,0.32,2.15);
+    const initialZoom=Phaser.Math.Clamp(maxFit*0.96,this.minFarmZoom,2.15);
+    camera.setZoom(initialZoom);
+    // Bias the camera slightly toward the upper half of the canvas so the
+    // playable land sits visually central between the woodland and toolbar.
+    camera.centerOn(0,ORIGIN_Y+(this.farmSize-1)*TILE_H/2+18);
   }
 
   private xpForLevel(level:number):number { const target=Math.max(1,Math.min(100,Math.floor(level)));let total=0;for(let current=1;current<target;current++)total+=120+14*(current-1)*(current-1);return total; }
