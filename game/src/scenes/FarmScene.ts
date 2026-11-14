@@ -952,6 +952,14 @@ export class FarmScene extends Phaser.Scene {
       return Phaser.Math.Distance.Between(world.x,world.y,bx,by)<42;
     });
     if(hungryBadgeHit){const animal=this.animals[hungryBadgeHit[0]];if(animal)this.feedAnimalAt(hungryBadgeHit[0],animal.id);return;}
+    // On narrow touch screens the emoji badge can be difficult to hit precisely.
+    // Give hungry animals a larger screen-consistent tap target around the sprite.
+    const hungryAnimalIndex=this.animals.findIndex((animal,index)=>{
+      const actor=this.animalActors[index];
+      return animal.assigned!==false&&animal.readyAt===0&&!!actor?.active&&
+        Phaser.Math.Distance.Between(world.x,world.y,actor.x,actor.y)<Math.max(48,68/this.cameras.main.zoom);
+    });
+    if(hungryAnimalIndex>=0){this.feedAnimalAt(hungryAnimalIndex,this.animals[hungryAnimalIndex]!.id);return;}
     if(this.activeTool==='select'){
       // Ready water appears above the Well and is collected with one click.
       if(this.wellWaterBadge?.active&&Phaser.Math.Distance.Between(world.x,world.y,this.wellWaterBadge.x,this.wellWaterBadge.y)<26){this.collectWellWater();return;}
@@ -1924,7 +1932,7 @@ export class FarmScene extends Phaser.Scene {
       this.saveFarm();this.refreshHud();this.updateAnimalHungryIndicators();this.toast((kind==='chick'?'Chick':'Calf')+' fed · '+(3-animal.growthFeedings)+' more feedings to grow.');return;
     }
     if(animal.readyAt>0){this.toast('This animal has already been fed.');return;}
-    if(this.feed[feedType]<=0){this.toast('No '+feedType+' feed in storage. Visit the Market to buy feed.');return;}
+    if(this.feed[feedType]<=0){this.openFeedMarketFor(kind);return;}
     this.feed[feedType]--;playSfx('feed');animal.readyAt=Date.now()+this.animalProductionDuration(kind);
     if(actor)this.moveAnimalToTrough(actor,kind,this.animals.slice(0,index).filter(a=>a.id===kind).length);
     this.animateAnimalTrough(kind);this.saveFarm();this.refreshHud();this.updateAnimalHungryIndicators();
