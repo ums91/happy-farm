@@ -224,7 +224,7 @@ export class FarmScene extends Phaser.Scene {
   }
   private claimDailyReward():void {
     if(this.rewardAvailableAt>Date.now())return;
-    this.coins+=this.rewardAmount;this.rewardAvailableAt=Date.now()+24*60*60*1000;
+    this.coins+=this.rewardAmount;playSfx('reward');this.rewardAvailableAt=Date.now()+24*60*60*1000;
     try{localStorage.setItem(this.rewardKey,String(this.rewardAvailableAt));}catch{}
     this.saveFarm();this.refreshHud();
     const button=document.getElementById('daily-reward-claim') as HTMLButtonElement|null;
@@ -2156,7 +2156,7 @@ export class FarmScene extends Phaser.Scene {
   private fulfilCraftedOrder(id:string):void {
     const orders:Record<string,{product:ProductId;quantity:number;coins:number;xp:number}>={bread:{product:'bread',quantity:1,coins:58,xp:16},pastry:{product:'pastry',quantity:1,coins:86,xp:24},grapes:{product:'grapes',quantity:2,coins:72,xp:20}};
     const order=orders[id];if(!order||this.crafted[order.product]<order.quantity)return;
-    this.crafted[order.product]-=order.quantity;this.coins+=order.coins;this.xp+=order.xp;this.ordersCompleted['crafted-'+id]=(this.ordersCompleted['crafted-'+id]||0)+1;
+    this.crafted[order.product]-=order.quantity;this.coins+=order.coins;this.xp+=order.xp;playSfx('delivery');this.ordersCompleted['crafted-'+id]=(this.ordersCompleted['crafted-'+id]||0)+1;
     this.saveFarm();this.refreshHud();this.renderInventory();this.renderSideRail();this.toast('Crafted-goods delivery complete · +'+order.coins+' coins · +'+order.xp+' XP');
   }
 
@@ -2255,11 +2255,11 @@ export class FarmScene extends Phaser.Scene {
     this.saveFarm();
   }
   private renderEvents():string {const progress=Math.max(0,this.harvests-this.eventStartHarvests),target=20,done=progress>=target,remaining=Math.max(0,604800000-(Date.now()-this.eventStartedAt)),days=Math.floor(remaining/86400000),hours=Math.floor(remaining%86400000/3600000);return '<article class="market-item quest-card"><div class="market-art">🎉</div><div class="market-copy"><strong>Weekly Harvest Festival</strong><small>Harvest 20 crops before the festival ends. '+days+'d '+hours+'h remaining.</small><div class="quest-track"><i style="width:'+Math.min(100,progress/target*100)+'%"></i></div><small>'+Math.min(target,progress)+' / '+target+' harvests · Reward: 150 coins + 30 XP</small></div><button class="market-buy" data-claim-event '+(!done||this.eventClaimed?'disabled':'')+'>'+(this.eventClaimed?'Claimed':done?'Claim reward':'In progress')+'</button></article>';}
-  private claimEvent():void {if(this.eventClaimed||this.harvests-this.eventStartHarvests<20)return;this.eventClaimed=true;playSfx('level');this.coins+=150;this.xp+=30;this.saveFarm();this.refreshHud();this.toast('Harvest Festival complete · +150 coins · +30 XP');}
+  private claimEvent():void {if(this.eventClaimed||this.harvests-this.eventStartHarvests<20)return;this.eventClaimed=true;playSfx('reward');this.coins+=150;this.xp+=30;this.saveFarm();this.refreshHud();this.toast('Harvest Festival complete · +150 coins · +30 XP');}
   private ribbonDefinitions():Array<{id:string;title:string;description:string;icon:string;progress:number;target:number;coins:number;xp:number}>{const totalAnimals=this.animals.length;const totalOrders=Object.values(this.ordersCompleted).reduce((a,b)=>a+b,0);const totalCrafted=Object.values(this.crafted).reduce((a,b)=>a+b,0);const totalFruit=Object.values(this.fruitInventory).reduce((a,b)=>a+b,0);return [{id:'crop-collector',title:'Crop Collector',description:'Harvest 50 crops across your fields.',icon:'🌾',progress:this.harvests,target:50,coins:180,xp:45},{id:'orchard-keeper',title:'Orchard Keeper',description:'Harvest 20 fruits from your trees.',icon:'🍎',progress:totalFruit,target:20,coins:160,xp:40},{id:'animal-friend',title:'Animal Friend',description:'Raise 5 farm animals.',icon:'🐮',progress:totalAnimals,target:5,coins:150,xp:35},{id:'village-supplier',title:'Village Supplier',description:'Complete 10 delivery orders.',icon:'📦',progress:totalOrders,target:10,coins:220,xp:55},{id:'artisan',title:'Farm Artisan',description:'Produce 20 crafted goods in your workshops.',icon:'🥖',progress:totalCrafted,target:20,coins:200,xp:50}];}
    private renderRewards():string {const ribbons=this.ribbonDefinitions().map(r=>{const claimed=this.claimedRibbons.includes(r.id),done=r.progress>=r.target,pct=Math.min(100,Math.round(r.progress/r.target*100)),tier=claimed||done?'gold':pct>=60?'silver':pct>=25?'bronze':'starter',tierLabel=({gold:'Gold ribbon',silver:'Silver progress',bronze:'Bronze progress',starter:'Not yet earned'} as Record<string,string>)[tier];return '<article class="market-item quest-card ribbon-card ribbon-'+tier+'"><div class="ribbon-emblem '+(claimed?'is-earned':'')+'" aria-label="'+tierLabel+'"><span class="ribbon-medal">'+r.icon+'</span><i class="ribbon-tail ribbon-tail-left"></i><i class="ribbon-tail ribbon-tail-right"></i><small>'+tier.toUpperCase()+'</small></div><div class="market-copy"><strong>'+r.title+(claimed?' · Earned':'')+'</strong><small>'+r.description+'</small><div class="quest-track"><i style="width:'+pct+'%"></i></div><small>'+Math.min(r.progress,r.target)+' / '+r.target+' · '+tierLabel+' · Reward: '+r.coins+' coins + '+r.xp+' XP</small></div><button class="market-buy" data-claim-ribbon="'+r.id+'" '+(!done||claimed?'disabled':'')+'>'+(claimed?'Earned':done?'Claim ribbon':'In progress')+'</button></article>';}).join('');const milestones=[10,25,50,100].map(n=>{const claimed=this.claimedMilestones.includes(n),done=this.harvests>=n;return '<article class="market-item quest-card"><div class="market-art">🏅</div><div class="market-copy"><strong>'+n+' Lifetime Harvests</strong><small>'+Math.min(n,this.harvests)+' / '+n+' crops · Reward: '+n*10+' coins + '+n*2+' XP</small><div class="quest-track"><i style="width:'+Math.min(100,this.harvests/n*100)+'%"></i></div></div><button class="market-buy" data-claim-milestone="'+n+'" '+(!done||claimed?'disabled':'')+'>'+(claimed?'Claimed':done?'Claim reward':'In progress')+'</button></article>';}).join('');return '<section class="ribbon-group"><h3>🏆 Farm Ribbons</h3><p>Long-term achievements earned through your everyday farm work.</p><div class="quest-list">'+ribbons+'</div></section><section class="ribbon-group"><h3>🏅 Harvest Milestones</h3><div class="quest-list">'+milestones+'</div></section>';}
-   private claimRibbon(id:string):void {const ribbon=this.ribbonDefinitions().find(r=>r.id===id);if(!ribbon||ribbon.progress<ribbon.target||this.claimedRibbons.includes(id))return;this.claimedRibbons.push(id);this.coins+=ribbon.coins;this.xp+=ribbon.xp;playSfx('level');this.saveFarm();this.refreshHud();this.renderSideRail();this.toast('Ribbon earned: '+ribbon.title+' · +'+ribbon.coins+' coins · +'+ribbon.xp+' XP');}
-  private claimMilestone(n:number):void {if(![10,25,50,100].includes(n)||this.harvests<n||this.claimedMilestones.includes(n))return;this.claimedMilestones.push(n);playSfx('level');this.coins+=n*4;this.xp+=n;this.saveFarm();this.refreshHud();this.toast('Harvest milestone reward collected!');}
+   private claimRibbon(id:string):void {const ribbon=this.ribbonDefinitions().find(r=>r.id===id);if(!ribbon||ribbon.progress<ribbon.target||this.claimedRibbons.includes(id))return;this.claimedRibbons.push(id);playSfx('reward');this.coins+=ribbon.coins;this.xp+=ribbon.xp;playSfx('level');this.saveFarm();this.refreshHud();this.renderSideRail();this.toast('Ribbon earned: '+ribbon.title+' · +'+ribbon.coins+' coins · +'+ribbon.xp+' XP');}
+  private claimMilestone(n:number):void {if(![10,25,50,100].includes(n)||this.harvests<n||this.claimedMilestones.includes(n))return;this.claimedMilestones.push(n);playSfx('reward');this.coins+=n*4;this.xp+=n;this.saveFarm();this.refreshHud();this.toast('Harvest milestone reward collected!');}
   private createRandomQuests():void {
     this.questCycle++;
     const pool = [
@@ -2293,7 +2293,7 @@ export class FarmScene extends Phaser.Scene {
   private claimQuest(id:string):void {
     const quest=this.questDefinitions().find(q=>q.id===id);
     if(!quest||quest.progress<quest.target||this.claimedQuests.includes(id))return;
-    this.claimedQuests.push(id);playSfx('level');this.coins+=quest.coins;this.xp+=quest.xp;
+    this.claimedQuests.push(id);playSfx('quest');this.coins+=quest.coins;this.xp+=quest.xp;
     if(this.questDefinitions().every(q=>this.claimedQuests.includes(q.id)))this.createRandomQuests();
     this.saveFarm();this.refreshHud();this.renderInventory();this.renderSideRail();this.toast('Quest complete: '+quest.title+' · +'+quest.coins+' coins · +'+quest.xp+' XP');
   }
@@ -2316,7 +2316,7 @@ export class FarmScene extends Phaser.Scene {
     const order=this.deliveryOrders().find(item=>item.id===id);
     if(!order||this.produce.eggs<order.eggs||this.produce.milk<order.milk)return;
     this.produce.eggs-=order.eggs;this.produce.milk-=order.milk;
-    this.coins+=order.coins;this.xp+=order.xp;
+    this.coins+=order.coins;this.xp+=order.xp;playSfx('delivery');
     this.ordersCompleted[id]=(this.ordersCompleted[id]||0)+1;playSfx('coin');
     this.saveFarm();this.refreshHud();this.renderInventory();this.renderSideRail();
     this.toast('Delivery complete: +'+order.coins+' coins · +'+order.xp+' XP');
