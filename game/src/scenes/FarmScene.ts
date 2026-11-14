@@ -165,11 +165,11 @@ export class FarmScene extends Phaser.Scene {
     // instead of assuming the old 160x160 atlas cells.
     // Load all five-stage horizontal crop PNG strips as images so their
     // actual dimensions, not assumed atlas dimensions, define each frame.
-    for (const crop of ['wheat','carrot','corn','strawberry','pumpkin'] as const) {
+    for (const crop of ['wheat','carrot','corn','strawberry','pumpkin','blueberry'] as const) {
       this.load.image(`crop-${crop}`, `${import.meta.env.BASE_URL}assets/crops/${crop}/${crop}-growth.png`);
     }
     this.load.once(Phaser.Loader.Events.COMPLETE, () => {
-      for (const crop of ['wheat','carrot','corn','strawberry','pumpkin'] as const) {
+      for (const crop of ['wheat','carrot','corn','strawberry','pumpkin','blueberry'] as const) {
         const key=`crop-${crop}`;
         const texture=this.textures.get(key);
         const source=texture.getSourceImage() as HTMLImageElement;
@@ -1674,7 +1674,7 @@ export class FarmScene extends Phaser.Scene {
     const p=this.toWorld(plot.col,plot.row);
     const growing=plot.state==='growing'||plot.state==='ready';
     const withered=plot.state==='withered';
-    const wholeTileCrops=['wheat','carrot','corn','strawberry','pumpkin','tomato'] as const;
+    const wholeTileCrops=['wheat','carrot','corn','strawberry','pumpkin','tomato','blueberry'] as const;
     const usesWholeTilePng=growing&&(wholeTileCrops.includes(plot.crop as typeof wholeTileCrops[number])||plot.crop==='tomato')&&(plot.crop==='tomato'?this.textures.exists('crop-tomato-1'):this.textures.exists(`crop-${plot.crop}`));
 
     // The empty ploughed plot is a PNG tile. Crop sheets that already contain
