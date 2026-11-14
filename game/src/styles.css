@@ -3393,6 +3393,7 @@ body.visitor-mode .audio-dock{display:none!important}
 @media(max-width:700px){.decor-filter{min-height:36px;padding:8px 11px;font-size:10px}.decor-filter-bar{margin-left:-3px;margin-right:-3px;padding-left:3px}}
 
 
+.inventory-sort-bar{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin:0 0 10px;padding:0 2px}.inventory-sort-bar label{font:800 11px Nunito,sans-serif;color:#765b34}.inventory-sort-bar select{min-width:150px;max-width:60%;padding:8px 30px 8px 10px;border:1px solid #d9c69b;border-radius:10px;background:#fffaf0;color:#654b2c;font:800 11px Nunito,sans-serif;touch-action:manipulation}.inventory-sort-bar select:focus-visible{outline:3px solid #8ab85d;outline-offset:2px}@media(max-width:700px){.inventory-sort-bar{justify-content:space-between;position:sticky;top:44px;z-index:3;padding:7px 5px;background:#fff9e8}.inventory-sort-bar select{min-height:38px;flex:0 1 62%}}
 .decor-catalog-summary{display:flex;flex-direction:column;gap:3px;margin:0 0 8px;padding:9px 12px;border:1px solid #e6d6b5;border-radius:12px;background:linear-gradient(135deg,#fff9e8,#f5e7c8);color:#694d2d}.decor-catalog-summary strong{font:900 13px Nunito,sans-serif}.decor-catalog-summary span{font:600 10px Nunito,sans-serif;color:#92734c}.decor-filter{font-size:11px}.decor-catalog-card .market-art{overflow:hidden}.decor-catalog-card .market-thumb{object-fit:contain;max-width:100%;max-height:100%}
 
 /* Desktop farm zoom controls. Kept outside the Phaser canvas so they remain clickable. */
