@@ -123,7 +123,9 @@ export class FarmScene extends Phaser.Scene {
   private ordersCompleted: Record<string,number> = {};
   private woodlandBackdrop: Phaser.GameObjects.Image|null = null;
   private cameraDragging = false;
-  private minFarmZoom = 0.55;
+  private minFarmZoom = 0.35;
+  private fittedFarmZoom = 1;
+  private hasFittedFarmView = false;
   private dragPoint = new Phaser.Math.Vector2();
   private readonly saveKey = 'happyFarmPhaserSaveV1';
   private persistenceBlocked = false;
@@ -179,13 +181,18 @@ export class FarmScene extends Phaser.Scene {
     initializeFriends();
     this.refreshSelection();
     this.time.addEvent({ delay: 1000, loop: true, callback: () => { if((this.questRefreshAt>0&&Date.now()>=this.questRefreshAt)||(this.eventStartedAt>0&&Date.now()-this.eventStartedAt>=604800000)){this.ensureQuestAndEventCycles();this.renderSideRail();} this.updateCropLifecycle(); this.updateProduction(); this.updateProductionReadyBadges(); this.updateFruitTrees(); this.updateWellWaterBadge(); this.updateAnimalHungryIndicators(); this.updateBuildingProduceBadges(); this.updateCropWaterBadges(); this.refreshCropHoverTooltip(); if(this.activeBuilding==='coop'||this.activeBuilding==='barn')this.renderBuildingPanel(this.activeBuilding);else if(this.activeBuilding)this.renderGenericBuildingPanel(this.activeBuilding); } });
-    this.input.on('wheel', (pointer: Phaser.Input.Pointer, _objects: unknown[], _dx: number, dy: number, event?: WheelEvent) => {
-      event?.preventDefault();
-      this.zoomFarmAt(Math.exp(-dy * 0.001), pointer.x, pointer.y);
-    });
+    // Bind wheel zoom directly to the game container. This avoids Phaser's
+    // input hit-testing swallowing wheel events on desktop browsers.
+    document.getElementById('game')?.addEventListener('wheel', (event: WheelEvent) => {
+      event.preventDefault();
+      const bounds = this.game.canvas.getBoundingClientRect();
+      const x = ((event.clientX - bounds.left) / Math.max(1, bounds.width)) * this.scale.width;
+      const y = ((event.clientY - bounds.top) / Math.max(1, bounds.height)) * this.scale.height;
+      this.zoomFarmAt(Math.exp(-event.deltaY * 0.0015), x, y);
+    }, { passive: false });
     document.getElementById('farm-zoom-in')?.addEventListener('click',()=>this.zoomFarmAt(1.2));
     document.getElementById('farm-zoom-out')?.addEventListener('click',()=>this.zoomFarmAt(1/1.2));
-    document.getElementById('farm-zoom-reset')?.addEventListener('click',()=>this.fitFarmToViewport());
+    document.getElementById('farm-zoom-reset')?.addEventListener('click',()=>this.resetFarmZoom());
     this.input.keyboard?.on('keydown-PLUS',()=>this.zoomFarmAt(1.2));
     this.input.keyboard?.on('keydown-EQUALS',()=>this.zoomFarmAt(1.2));
     this.input.keyboard?.on('keydown-MINUS',()=>this.zoomFarmAt(1/1.2));
@@ -237,7 +244,7 @@ export class FarmScene extends Phaser.Scene {
   private zoomFarmAt(factor:number,screenX=this.scale.width/2,screenY=this.scale.height/2):void {
     const camera=this.cameras.main;
     const anchor=camera.getWorldPoint(screenX,screenY);
-    camera.setZoom(Phaser.Math.Clamp(camera.zoom*factor,this.minFarmZoom,2.4));
+    camera.setZoom(Phaser.Math.Clamp(camera.zoom*factor,this.minFarmZoom,3.5));
     const after=camera.getWorldPoint(screenX,screenY);
     camera.scrollX+=anchor.x-after.x;
     camera.scrollY+=anchor.y-after.y;
@@ -253,13 +260,25 @@ export class FarmScene extends Phaser.Scene {
     const fitX=(width-36)/spanX;
     const fitY=(height-(height<700?150:92))/spanY;
     const maxFit=Math.min(2.15,fitX,fitY);
-    // Keep the fitted starting view, but allow meaningful zooming back out.
-    // The old minimum was almost the initial zoom, making PC zoom-out feel broken.
-    this.minFarmZoom=Phaser.Math.Clamp(maxFit*0.5,0.22,0.65);
+    const previousFit=this.fittedFarmZoom;
+    const previousZoom=camera.zoom;
+    this.minFarmZoom=Phaser.Math.Clamp(maxFit*0.42,0.22,0.65);
     const initialZoom=Phaser.Math.Clamp(maxFit*0.96,this.minFarmZoom,2.15);
-    camera.setZoom(initialZoom);
+    // Preserve the user's zoom level when the browser/game viewport resizes.
+    const nextZoom=this.hasFittedFarmView&&previousFit>0
+      ? Phaser.Math.Clamp((previousZoom/previousFit)*initialZoom,this.minFarmZoom,3.5)
+      : initialZoom;
+    camera.setZoom(nextZoom);
+    this.fittedFarmZoom=initialZoom;
+    this.hasFittedFarmView=true;
     // Bias the camera slightly toward the upper half of the canvas so the
     // playable land sits visually central between the woodland and toolbar.
+    camera.centerOn(0,ORIGIN_Y+(this.farmSize-1)*TILE_H/2+18);
+  }
+
+  private resetFarmZoom():void {
+    const camera=this.cameras.main;
+    camera.setZoom(this.fittedFarmZoom);
     camera.centerOn(0,ORIGIN_Y+(this.farmSize-1)*TILE_H/2+18);
   }
 
