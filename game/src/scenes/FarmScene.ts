@@ -1684,7 +1684,7 @@ export class FarmScene extends Phaser.Scene {
     // soil is never drawn twice and every stage shares one 160x160 canvas.
     if(!usesWholeTilePng){
       const field=this.add.image(p.x,p.y,'field-tilled');
-      field.setOrigin(0.5,0.5).setDisplaySize(TILE_W,TILE_W).setDepth(p.y-5);
+      field.setOrigin(0.5,0.5).setDisplaySize(92,92).setDepth(p.y-5);
       if(withered)field.setTint(0x8b755f).setAlpha(0.88);
       this.plotOverlays.set(id,field);
     }
@@ -1705,7 +1705,7 @@ export class FarmScene extends Phaser.Scene {
       console.warn(`[Happy Farm] Missing PNG growth stages for ${plot.crop}`);
     }
     if(sprite){
-      sprite.setOrigin(0.5,0.5).setDisplaySize(TILE_W,TILE_W).setDepth(p.y+18);
+      sprite.setOrigin(0.5,0.5).setDisplaySize(92,92).setDepth(p.y+18);
       this.cropSprites.set(id,sprite);
     }
   }
@@ -1716,10 +1716,11 @@ export class FarmScene extends Phaser.Scene {
     const p = this.toWorld(this.selected.col, this.selected.row);
     this.overlay.lineStyle(3, 0xfff6b2, 1);
     this.overlay.beginPath();
-    this.overlay.moveTo(p.x, p.y - TILE_H / 2);
-    this.overlay.lineTo(p.x + TILE_W / 2, p.y);
-    this.overlay.lineTo(p.x, p.y + TILE_H / 2);
-    this.overlay.lineTo(p.x - TILE_W / 2, p.y);
+    const fieldW=92,fieldH=46;
+    this.overlay.moveTo(p.x, p.y - fieldH / 2);
+    this.overlay.lineTo(p.x + fieldW / 2, p.y);
+    this.overlay.lineTo(p.x, p.y + fieldH / 2);
+    this.overlay.lineTo(p.x - fieldW / 2, p.y);
     this.overlay.closePath();
     this.overlay.strokePath();
   }
