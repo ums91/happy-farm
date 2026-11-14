@@ -3142,3 +3142,53 @@ body.visitor-mode .audio-dock{display:none!important}
   .game-shell>.world-panel>.audio-dock .audio-channel{min-width:62px!important;column-gap:3px!important}
   .game-shell>.world-panel>.audio-dock .audio-channel input[type="range"]{max-width:48px!important}
 }
+
+
+/* Mobile farm toolbar: preserve both shortcut rows while making every action
+   comfortably tappable. Keep the dock compact vertically and avoid clipping. */
+@media(max-width:700px){
+  .game-shell>.world-panel>.field-toolbar{
+    left:5px!important;right:5px!important;bottom:5px!important;
+    max-height:none!important;height:auto!important;min-height:0!important;
+    padding:6px!important;gap:5px!important;overflow:visible!important;
+    display:flex!important;flex-direction:column!important;
+  }
+  .game-shell>.world-panel>.field-toolbar .dock-management{
+    display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;
+    gap:4px!important;width:100%!important;min-width:0!important;
+  }
+  .game-shell>.world-panel>.field-toolbar .dock-button{
+    display:flex!important;flex-direction:row!important;justify-content:center!important;
+    align-items:center!important;gap:3px!important;
+    height:38px!important;min-height:38px!important;min-width:0!important;
+    padding:3px 2px!important;border-radius:9px!important;
+    touch-action:manipulation!important;
+  }
+  .game-shell>.world-panel>.field-toolbar .dock-button span{font-size:19px!important;line-height:1!important}
+  .game-shell>.world-panel>.field-toolbar .dock-button small{font-size:8px!important;line-height:1.1!important;white-space:nowrap!important}
+  .game-shell>.world-panel>.field-toolbar .dock-button b{font-size:10px!important}
+  .game-shell>.world-panel>.field-toolbar .dock-divider{display:none!important}
+  .game-shell>.world-panel>.field-toolbar .tool-grid{
+    display:grid!important;grid-template-columns:repeat(7,minmax(0,1fr))!important;
+    gap:4px!important;width:100%!important;min-width:0!important;
+  }
+  .game-shell>.world-panel>.field-toolbar .tool{
+    display:flex!important;flex-direction:column!important;justify-content:center!important;
+    align-items:center!important;gap:2px!important;
+    height:48px!important;min-height:48px!important;min-width:0!important;
+    padding:3px 1px!important;border-radius:9px!important;
+    touch-action:manipulation!important;
+  }
+  .game-shell>.world-panel>.field-toolbar .tool span{font-size:20px!important;line-height:1!important}
+  .game-shell>.world-panel>.field-toolbar .tool small{font-size:8px!important;line-height:1!important;white-space:nowrap!important}
+}
+@media(max-width:390px){
+  .game-shell>.world-panel>.field-toolbar{padding:4px!important;gap:4px!important}
+  .game-shell>.world-panel>.field-toolbar .dock-button{height:35px!important;min-height:35px!important;gap:2px!important}
+  .game-shell>.world-panel>.field-toolbar .dock-button span{font-size:16px!important}
+  .game-shell>.world-panel>.field-toolbar .dock-button small{font-size:7px!important}
+  .game-shell>.world-panel>.field-toolbar .tool-grid{gap:3px!important}
+  .game-shell>.world-panel>.field-toolbar .tool{height:45px!important;min-height:45px!important}
+  .game-shell>.world-panel>.field-toolbar .tool span{font-size:18px!important}
+  .game-shell>.world-panel>.field-toolbar .tool small{font-size:7px!important}
+}
