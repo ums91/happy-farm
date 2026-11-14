@@ -44,8 +44,7 @@ const ORIGIN_Y = 40;
 
 export class FarmScene extends Phaser.Scene {
   private plots = new Map<string, Plot>();
-  private plotOverlays = new Map<string, Phaser.GameObjects.Graphics>();
-  private tomatoSprites = new Map<string, Phaser.GameObjects.Image>();
+  private plotOverlays = new Map<string, Phaser.GameObjects.Image>();
   private cropSprites = new Map<string, Phaser.GameObjects.GameObject>();
   private buildingAssetSprites = new Map<string, Phaser.GameObjects.Image>();
   private decorAssetSprites = new Map<string, Phaser.GameObjects.Image>();
@@ -149,6 +148,7 @@ export class FarmScene extends Phaser.Scene {
     this.load.image('windmill-body', `${import.meta.env.BASE_URL}assets/buildings/windmill/windmill-body.png`);
     this.load.image('windmill-rotor', `${import.meta.env.BASE_URL}assets/buildings/windmill/windmill-rotor.png`);
     DECOR_ASSETS.forEach(asset=>this.load.image('decor-'+asset,`${import.meta.env.BASE_URL}assets/decor/${asset}.png`));
+    this.load.image('field-tilled', `${import.meta.env.BASE_URL}assets/fields/ploughed-field.png`);
     this.load.spritesheet('animal-cow', `${import.meta.env.BASE_URL}assets/animals/cow.png`, { frameWidth: 384, frameHeight: 256 });
     this.load.spritesheet('animal-hen', `${import.meta.env.BASE_URL}assets/animals/hen.png`, { frameWidth: 48, frameHeight: 48 });
     this.load.spritesheet('animal-chick', `${import.meta.env.BASE_URL}assets/animals/chick.png`, { frameWidth: 44, frameHeight: 40 });
@@ -1666,141 +1666,51 @@ export class FarmScene extends Phaser.Scene {
   }
 
   private redrawPlot(plot: Plot): void {
-    const id = this.key(plot.col, plot.row);
+    const id=this.key(plot.col,plot.row);
     this.plotOverlays.get(id)?.destroy();
     this.plotOverlays.delete(id);
-    this.tomatoSprites.get(id)?.destroy();
-    this.tomatoSprites.delete(id);
     this.cropSprites.get(id)?.destroy();
     this.cropSprites.delete(id);
-    if (plot.state === 'grass') return;
-    const p = this.toWorld(plot.col, plot.row);
-    const g = this.add.graphics().setDepth(-4);
-    this.plotOverlays.set(id, g);
-    this.diamond(g, p.x, p.y, plot.state === 'withered' ? 0x725b45 : 0x805332, plot.state === 'withered' ? 0x574332 : 0x68452f);
-    // Raised soil ridges and darker furrows give each plot a cultivated, planted-bed look.
-    g.lineStyle(2, plot.watered ? 0x986b45 : 0xb78655, 0.88);
-    for (let i = -2; i <= 2; i += 1) {
-      const yy=p.y+i*5;
-      g.beginPath();g.moveTo(p.x-25,yy+1);g.lineTo(p.x-12,yy-1);g.lineTo(p.x+8,yy+1);g.lineTo(p.x+25,yy-1);g.strokePath();
+    if(plot.state==='grass')return;
+
+    const p=this.toWorld(plot.col,plot.row);
+    const growing=plot.state==='growing'||plot.state==='ready';
+    const withered=plot.state==='withered';
+    const wholeTileCrops=['wheat','carrot','corn','strawberry','pumpkin'] as const;
+    const usesWholeTilePng=growing&&wholeTileCrops.includes(plot.crop as typeof wholeTileCrops[number])&&this.textures.exists(`crop-${plot.crop}`);
+
+    // The empty ploughed plot is a PNG tile. Crop sheets that already contain
+    // their matching soil diamond replace this tile as a complete tile, so
+    // soil is never drawn twice and every stage shares one 160x160 canvas.
+    if(!usesWholeTilePng){
+      const field=this.add.image(p.x,p.y,'field-tilled');
+      field.setOrigin(0.5,0.5).setDisplaySize(TILE_W,TILE_W).setDepth(p.y-5);
+      if(withered)field.setTint(0x8b755f).setAlpha(0.88);
+      this.plotOverlays.set(id,field);
     }
-    g.lineStyle(1,0x4f3928,0.28);
-    for(let i=-1;i<=1;i++){g.beginPath();g.moveTo(p.x-20,p.y+i*8+3);g.lineTo(p.x+20,p.y+i*8+3);g.strokePath();}
-    g.fillStyle(plot.watered?0x557d3d:0x4d3828,plot.watered?0.2:0.24);
-    [[-17,-5],[9,-8],[18,5],[-7,8]].forEach(([dx,dy])=>g.fillEllipse(p.x+dx!,p.y+dy!,3,1.6));
-    if (plot.crop === 'tomato' && (plot.state === 'growing' || plot.state === 'ready') && this.textures.exists(`crop-tomato-${1}`)) {
-      const stage = plot.state === 'ready' ? 5 : Math.min(5, Math.floor(plot.growth / 20) + 1);
-      const size=plot.state==='ready'?62:34+stage*6;
-      g.fillStyle(0x342a20,0.2);g.fillEllipse(p.x,p.y+5,Math.min(36,size*0.62),5);
-      const sprite = this.add.image(p.x, p.y + 9, `crop-tomato-${stage}`);
-      // Keep the crop artwork centred within the current isometric field diamond.
-      sprite.setOrigin(0.5, 0.9).setDisplaySize(size, size).setDepth(p.y + 24);
-      this.tomatoSprites.set(id, sprite);
-    } else if (['corn','strawberry','pumpkin'].includes(plot.crop) && (plot.state === 'growing' || plot.state === 'ready') && this.textures.exists(`crop-${plot.crop}`)) {
-      const stage = plot.state === 'ready' ? 4 : Math.min(4, Math.floor(plot.growth / 20));
-      const size=plot.state==='ready'?72:34+stage*9;
-      const sprite = this.add.image(p.x, p.y+8, `crop-${plot.crop}`, stage);
-      sprite.setOrigin(0.5,0.9).setDisplaySize(size,size).setDepth(p.y+26);
-      this.cropSprites.set(id, sprite);
-    } else if (plot.state === 'growing' || plot.state === 'ready' || plot.state === 'withered') {
-      // Draw the plant as a natural, tile-spanning cluster. Wheat and carrot
-      // PNG strips include a small rectangular soil tray, so use the clean
-      // in-world plant renderer instead of showing a second square bed.
-      const plant=this.add.graphics().setDepth(p.y+26);
-      plant.fillStyle(0x342a20,0.16);
-      plant.fillEllipse(p.x,p.y+5,plot.state==='ready'?76:34+Math.round(plot.growth*0.42),7);
-      this.drawCrop(plant,p.x,p.y,plot);
-      this.cropSprites.set(id,plant);
+
+    if(!growing)return;
+    let sprite:Phaser.GameObjects.Image|null=null;
+    if(plot.crop==='tomato'){
+      const stage=plot.state==='ready'?5:Math.min(5,Math.max(1,Math.floor(plot.growth/20)+1));
+      const key=`crop-tomato-${stage}`;
+      if(this.textures.exists(key))sprite=this.add.image(p.x,p.y,key);
+    }else if(wholeTileCrops.includes(plot.crop as typeof wholeTileCrops[number])){
+      const stage=plot.state==='ready'?4:Math.min(4,Math.max(0,Math.floor(plot.growth/20)));
+      const key=`crop-${plot.crop}`;
+      if(this.textures.exists(key))sprite=this.add.image(p.x,p.y,key,stage);
+    }else{
+      // Blueberry and Watermelon still need their matching PNG stage sheets.
+      // Do not substitute hand-drawn line art; keep the field PNG visible.
+      console.warn(`[Happy Farm] Missing PNG growth stages for ${plot.crop}`);
+    }
+    if(sprite){
+      sprite.setOrigin(0.5,0.5).setDisplaySize(TILE_W,TILE_W).setDepth(p.y+18);
+      this.cropSprites.set(id,sprite);
     }
   }
 
-  private drawCrop(g: Phaser.GameObjects.Graphics, x: number, y: number, plot: Plot): void {
-    const crop=CROPS[plot.crop];
-    const stage=plot.state==='ready'?1:plot.state==='withered'?0:Math.max(0.12,plot.growth/100);
-    const h=plot.state==='ready'?64:plot.state==='withered'?8:12+Math.round(stage*52);
-    // Crop canopies expand with growth and deliberately overlap adjacent
-    // isometric plots at maturity, while each plant remains anchored to its soil tile.
-    const canopySpread=0.28+stage*0.72;
-    if(plot.state==='withered'){
-      g.lineStyle(2,0x927b54,1);g.beginPath();g.moveTo(x,y+2);g.lineTo(x-4,y-h);g.moveTo(x-2,y-5);g.lineTo(x-12,y-11);g.moveTo(x-3,y-8);g.lineTo(x+8,y-13);g.strokePath();
-      g.fillStyle(0x9b875b,1);g.fillEllipse(x-8,y-7,8,4);g.fillEllipse(x+7,y-9,8,4);return;
-    }
-    const stem=plot.watered?0x347e43:0x438b3d;
-    const leafColor=plot.watered?0x5eaa4d:0x78b64f;
-    if(crop.name==='Carrot'){
-      // Carrot tops form a low, dense leafy rosette close to the soil.
-      // Ripe roots only peek above the furrows; no tall stalks or square canopy.
-      const carrotHeight=plot.state==='ready'?30:8+Math.round(stage*23);
-      const offsets=[-32,-16,0,16,32];
-      offsets.forEach((rawOx,n)=>{
-        const ox=rawOx*canopySpread;
-        const baseY=y+4+(n%2)*1.5;
-        const crownY=baseY-carrotHeight-(n%3)*2;
-        g.lineStyle(1.7,stem,0.95);
-        g.beginPath();g.moveTo(x+ox,baseY);g.lineTo(x+ox,crownY+5);g.strokePath();
-        const leaf=(tipX:number,tipY:number,side:number)=>{
-          g.fillStyle(n%2?0x62a747:leafColor,0.98);
-          g.fillPoints([
-            {x:x+ox,y:crownY+7},
-            {x:x+ox+side*2,y:crownY+4},
-            {x:x+ox+tipX,y:crownY+tipY},
-            {x:x+ox+tipX*0.65+side*2,y:crownY+tipY+4}
-          ],true);
-        };
-        leaf(-10,-4,-1);leaf(-7,-12,-1);leaf(0,-16,1);leaf(8,-12,1);leaf(12,-5,1);
-        g.fillEllipse(x+ox-3,crownY+2,7,3);
-        g.fillEllipse(x+ox+3,crownY-2,7,3);
-        if(plot.state==='ready'){
-          // Short orange shoulders emerge from the soil rather than hanging
-          // beneath long stems.
-          g.fillStyle(0xe9822d,1);
-          g.fillTriangle(x+ox-3.5,baseY-2,x+ox+3.5,baseY-2,x+ox,baseY+5);
-          g.fillStyle(0xf4a044,0.9);g.fillEllipse(x+ox-1,baseY-1,2,2);
-          g.lineStyle(0.8,0xc65e1e,0.7);g.beginPath();g.moveTo(x+ox,baseY);g.lineTo(x+ox,baseY+3);g.strokePath();
-        }
-      });
-      return;
-    }
-    if(crop.name==='Wheat'){
-      const offsets=[-46,-38,-30,-22,-14,-6,2,10,18,26,34,42,46];
-      offsets.forEach((rawOx,n)=>{
-        const ox=rawOx*canopySpread;
-        const height=h-(n%4)*4;
-        const topY=y-height;
-        g.lineStyle(2.2,stem,1);g.beginPath();g.moveTo(x+ox,y+3);g.lineTo(x+ox+(n%2?2:-2),topY+9);g.strokePath();
-        g.fillStyle(0x6b9e43,1);
-        g.fillEllipse(x+ox-6*canopySpread,topY+15,15*canopySpread,5);g.fillEllipse(x+ox+6*canopySpread,topY+21,15*canopySpread,5);
-        if(plot.state==='ready'){
-          g.lineStyle(1.8,0xc99a37,1);
-          for(let k=0;k<5;k++){g.beginPath();g.moveTo(x+ox,topY+7+k*3);g.lineTo(x+ox+(k%2?5:-5),topY+3+k*3);g.strokePath();}
-          g.fillStyle(0xe8c45b,1);g.fillEllipse(x+ox,topY+3,5,12);
-        }
-      });
-      return;
-    }
-    const stems=crop.name==='Corn'?4:7;
-    for(let n=0;n<stems;n++){
-      const ox=(n-(stems-1)/2)*9;
-      const topY=y-h-(n%2)*4;
-      g.lineStyle(crop.name==='Corn'?3:2.8,stem,1);g.beginPath();g.moveTo(x+ox,y+2);g.lineTo(x+ox+(n%2?3:-3),topY);g.strokePath();
-      if(crop.name==='Corn'){
-        g.fillStyle(leafColor,1);g.fillPoints([{x:x+ox,y:topY+18},{x:x+ox-18,y:topY+4},{x:x+ox-5,y:topY+22}],true);g.fillPoints([{x:x+ox,y:topY+20},{x:x+ox+18,y:topY+6},{x:x+ox+5,y:topY+23}],true);
-        if(plot.state==='ready'){g.fillStyle(0xf0cf59,1);g.fillRoundedRect(x+ox-4,topY+3,9,19,4);g.fillStyle(0xffe68b,1);for(let k=0;k<4;k++)g.fillCircle(x+ox-1,topY+6+k*4,1);}
-      }else{
-        g.fillStyle(leafColor,1);g.fillEllipse(x+ox-8,topY+10,17,7);g.fillEllipse(x+ox+8,topY+5,17,7);g.fillEllipse(x+ox,topY-2,13,7);
-        if(plot.state==='ready'){
-          const fruit=crop.name==='Strawberry'?0xd94c53:crop.name==='Tomato'?0xd94b38:crop.name==='Pumpkin'?0xe58b35:crop.name==='Blueberry'?0x536cb5:0x3b9b55;
-          g.fillStyle(fruit,1);
-          if(crop.name==='Pumpkin'){g.fillEllipse(x+ox,topY+11,18,14);g.lineStyle(1,0xb96128,0.8);g.beginPath();g.moveTo(x+ox,topY+4);g.lineTo(x+ox,topY+18);g.strokePath();}
-          else if(crop.name==='Watermelon'){g.fillEllipse(x+ox,topY+10,19,12);g.lineStyle(1,0x1e713f,1);g.beginPath();g.moveTo(x+ox-6,topY+6);g.lineTo(x+ox-4,topY+13);g.moveTo(x+ox+2,topY+5);g.lineTo(x+ox+4,topY+13);g.strokePath();}
-          else {g.fillCircle(x+ox,topY+9,7);g.fillStyle(0x4e8c3d,1);g.fillEllipse(x+ox+4,topY+2,8,4);}
-          if(crop.name==='Strawberry'){g.fillStyle(0xffe6a0,1);g.fillCircle(x+ox-2,topY+8,0.9);g.fillCircle(x+ox+2,topY+10,0.9);}
-        }
-      }
-    }
-  }
-
-    private drawSelection(): void {
+  private drawSelection(): void {
     this.overlay.clear();
     if (!this.selected) return;
     const p = this.toWorld(this.selected.col, this.selected.row);
