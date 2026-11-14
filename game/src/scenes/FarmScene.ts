@@ -1728,24 +1728,35 @@ export class FarmScene extends Phaser.Scene {
     const stem=plot.watered?0x347e43:0x438b3d;
     const leafColor=plot.watered?0x5eaa4d:0x78b64f;
     if(crop.name==='Carrot'){
-      // A broad, irregular canopy of carrot tops: no rectangular sprite tray,
-      // and foliage naturally overlaps the neighbouring soil-diamond edges.
-      const offsets=[-44,-35,-26,-17,-8,1,10,19,28,37,44];
+      // Carrot tops form a low, dense leafy rosette close to the soil.
+      // Ripe roots only peek above the furrows; no tall stalks or square canopy.
+      const carrotHeight=plot.state==='ready'?30:8+Math.round(stage*23);
+      const offsets=[-32,-16,0,16,32];
       offsets.forEach((rawOx,n)=>{
         const ox=rawOx*canopySpread;
-        const height=h-(n%3)*5;
-        const baseY=y+1+(n%2)*2;
-        const crownY=baseY-height;
-        g.lineStyle(2.3,stem,1);g.beginPath();g.moveTo(x+ox,baseY);g.lineTo(x+ox+(n%2?2:-2),crownY+8);g.strokePath();
-        const fan=[-1,0,1,2].map((v,k)=>({x:x+ox+v*6*canopySpread+(k%2?2:-2),y:crownY+(k===1?-10:k===2?-4:5)}));
-        g.fillStyle(leafColor,0.98);g.fillPoints([{x:x+ox,y:crownY+11},...fan,{x:x+ox+3,y:crownY+13}],true);
-        g.fillEllipse(x+ox-5*canopySpread,crownY+3,11*canopySpread,5);g.fillEllipse(x+ox+5*canopySpread,crownY-1,12*canopySpread,5);
+        const baseY=y+4+(n%2)*1.5;
+        const crownY=baseY-carrotHeight-(n%3)*2;
+        g.lineStyle(1.7,stem,0.95);
+        g.beginPath();g.moveTo(x+ox,baseY);g.lineTo(x+ox,crownY+5);g.strokePath();
+        const leaf=(tipX:number,tipY:number,side:number)=>{
+          g.fillStyle(n%2?0x62a747:leafColor,0.98);
+          g.fillPoints([
+            {x:x+ox,y:crownY+7},
+            {x:x+ox+side*2,y:crownY+4},
+            {x:x+ox+tipX,y:crownY+tipY},
+            {x:x+ox+tipX*0.65+side*2,y:crownY+tipY+4}
+          ],true);
+        };
+        leaf(-10,-4,-1);leaf(-7,-12,-1);leaf(0,-16,1);leaf(8,-12,1);leaf(12,-5,1);
+        g.fillEllipse(x+ox-3,crownY+2,7,3);
+        g.fillEllipse(x+ox+3,crownY-2,7,3);
         if(plot.state==='ready'){
-          // Only the ripe stage exposes the orange shoulders of the roots.
-          g.fillStyle(0xe77b27,1);
-          g.fillTriangle(x+ox-4,baseY-1,x+ox+4,baseY-1,x+ox,baseY+11);
-          g.lineStyle(1,0xc95e1d,0.75);g.beginPath();g.moveTo(x+ox,baseY+1);g.lineTo(x+ox,baseY+8);g.strokePath();
-          g.fillStyle(0x4c923e,1);g.fillTriangle(x+ox,baseY-2,x+ox-4,baseY-10,x+ox-1,baseY-5);g.fillTriangle(x+ox,baseY-2,x+ox+5,baseY-11,x+ox+2,baseY-5);
+          // Short orange shoulders emerge from the soil rather than hanging
+          // beneath long stems.
+          g.fillStyle(0xe9822d,1);
+          g.fillTriangle(x+ox-3.5,baseY-2,x+ox+3.5,baseY-2,x+ox,baseY+5);
+          g.fillStyle(0xf4a044,0.9);g.fillEllipse(x+ox-1,baseY-1,2,2);
+          g.lineStyle(0.8,0xc65e1e,0.7);g.beginPath();g.moveTo(x+ox,baseY);g.lineTo(x+ox,baseY+3);g.strokePath();
         }
       });
       return;
