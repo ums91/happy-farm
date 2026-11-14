@@ -1744,11 +1744,11 @@ export class FarmScene extends Phaser.Scene {
       console.warn(`[Happy Farm] Missing PNG growth stages for ${plot.crop}`);
     }
     if(sprite){
-      // Every field and crop PNG uses the same 160x160 canvas. At 88x88
-      // display size, its isometric soil diamond matches the 88x44 grid cell.
-      // Keep tomato on the same footprint rather than letting it overlap neighbors.
-      if(plot.crop==='tomato')sprite.setDisplaySize(88,88);
-      else sprite.setOrigin(0.5,0.5).setDisplaySize(88,88);
+      // Keep the field PNG aligned to the full 88x44 grid diamond. Crop artwork
+      // sits slightly inside that footprint so mature foliage and soil beds
+      // do not collide visually with adjacent plots.
+      if(plot.crop==='tomato')sprite.setDisplaySize(76,76);
+      else sprite.setOrigin(0.5,0.5).setDisplaySize(76,76);
       sprite.setDepth(p.y+18);
       this.cropSprites.set(id,sprite);
     }
