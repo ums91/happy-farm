@@ -2343,6 +2343,30 @@ export class FarmScene extends Phaser.Scene {
       categoryBar.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b===button));
       inventorySections.forEach(section=>section.hidden=selected!=='all'&&section.dataset.inventoryGroup!==selected);
     });
+    const sortBar=document.createElement('div');
+    sortBar.className='inventory-sort-bar';
+    sortBar.innerHTML='<label for="inventory-sort">Sort items</label><select id="inventory-sort" aria-label="Sort inventory items"><option value="default">Default order</option><option value="name">Name · A to Z</option><option value="quantity-desc">Quantity · High to low</option><option value="quantity-asc">Quantity · Low to high</option></select>';
+    categoryBar.insertAdjacentElement('afterend',sortBar);
+    const sortInventory=(mode:string)=>{
+      host.querySelectorAll<HTMLElement>('.inventory-grid,.quest-list').forEach(list=>{
+        const cards=Array.from(list.children).filter((node):node is HTMLElement=>node instanceof HTMLElement&&node.matches('.market-item'));
+        if(mode==='default')return;
+        const quantity=(card:HTMLElement)=>{
+          const badge=card.querySelector<HTMLElement>('.inventory-quantity');
+          if(badge){const n=badge.textContent?.match(/[\\d,]+/);if(n)return Number(n[0].replace(/,/g,''));}
+          const stock=card.querySelector<HTMLElement>('.sell-stock b');
+          if(stock)return Number(stock.textContent)||0;
+          const match=(card.textContent||'').match(/[×x]\\s*([\\d,]+)/i);
+          return match?Number(match[1].replace(/,/g,'')):0;
+        };
+        cards.sort((a,b)=>{
+          if(mode==='name')return (a.querySelector('strong')?.textContent||'').localeCompare(b.querySelector('strong')?.textContent||'');
+          const diff=quantity(a)-quantity(b);
+          return mode==='quantity-desc'?-diff:diff;
+        }).forEach(card=>list.appendChild(card));
+      });
+    };
+    sortBar.querySelector<HTMLSelectElement>('select')?.addEventListener('change',event=>sortInventory((event.currentTarget as HTMLSelectElement).value));
     host.querySelectorAll<HTMLButtonElement>('[data-restore-stored]').forEach(btn=>btn.addEventListener('click',()=>{const index=Number(btn.dataset.restoreStored);const id=this.storedDecor[index];if(!id||this.pendingDecorId)return;this.storedDecor.splice(index,1);this.pendingDecorId=id;this.activeTool='move';document.querySelectorAll('[data-tool]').forEach(el=>el.classList.toggle('active',(el as HTMLElement).dataset.tool==='move'));this.closeMarket();this.saveFarm();this.toast('Choose a green farm tile to place your stored item.');}));
      host.querySelectorAll<HTMLButtonElement>('[data-inventory-building]').forEach(btn=>btn.addEventListener('click',()=>{if(btn.disabled)return;this.closeMarket();this.openMarket();document.querySelectorAll<HTMLButtonElement>('[data-market-tab]').forEach(tab=>tab.classList.toggle('active',tab.dataset.marketTab==='buildings'));this.renderMarket('buildings');}));
   }
