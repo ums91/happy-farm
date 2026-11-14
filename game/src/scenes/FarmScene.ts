@@ -179,9 +179,17 @@ export class FarmScene extends Phaser.Scene {
     initializeFriends();
     this.refreshSelection();
     this.time.addEvent({ delay: 1000, loop: true, callback: () => { if((this.questRefreshAt>0&&Date.now()>=this.questRefreshAt)||(this.eventStartedAt>0&&Date.now()-this.eventStartedAt>=604800000)){this.ensureQuestAndEventCycles();this.renderSideRail();} this.updateCropLifecycle(); this.updateProduction(); this.updateProductionReadyBadges(); this.updateFruitTrees(); this.updateWellWaterBadge(); this.updateAnimalHungryIndicators(); this.updateBuildingProduceBadges(); this.updateCropWaterBadges(); this.refreshCropHoverTooltip(); if(this.activeBuilding==='coop'||this.activeBuilding==='barn')this.renderBuildingPanel(this.activeBuilding);else if(this.activeBuilding)this.renderGenericBuildingPanel(this.activeBuilding); } });
-    this.input.on('wheel', (_pointer: Phaser.Input.Pointer, _objects: unknown[], _dx: number, dy: number) => {
-      const camera=this.cameras.main;const anchor=camera.getWorldPoint(_pointer.x,_pointer.y);camera.setZoom(Phaser.Math.Clamp(camera.zoom-dy*0.0015,this.minFarmZoom,1.8));const after=camera.getWorldPoint(_pointer.x,_pointer.y);camera.scrollX+=anchor.x-after.x;camera.scrollY+=anchor.y-after.y;
+    this.input.on('wheel', (pointer: Phaser.Input.Pointer, _objects: unknown[], _dx: number, dy: number, event?: WheelEvent) => {
+      event?.preventDefault();
+      this.zoomFarmAt(Math.exp(-dy * 0.001), pointer.x, pointer.y);
     });
+    document.getElementById('farm-zoom-in')?.addEventListener('click',()=>this.zoomFarmAt(1.2));
+    document.getElementById('farm-zoom-out')?.addEventListener('click',()=>this.zoomFarmAt(1/1.2));
+    document.getElementById('farm-zoom-reset')?.addEventListener('click',()=>this.fitFarmToViewport());
+    this.input.keyboard?.on('keydown-PLUS',()=>this.zoomFarmAt(1.2));
+    this.input.keyboard?.on('keydown-EQUALS',()=>this.zoomFarmAt(1.2));
+    this.input.keyboard?.on('keydown-MINUS',()=>this.zoomFarmAt(1/1.2));
+    this.input.keyboard?.on('keydown-ZERO',()=>this.fitFarmToViewport());
   }
 
   private readonly rewardKey='happyFarmDailyRewardV1';
@@ -226,6 +234,15 @@ export class FarmScene extends Phaser.Scene {
     next.textContent='Next reward in '+hours+'h '+String(minutes).padStart(2,'0')+'m · 50 coins every 24 hours';
   }
 
+  private zoomFarmAt(factor:number,screenX=this.scale.width/2,screenY=this.scale.height/2):void {
+    const camera=this.cameras.main;
+    const anchor=camera.getWorldPoint(screenX,screenY);
+    camera.setZoom(Phaser.Math.Clamp(camera.zoom*factor,this.minFarmZoom,2.4));
+    const after=camera.getWorldPoint(screenX,screenY);
+    camera.scrollX+=anchor.x-after.x;
+    camera.scrollY+=anchor.y-after.y;
+  }
+
   private fitFarmToViewport(): void {
     const camera=this.cameras.main,width=Math.max(320,this.scale.width),height=Math.max(360,this.scale.height);
     const spanX=Math.max(TILE_W,(this.farmSize-1)*TILE_W+24);
@@ -236,7 +253,9 @@ export class FarmScene extends Phaser.Scene {
     const fitX=(width-36)/spanX;
     const fitY=(height-(height<700?150:92))/spanY;
     const maxFit=Math.min(2.15,fitX,fitY);
-    this.minFarmZoom=Phaser.Math.Clamp(maxFit*0.92,0.32,2.15);
+    // Keep the fitted starting view, but allow meaningful zooming back out.
+    // The old minimum was almost the initial zoom, making PC zoom-out feel broken.
+    this.minFarmZoom=Phaser.Math.Clamp(maxFit*0.5,0.22,0.65);
     const initialZoom=Phaser.Math.Clamp(maxFit*0.96,this.minFarmZoom,2.15);
     camera.setZoom(initialZoom);
     // Bias the camera slightly toward the upper half of the canvas so the
@@ -1312,7 +1331,7 @@ export class FarmScene extends Phaser.Scene {
           const distance=Phaser.Math.Distance.Between(pts[0]!.x,pts[0]!.y,pts[1]!.x,pts[1]!.y);
           if(this.pinchDistance>0&&distance>0){
             const anchor=camera.getWorldPoint(midpoint.x,midpoint.y);
-            camera.setZoom(Phaser.Math.Clamp(camera.zoom*(distance/this.pinchDistance),this.minFarmZoom,2.0));
+            camera.setZoom(Phaser.Math.Clamp(camera.zoom*(distance/this.pinchDistance),this.minFarmZoom,2.4));
             const after=camera.getWorldPoint(midpoint.x,midpoint.y);
             camera.scrollX+=anchor.x-after.x;camera.scrollY+=anchor.y-after.y;
           }
