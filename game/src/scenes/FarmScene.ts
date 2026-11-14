@@ -213,8 +213,8 @@ export class FarmScene extends Phaser.Scene {
           const max=Math.max(r,g,b),min=Math.min(r,g,b);
           const saturation=max===0?0:(max-min)/max;
           // Earth/loam hues: brown, umber and warm soil edging. Restrict to
-          // mid-value pixels so yellow seeds and bright orange crop produce
-          // are not mistaken for the soil bed.
+          // mid-value pixels so yellow seeds and bright fruit are not mistaken
+          // for the soil bed.
           return r>42&&g>20&&b<125&&g<145&&r>g*1.08&&g>b*1.08&&saturation>0.24;
         };
         let head=0,tail=0;
@@ -223,8 +223,8 @@ export class FarmScene extends Phaser.Scene {
           if(!seen[p]&&isSoil(p)){seen[p]=1;queue[tail++]=p;}
         };
         // The soil bed sits in the lower part of each isometric crop frame.
-        for(let y=Math.floor(h*0.72);y<h;y++){
-          for(let x=0;x<w;x++)add(x,y);
+        for(let y=Math.floor(h*0.84);y<h;y++){
+          for(let x=Math.floor(w*0.28);x<Math.ceil(w*0.72);x++)add(x,y);
         }
         while(head<tail){
           const p=queue[head++],x=p%w,y=Math.floor(p/w);
@@ -294,8 +294,8 @@ export class FarmScene extends Phaser.Scene {
         normalizeStages(key,canvases.map(canvas=>({source:canvas,width:canvas.width,height:canvas.height})));
       }
 
-      // Tomato is supplied as five individual PNG files; normalize them with
-      // the same alpha-preserving, soil-retaining method.
+      // Tomato is supplied as five individual PNGs; remove their embedded soil
+      // beds using the same process before overlaying the plants on the field.
       const tomatoStages:Array<{source:CanvasImageSource;width:number;height:number}>=[];
       for(let stage=1;stage<=5;stage++){
         const key=`crop-tomato-${stage}`;
@@ -1653,7 +1653,7 @@ export class FarmScene extends Phaser.Scene {
     if(!['growing','ready','withered'].includes(plot.state)){tip.style.display='none';this.hoveredCropPlot=null;return;}
     const crop=CROPS[plot.crop];let status='';
     if(plot.state==='ready')status='Ready to harvest!';
-    else if(plot.state==='withered')status='Withered · Plow to clear';
+    else if(plot.state==='withered')status='Ready to harvest · stays ready';
     else {const ms=Math.max(0,plot.readyAt-Date.now()),totalSeconds=Math.ceil(ms/1000),hours=Math.floor(totalSeconds/3600),mins=Math.floor((totalSeconds%3600)/60),secs=totalSeconds%60;status='Harvest in '+(hours>0?hours+'h ':'')+(mins>0?mins+'m ':'')+secs+'s';}
     this.cropActionPlot=plot;
     const waterAction=plot.state==='growing'?(plot.watered?'<span>💧 Watered · growth boosted</span>':this.waterUnits>0?'<button type="button" class="crop-water-action" data-water-plot>💧 Water · 1</button>':'<span>💧 No water available</span>'):'';
@@ -1697,7 +1697,7 @@ export class FarmScene extends Phaser.Scene {
     // Resolve elapsed crop timers synchronously before handling a click.
     if(plot.state==='growing'&&plot.readyAt>0&&plot.readyAt<=Date.now()){
       plot.state='ready';plot.growth=100;plot.readyAt=0;plot.witherAt=0;
-      this.growthTimers.get(this.key(plot.col,plot.row))?.remove(false);this.growthTimers.delete(this.key(plot.col,plot.row));this.scheduleWithering(plot);this.redrawPlot(plot);
+      this.growthTimers.get(this.key(plot.col,plot.row))?.remove(false);this.growthTimers.delete(this.key(plot.col,plot.row));plot.witherAt=0;this.redrawPlot(plot);
     }
     switch (this.activeTool) {
       case 'plow':
@@ -1746,7 +1746,7 @@ export class FarmScene extends Phaser.Scene {
     for (const plot of this.plots.values()) {
       if (plot.state === 'growing' && plot.readyAt > 0 && plot.readyAt <= now) {
         // Fallback when a Phaser timer is delayed or missed: elapsed crops become harvestable.
-        plot.state='ready';plot.growth=100;plot.readyAt=0;plot.witherAt=now+Math.max(300000,CROPS[plot.crop].growMs*2);
+        plot.state='ready';plot.growth=100;plot.readyAt=0;plot.witherAt=0;
         this.growthTimers.get(this.key(plot.col,plot.row))?.remove(false);this.growthTimers.delete(this.key(plot.col,plot.row));
         this.redrawPlot(plot);changed=true;
         continue;
@@ -2842,7 +2842,7 @@ export class FarmScene extends Phaser.Scene {
       return;
     }
     const names: Record<PlotState, string> = { grass: 'Open grassland', tilled: 'Freshly plowed soil', growing: 'Growing crop', ready: 'Ready to harvest', withered: 'Ready to harvest' };
-    const actions: Record<Tool, string> = { select: 'Choose a tool to work this plot.', plow: 'Plow open or withered land to prepare the soil.', plant: `Plant ${CROPS[this.selectedCrop].name} · ${CROPS[this.selectedCrop].cost} coins per field.`, harvest: this.selected.state === 'withered' ? 'This crop has withered. Select Plow to clear the plot.' : 'Harvest ripe crops before their harvest window closes.', move: 'Drag a tree, farmhouse, barn, silo or animal pen to a new grid position.', store: 'Tap a placed tree, decoration or building to move it into your inventory.', remove: 'Tap a placed tree, decoration or building to permanently remove it.', 'feed-hen':'Select Hen Feed, then tap a hungry hen to feed it.', 'feed-cow':'Select Cow Feed, then tap a hungry cow to feed it.' };
+    const actions: Record<Tool, string> = { select: 'Choose a tool to work this plot.', plow: 'Plow open or withered land to prepare the soil.', plant: `Plant ${CROPS[this.selectedCrop].name} · ${CROPS[this.selectedCrop].cost} coins per field.`, harvest: 'Harvest ripe crops whenever you are ready; crops do not wither.', move: 'Drag a tree, farmhouse, barn, silo or animal pen to a new grid position.', store: 'Tap a placed tree, decoration or building to move it into your inventory.', remove: 'Tap a placed tree, decoration or building to permanently remove it.', 'feed-hen':'Select Hen Feed, then tap a hungry hen to feed it.', 'feed-cow':'Select Cow Feed, then tap a hungry cow to feed it.' };
     host.innerHTML = `<span class="selection-kicker">LAND · ${this.selected.col + 1}, ${this.selected.row + 1}</span><strong>${names[this.selected.state]}</strong><p>${actions[this.activeTool]}</p>`;
   }
 }
