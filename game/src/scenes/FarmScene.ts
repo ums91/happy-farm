@@ -46,7 +46,7 @@ export class FarmScene extends Phaser.Scene {
   private plots = new Map<string, Plot>();
   private plotOverlays = new Map<string, Phaser.GameObjects.Graphics>();
   private tomatoSprites = new Map<string, Phaser.GameObjects.Image>();
-  private cropSprites = new Map<string, Phaser.GameObjects.Image>();
+  private cropSprites = new Map<string, Phaser.GameObjects.GameObject>();
   private buildingAssetSprites = new Map<string, Phaser.GameObjects.Image>();
   private decorAssetSprites = new Map<string, Phaser.GameObjects.Image>();
   private decorAssetShadows = new Map<string, Phaser.GameObjects.Ellipse>();
@@ -1696,65 +1696,95 @@ export class FarmScene extends Phaser.Scene {
       // Keep the crop artwork centred within the current isometric field diamond.
       sprite.setOrigin(0.5, 0.9).setDisplaySize(size, size).setDepth(p.y + 24);
       this.tomatoSprites.set(id, sprite);
-    } else if (['wheat','carrot','corn','strawberry','pumpkin'].includes(plot.crop) && (plot.state === 'growing' || plot.state === 'ready') && this.textures.exists(`crop-${plot.crop}`)) {
+    } else if (['corn','strawberry','pumpkin'].includes(plot.crop) && (plot.state === 'growing' || plot.state === 'ready') && this.textures.exists(`crop-${plot.crop}`)) {
       const stage = plot.state === 'ready' ? 4 : Math.min(4, Math.floor(plot.growth / 20));
-      const isNewCrop=plot.crop==='wheat'||plot.crop==='carrot';
-      // Scale plants from a small seedling to a full mature crop. The enlarged
-      // 96x48 isometric cell gives each plant a matching cultivated-bed footprint.
-      const size=plot.state==='ready'?(isNewCrop?76:68):(isNewCrop?30+stage*11:34+stage*7);
-      g.fillStyle(0x342a20,0.18);g.fillEllipse(p.x,p.y+5,Math.min(34,size*0.52),5);
-      const sprite = this.add.image(p.x, p.y+9, `crop-${plot.crop}`, stage);
-      // Keep every stage centred on the same tile anchor.
-      sprite.setOrigin(0.5,0.9).setDisplaySize(size,size).setDepth(p.y+24);
+      const size=plot.state==='ready'?72:34+stage*9;
+      const sprite = this.add.image(p.x, p.y+8, `crop-${plot.crop}`, stage);
+      sprite.setOrigin(0.5,0.9).setDisplaySize(size,size).setDepth(p.y+26);
       this.cropSprites.set(id, sprite);
     } else if (plot.state === 'growing' || plot.state === 'ready' || plot.state === 'withered') {
-      this.drawCrop(g, p.x, p.y, plot);
+      // Draw the plant as a natural, tile-spanning cluster. Wheat and carrot
+      // PNG strips include a small rectangular soil tray, so use the clean
+      // in-world plant renderer instead of showing a second square bed.
+      const plant=this.add.graphics().setDepth(p.y+26);
+      plant.fillStyle(0x342a20,0.16);
+      plant.fillEllipse(p.x,p.y+5,plot.state==='ready'?76:34+Math.round(plot.growth*0.42),7);
+      this.drawCrop(plant,p.x,p.y,plot);
+      this.cropSprites.set(id,plant);
     }
   }
 
   private drawCrop(g: Phaser.GameObjects.Graphics, x: number, y: number, plot: Plot): void {
     const crop=CROPS[plot.crop];
-    const stage=plot.state==='ready'?1:plot.state==='withered'?0:Math.max(0.18,plot.growth/100);
-    const h=plot.state==='ready'?34:plot.state==='withered'?8:10+Math.round(stage*23);
+    const stage=plot.state==='ready'?1:plot.state==='withered'?0:Math.max(0.12,plot.growth/100);
+    const h=plot.state==='ready'?58:plot.state==='withered'?8:14+Math.round(stage*42);
     if(plot.state==='withered'){
       g.lineStyle(2,0x927b54,1);g.beginPath();g.moveTo(x,y+2);g.lineTo(x-4,y-h);g.moveTo(x-2,y-5);g.lineTo(x-12,y-11);g.moveTo(x-3,y-8);g.lineTo(x+8,y-13);g.strokePath();
       g.fillStyle(0x9b875b,1);g.fillEllipse(x-8,y-7,8,4);g.fillEllipse(x+7,y-9,8,4);return;
     }
     const stem=plot.watered?0x347e43:0x438b3d;
     const leafColor=plot.watered?0x5eaa4d:0x78b64f;
-    const stems=crop.name==='Wheat'?4:crop.name==='Corn'?3:5;
-    for(let n=0;n<stems;n++){
-      const ox=(n-(stems-1)/2)*6;
-      const topY=y-h-(n%2)*3;
-      g.lineStyle(crop.name==='Wheat'?2.2:2.8,stem,1);g.beginPath();g.moveTo(x+ox,y+2);g.lineTo(x+ox+(n%2?2:-2),topY);g.strokePath();
-      if(crop.name==='Wheat'){
-        g.fillStyle(0x6b9e43,1);g.fillEllipse(x+ox-5,topY+8,11,4);g.fillEllipse(x+ox+5,topY+14,10,4);
+    if(crop.name==='Carrot'){
+      // A broad, irregular canopy of carrot tops: no rectangular sprite tray,
+      // and foliage naturally overlaps the neighbouring soil-diamond edges.
+      const offsets=[-31,-22,-13,-4,5,14,23,31];
+      offsets.forEach((ox,n)=>{
+        const height=h-(n%3)*5;
+        const baseY=y+1+(n%2)*2;
+        const crownY=baseY-height;
+        g.lineStyle(2.2,stem,1);g.beginPath();g.moveTo(x+ox,baseY);g.lineTo(x+ox+(n%2?2:-2),crownY+8);g.strokePath();
+        const fan=[-1,0,1,2].map((v,k)=>({x:x+ox+v*5+(k%2?2:-2),y:crownY+(k===1?-8:k===2?-3:4)}));
+        g.fillStyle(leafColor,0.96);g.fillPoints([{x:x+ox,y:crownY+10},...fan,{x:x+ox+3,y:crownY+12}],true);
+        g.fillEllipse(x+ox-4,crownY+3,9,4);g.fillEllipse(x+ox+4,crownY-1,10,4);
         if(plot.state==='ready'){
-          g.lineStyle(2,0xc99a37,1);for(let k=0;k<4;k++){g.beginPath();g.moveTo(x+ox,topY+2+k*4);g.lineTo(x+ox+(k%2?5:-5),topY-2+k*4);g.strokePath();}
-          g.fillStyle(0xe8c45b,1);g.fillEllipse(x+ox,topY-2,5,10);
+          // Only the ripe stage exposes the orange shoulders of the roots.
+          g.fillStyle(0xe77b27,1);
+          g.fillTriangle(x+ox-4,baseY-1,x+ox+4,baseY-1,x+ox,baseY+11);
+          g.lineStyle(1,0xc95e1d,0.75);g.beginPath();g.moveTo(x+ox,baseY+1);g.lineTo(x+ox,baseY+8);g.strokePath();
+          g.fillStyle(0x4c923e,1);g.fillTriangle(x+ox,baseY-2,x+ox-4,baseY-10,x+ox-1,baseY-5);g.fillTriangle(x+ox,baseY-2,x+ox+5,baseY-11,x+ox+2,baseY-5);
         }
-      }else if(crop.name==='Carrot'){
-        g.fillStyle(leafColor,1);g.fillEllipse(x+ox-5,topY+5,13,5);g.fillEllipse(x+ox+5,topY+2,12,5);g.fillEllipse(x+ox,topY-3,5,10);
-        if(plot.state==='ready'){g.fillStyle(0xf28b32,1);g.fillTriangle(x+ox-5,y-4,x+ox+5,y-4,x+ox,y+10);g.fillStyle(0x4c923e,1);g.fillTriangle(x+ox,y-4,x+ox-5,y-13,x+ox-1,y-7);g.fillTriangle(x+ox,y-4,x+ox+6,y-14,x+ox+2,y-7);}
-      }else if(crop.name==='Corn'){
-        g.fillStyle(leafColor,1);g.fillPoints([{x:x+ox,y:topY+15},{x:x+ox-13,y:topY+4},{x:x+ox-4,y:topY+18}],true);g.fillPoints([{x:x+ox,y:topY+18},{x:x+ox+13,y:topY+6},{x:x+ox+4,y:topY+20}],true);
-        if(plot.state==='ready'){g.fillStyle(0xf0cf59,1);g.fillRoundedRect(x+ox-3,topY+1,7,16,3);g.fillStyle(0xffe68b,1);for(let k=0;k<3;k++)g.fillCircle(x+ox-1,topY+4+k*4,1);}
+      });
+      return;
+    }
+    if(crop.name==='Wheat'){
+      const offsets=[-34,-26,-18,-10,-2,6,14,22,30];
+      offsets.forEach((ox,n)=>{
+        const height=h-(n%4)*4;
+        const topY=y-height;
+        g.lineStyle(2.1,stem,1);g.beginPath();g.moveTo(x+ox,y+3);g.lineTo(x+ox+(n%2?2:-2),topY+9);g.strokePath();
+        g.fillStyle(0x6b9e43,1);
+        g.fillEllipse(x+ox-5,topY+15,13,4);g.fillEllipse(x+ox+5,topY+21,13,4);
+        if(plot.state==='ready'){
+          g.lineStyle(1.8,0xc99a37,1);
+          for(let k=0;k<5;k++){g.beginPath();g.moveTo(x+ox,topY+7+k*3);g.lineTo(x+ox+(k%2?5:-5),topY+3+k*3);g.strokePath();}
+          g.fillStyle(0xe8c45b,1);g.fillEllipse(x+ox,topY+3,5,12);
+        }
+      });
+      return;
+    }
+    const stems=crop.name==='Corn'?4:7;
+    for(let n=0;n<stems;n++){
+      const ox=(n-(stems-1)/2)*9;
+      const topY=y-h-(n%2)*4;
+      g.lineStyle(crop.name==='Corn'?3:2.8,stem,1);g.beginPath();g.moveTo(x+ox,y+2);g.lineTo(x+ox+(n%2?3:-3),topY);g.strokePath();
+      if(crop.name==='Corn'){
+        g.fillStyle(leafColor,1);g.fillPoints([{x:x+ox,y:topY+18},{x:x+ox-18,y:topY+4},{x:x+ox-5,y:topY+22}],true);g.fillPoints([{x:x+ox,y:topY+20},{x:x+ox+18,y:topY+6},{x:x+ox+5,y:topY+23}],true);
+        if(plot.state==='ready'){g.fillStyle(0xf0cf59,1);g.fillRoundedRect(x+ox-4,topY+3,9,19,4);g.fillStyle(0xffe68b,1);for(let k=0;k<4;k++)g.fillCircle(x+ox-1,topY+6+k*4,1);}
       }else{
-        g.fillStyle(leafColor,1);g.fillEllipse(x+ox-6,topY+8,14,6);g.fillEllipse(x+ox+6,topY+4,14,6);g.fillEllipse(x+ox,topY-1,10,6);
+        g.fillStyle(leafColor,1);g.fillEllipse(x+ox-8,topY+10,17,7);g.fillEllipse(x+ox+8,topY+5,17,7);g.fillEllipse(x+ox,topY-2,13,7);
         if(plot.state==='ready'){
           const fruit=crop.name==='Strawberry'?0xd94c53:crop.name==='Tomato'?0xd94b38:crop.name==='Pumpkin'?0xe58b35:crop.name==='Blueberry'?0x536cb5:0x3b9b55;
           g.fillStyle(fruit,1);
-          if(crop.name==='Pumpkin'){g.fillEllipse(x+ox,topY+9,15,12);g.lineStyle(1,0xb96128,0.8);g.beginPath();g.moveTo(x+ox,topY+3);g.lineTo(x+ox,topY+15);g.strokePath();}
-          else if(crop.name==='Watermelon'){g.fillEllipse(x+ox,topY+9,16,10);g.lineStyle(1,0x1e713f,1);g.beginPath();g.moveTo(x+ox-5,topY+6);g.lineTo(x+ox-3,topY+12);g.moveTo(x+ox+2,topY+5);g.lineTo(x+ox+4,topY+12);g.strokePath();}
-          else {g.fillCircle(x+ox,topY+8,6);g.fillStyle(0x4e8c3d,1);g.fillEllipse(x+ox+3,topY+2,7,3);}
-          if(crop.name==='Strawberry'){g.fillStyle(0xffe6a0,1);g.fillCircle(x+ox-2,topY+7,0.8);g.fillCircle(x+ox+2,topY+9,0.8);}
+          if(crop.name==='Pumpkin'){g.fillEllipse(x+ox,topY+11,18,14);g.lineStyle(1,0xb96128,0.8);g.beginPath();g.moveTo(x+ox,topY+4);g.lineTo(x+ox,topY+18);g.strokePath();}
+          else if(crop.name==='Watermelon'){g.fillEllipse(x+ox,topY+10,19,12);g.lineStyle(1,0x1e713f,1);g.beginPath();g.moveTo(x+ox-6,topY+6);g.lineTo(x+ox-4,topY+13);g.moveTo(x+ox+2,topY+5);g.lineTo(x+ox+4,topY+13);g.strokePath();}
+          else {g.fillCircle(x+ox,topY+9,7);g.fillStyle(0x4e8c3d,1);g.fillEllipse(x+ox+4,topY+2,8,4);}
+          if(crop.name==='Strawberry'){g.fillStyle(0xffe6a0,1);g.fillCircle(x+ox-2,topY+8,0.9);g.fillCircle(x+ox+2,topY+10,0.9);}
         }
       }
     }
-    if(plot.state==='ready'&&crop.name==='Wheat'){g.fillStyle(0xf4d16c,1);g.fillEllipse(x,y-h-6,5,12);}
   }
 
-  private drawSelection(): void {
+    private drawSelection(): void {
     this.overlay.clear();
     if (!this.selected) return;
     const p = this.toWorld(this.selected.col, this.selected.row);
