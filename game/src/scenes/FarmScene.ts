@@ -1134,18 +1134,15 @@ export class FarmScene extends Phaser.Scene {
       const displayHeight = id === 'well' ? wellCropHeight : source.height;
       const targetWidth = id === 'coop' ? TILE_W * 2 : 132;
       const targetHeight = 124;
-      // Fit the coop by its horizontal fence span. Its transparent PNG canvas
-      // includes the tall shelter above the yard, so constraining total image
-      // height shrinks the fence and leaves it inside only part of the 2x2 plot.
       const scale = id === 'coop' ? targetWidth / source.width : Math.min(targetWidth / source.width, targetHeight / displayHeight);
-      // A 2x2 isometric footprint is 176px wide and 88px deep. The asset's
-      // fence is drawn near the lower edge of its square canvas; align that
-      // lower fence edge with the footprint's south vertex.
+      // The coop PNG is a square composition, while the 2x2 isometric land
+      // footprint is a 2:1 diamond (176 x 88). Keep its horizontal scale and
+      // compress only the vertical canvas so the enclosure fits the four tiles.
       const renderPoint=id==='coop'?this.toWorld(pos.col+0.5,pos.row+0.5):p;
       const renderY=id==='coop'?renderPoint.y+TILE_H:renderPoint.y+24;
       const sprite = this.add.image(renderPoint.x, renderY, texture)
         .setOrigin(0.5, id === 'well' ? (wellCropY + wellCropHeight) / source.height : 1)
-        .setScale(scale)
+        .setScale(scale, id==='coop'?scale*0.5:scale)
         .setDepth(p.y + (id==='coop'?TILE_H+30:30));
       if (id === 'well') sprite.setCrop(0, wellCropY, source.width, wellCropHeight);
       this.buildingAssetSprites.set(id, sprite);
