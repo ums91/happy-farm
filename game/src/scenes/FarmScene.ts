@@ -1133,11 +1133,14 @@ export class FarmScene extends Phaser.Scene {
       const wellCropHeight = source.height * 0.64;
       const displayHeight = id === 'well' ? wellCropHeight : source.height;
       const targetWidth = id === 'coop' ? TILE_W * 2 : 132;
-      const targetHeight = id === 'coop' ? 157 : 124;
-      const scale = Math.min(targetWidth / source.width, targetHeight / displayHeight);
-      // The coop's four occupied tiles form a 2x2 isometric diamond.
-      // Centre the artwork over those tiles and align the bottom of the fence
-      // with the diamond's south vertex (one full tile-height below centre).
+      const targetHeight = 124;
+      // Fit the coop by its horizontal fence span. Its transparent PNG canvas
+      // includes the tall shelter above the yard, so constraining total image
+      // height shrinks the fence and leaves it inside only part of the 2x2 plot.
+      const scale = id === 'coop' ? targetWidth / source.width : Math.min(targetWidth / source.width, targetHeight / displayHeight);
+      // A 2x2 isometric footprint is 176px wide and 88px deep. The asset's
+      // fence is drawn near the lower edge of its square canvas; align that
+      // lower fence edge with the footprint's south vertex.
       const renderPoint=id==='coop'?this.toWorld(pos.col+0.5,pos.row+0.5):p;
       const renderY=id==='coop'?renderPoint.y+TILE_H:renderPoint.y+24;
       const sprite = this.add.image(renderPoint.x, renderY, texture)
