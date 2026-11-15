@@ -1036,6 +1036,9 @@ export class FarmScene extends Phaser.Scene {
     trough.add(art);this.animalTroughs.set(kind,trough);
   }
   private animateAnimalTrough(kind:AnimalId):void{
+    // Chickens eat where the player feeds them; the shared trough remains
+    // reserved for cows and calves.
+    if(kind==='hen'||kind==='chick')return;
     const trough=this.animalTroughs.get(kind);if(!trough?.active)return;
     const chicken=kind==='hen'||kind==='chick',feedColor=chicken?0xf2b72f:0x82b84b;
     this.tweens.killTweensOf(trough);trough.setScale(1);
@@ -1048,7 +1051,10 @@ export class FarmScene extends Phaser.Scene {
     this.tweens.add({targets:nibble,y:nibble.y-19,alpha:0,scale:1.35,duration:850,ease:'Sine.out',onComplete:()=>nibble.destroy()});
   }
   private moveAnimalToTrough(actor:Phaser.GameObjects.Container,kind:AnimalId,index:number):void{
-    const trough=this.animalTroughs.get(kind);if(!actor.active||!trough?.active)return;
+    if(!actor.active)return;
+    // Hens and chicks feed in place. Only cattle walk to their shared trough.
+    if(kind==='hen'||kind==='chick'){this.playFeedingAnimation(actor);return;}
+    const trough=this.animalTroughs.get(kind);if(!trough?.active)return;
     const cow=kind==='cow'||kind==='calf',baseScale=1,spacing=cow?10:8;
     const offset=(index%3-1)*spacing;
     const targetX=trough.x+offset,targetY=trough.y+(Math.floor(index/3)%2)*7+8;
