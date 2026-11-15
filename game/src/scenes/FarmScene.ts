@@ -869,9 +869,11 @@ export class FarmScene extends Phaser.Scene {
     this.animals.forEach((animal,index)=>{
       const cow=animal.id==='cow'||animal.id==='calf',baby=this.isBabyAnimal(animal.id);
       const home=cow?cowHome:henHome;
-      const homeTile=this.nearestAnimalCell(home);
+      const chickenIndex=cow?0:this.animals.slice(0,index).filter(a=>a.id==='hen'||a.id==='chick').length;
+      const homeTile=cow?this.nearestAnimalCell(home):this.coopAnimalSpawnCell(home,chickenIndex);
       if(!homeTile){this.toast('No clear grass tile available for an animal. Move a building or field first.');return;}
       const center=this.toWorld(homeTile.col,homeTile.row);
+      const roamCenter=cow?center:this.toWorld(home.col+1,home.row+1);
       if(!this.animalTroughs.has(animal.id))this.createAnimalTrough(animal.id,center.x+(cow?20:17),center.y+12);
       const bounds={width:TILE_W*4,height:TILE_H*4};
       const actor=this.add.container(center.x,center.y);actor.setDepth(center.y+24+index*0.01);
@@ -904,8 +906,11 @@ export class FarmScene extends Phaser.Scene {
         actor.add(body);
       }
       this.animalActors.push(actor);
-      const marginX=cow?bounds.width/2-28:82,marginY=cow?bounds.height/2-25:54;
-      if(animal.assigned===false){const sprite=this.animalSprites.get(actor);if(sprite){sprite.setAngle(0).setY(1).play(cow?'cow-rest':'hen-rest',true);this.tweens.add({targets:sprite,y:2,duration:cow?1900:1250,yoyo:true,repeat:-1,ease:'Sine.inOut'});}}else this.time.delayedCall(Phaser.Math.Between(2200,5200),()=>this.wanderAnimal(actor,center.x,center.y,marginX,marginY,cow));
+      // Chicken roam bounds follow the complete square coop pen, not the building's
+      // small 2x2 footprint. This keeps hens/chicks distributed from the shelter
+      // entrance through the open fenced yard while cows retain their barn behavior.
+      const marginX=cow?bounds.width/2-28:104,marginY=cow?bounds.height/2-25:88;
+      if(animal.assigned===false){const sprite=this.animalSprites.get(actor);if(sprite){sprite.setAngle(0).setY(1).play(cow?'cow-rest':'hen-rest',true);this.tweens.add({targets:sprite,y:2,duration:cow?1900:1250,yoyo:true,repeat:-1,ease:'Sine.inOut'});}}else this.time.delayedCall(Phaser.Math.Between(2200,5200),()=>this.wanderAnimal(actor,roamCenter.x,roamCenter.y,marginX,marginY,cow));
     });
     this.updateAnimalHungryIndicators();
   }
@@ -1323,6 +1328,20 @@ export class FarmScene extends Phaser.Scene {
       }
     }
     return null;
+  }
+
+  // The coop sprite contains a 2x2 shelter at the back and a larger fenced
+  // yard in front. Spawn animals in valid grass cells around that footprint:
+  // alternating near the shelter entrance and farther out in the pen.
+  private coopAnimalSpawnCell(home:{col:number;row:number},index:number):{col:number;row:number}|null {
+    const shelterSide=[{dc:2,dr:0},{dc:0,dr:2},{dc:2,dr:1},{dc:1,dr:2}];
+    const openYard=[{dc:2,dr:2},{dc:3,dr:1},{dc:1,dr:3},{dc:3,dr:2},{dc:2,dr:3},{dc:3,dr:0},{dc:0,dr:3}];
+    const offsets=index%2===0?[...shelterSide,...openYard]:[...openYard,...shelterSide];
+    for(const offset of offsets){
+      const tile={col:home.col+offset.dc,row:home.row+offset.dr};
+      if(!this.animalCellBlocked(tile))return tile;
+    }
+    return this.nearestAnimalCell(home);
   }
 
   private animalRouteIsClear(from:{x:number;y:number},to:{x:number;y:number},actor:Phaser.GameObjects.Container):boolean {
