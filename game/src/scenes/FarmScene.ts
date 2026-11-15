@@ -2689,8 +2689,6 @@ export class FarmScene extends Phaser.Scene {
         this.buildings.coopLevel=Math.max(1,this.buildings.coopLevel);
         this.buildingLevels.coop=Math.max(1,this.buildingLevels.coop);
         const currentCoop=this.decor.coop;
-        const currentFootprint=currentCoop?this.placementCells(currentCoop,'coop'):[];
-        const currentInsideOwnedLand=!!currentCoop&&currentFootprint.every(cell=>this.isFarmTile(cell.col,cell.row));
         // Older saves can retain a coop coordinate from before land ownership
         // was restored. Keep the building, but relocate it onto fully owned,
         // clear 2x2 land rather than displaying it outside the buy-area.
