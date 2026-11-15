@@ -1373,9 +1373,10 @@ export class FarmScene extends Phaser.Scene {
   private isChickenPenCell(tile:{col:number;row:number},home=this.decor.coop):boolean {
     if(!home)return false;
     const dc=tile.col-home.col,dr=tile.row-home.row;
-    // The 3x3 coop enclosure reserves the rear 2x2 for the shelter;
-    // hens and chicks may roam only in the open front/right fenced yard.
-    return (dc===2&&dr>=0&&dr<=2)||(dr===2&&dc>=0&&dc<=1);
+    // Keep chickens within the visible fenced yard. The earlier outer-edge
+    // L-shape projected below the fence in isometric space, so use the inner
+    // yard cells one row closer to the shelter instead.
+    return (dc===2&&dr>=-1&&dr<=1)||(dr===1&&dc>=0&&dc<=1);
   }
 
   private animalCellBlocked(tile:{col:number;row:number},actor?:Phaser.GameObjects.Container,chickenPen=false):boolean {
@@ -1407,7 +1408,7 @@ export class FarmScene extends Phaser.Scene {
   // yard in front. Spawn animals in valid grass cells around that footprint:
   // alternating near the shelter entrance and farther out in the pen.
   private coopAnimalSpawnCell(home:{col:number;row:number},index:number):{col:number;row:number}|null {
-    const pen=[{dc:2,dr:0},{dc:2,dr:1},{dc:2,dr:2},{dc:1,dr:2},{dc:0,dr:2}];
+    const pen=[{dc:2,dr:-1},{dc:2,dr:0},{dc:2,dr:1},{dc:1,dr:1},{dc:0,dr:1}];
     const ordered=index%2===0?pen:[...pen.slice(2),...pen.slice(0,2)];
     for(const offset of ordered){
       const tile={col:home.col+offset.dc,row:home.row+offset.dr};
