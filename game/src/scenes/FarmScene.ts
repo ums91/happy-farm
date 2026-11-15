@@ -79,7 +79,6 @@ export class FarmScene extends Phaser.Scene {
   private crafted: Record<ProductId,number>={flour:0,bread:0,pastry:0,grapes:0};
   private workshopCompost=0;
   private animalActors: Phaser.GameObjects.Container[] = [];
-  private layingHens = new Set<number>();
   private animalSprites = new Map<Phaser.GameObjects.Container, Phaser.GameObjects.Sprite>();
   private animalReservedCells=new Set<string>();
   private animalTroughs=new Map<AnimalId,Phaser.GameObjects.Container>();
@@ -323,7 +322,7 @@ export class FarmScene extends Phaser.Scene {
     if (!sessionStorage.getItem('happyFarmVisitorModeV1')) initializeCloudSaves();
     initializeFriends();
     this.refreshSelection();
-    this.time.addEvent({ delay: 1000, loop: true, callback: () => { if((this.questRefreshAt>0&&Date.now()>=this.questRefreshAt)||(this.eventStartedAt>0&&Date.now()-this.eventStartedAt>=604800000)){this.ensureQuestAndEventCycles();this.renderSideRail();} this.updateCropLifecycle(); this.updateProduction(); this.updateProductionReadyBadges(); this.updateFruitTrees(); this.updateWellWaterBadge(); this.updateAnimalHungryIndicators(); this.updateBuildingProduceBadges(); this.updateHenLayingAnimations(); this.updateCropWaterBadges(); this.refreshCropHoverTooltip(); if(this.activeBuilding==='coop'||this.activeBuilding==='barn')this.renderBuildingPanel(this.activeBuilding);else if(this.activeBuilding)this.renderGenericBuildingPanel(this.activeBuilding); } });
+    this.time.addEvent({ delay: 1000, loop: true, callback: () => { if((this.questRefreshAt>0&&Date.now()>=this.questRefreshAt)||(this.eventStartedAt>0&&Date.now()-this.eventStartedAt>=604800000)){this.ensureQuestAndEventCycles();this.renderSideRail();} this.updateCropLifecycle(); this.updateProduction(); this.updateProductionReadyBadges(); this.updateFruitTrees(); this.updateWellWaterBadge(); this.updateAnimalHungryIndicators(); this.updateBuildingProduceBadges(); this.updateCropWaterBadges(); this.refreshCropHoverTooltip(); if(this.activeBuilding==='coop'||this.activeBuilding==='barn')this.renderBuildingPanel(this.activeBuilding);else if(this.activeBuilding)this.renderGenericBuildingPanel(this.activeBuilding); } });
     // Bind wheel zoom directly to the game container. This avoids Phaser's
     // input hit-testing swallowing wheel events on desktop browsers.
     document.getElementById('game')?.addEventListener('wheel', (event: WheelEvent) => {
@@ -863,7 +862,7 @@ export class FarmScene extends Phaser.Scene {
   }
 
   private renderOwnedAnimals(): void {
-    this.animalActors.forEach(actor=>{this.tweens.killTweensOf(actor);const sprite=this.animalSprites.get(actor);if(sprite)this.tweens.killTweensOf(sprite);actor.destroy();});this.animalActors=[];this.animalSprites.clear();this.layingHens.clear();this.animalReservedCells.clear();this.animalTroughs.forEach(t=>t.destroy());this.animalTroughs.clear();this.animalHungryBadges.forEach(b=>b.destroy());this.animalHungryBadges.clear();this.animalProduceBadges.forEach(b=>b.destroy());this.animalProduceBadges.clear();
+    this.animalActors.forEach(actor=>{this.tweens.killTweensOf(actor);const sprite=this.animalSprites.get(actor);if(sprite)this.tweens.killTweensOf(sprite);actor.destroy();});this.animalActors=[];this.animalSprites.clear();this.animalReservedCells.clear();this.animalTroughs.forEach(t=>t.destroy());this.animalTroughs.clear();this.animalHungryBadges.forEach(b=>b.destroy());this.animalHungryBadges.clear();this.animalProduceBadges.forEach(b=>b.destroy());this.animalProduceBadges.clear();
     // Resolve animal home anchors defensively: older saves may contain animals before
     // their matching building decor has been restored or placed.
     const farmhouse=this.decor.farmhouse||{col:3,row:1};
@@ -874,10 +873,10 @@ export class FarmScene extends Phaser.Scene {
       const cow=animal.id==='cow'||animal.id==='calf',baby=this.isBabyAnimal(animal.id);
       const home=cow?cowHome:henHome;
       const chickenIndex=cow?0:this.animals.slice(0,index).filter(a=>a.id==='hen'||a.id==='chick').length;
-      const homeTile=cow?this.nearestAnimalCell(home):this.coopAnimalSpawnCell(home,chickenIndex);
+      const homeTile=this.nearestAnimalCell(home);
       if(!homeTile){this.toast('No clear grass tile available for an animal. Move a building or field first.');return;}
       const center=this.toWorld(homeTile.col,homeTile.row);
-      const roamCenter=cow?center:this.toWorld(home.col+1,home.row+1);
+      const roamCenter=center;
       if(!this.animalTroughs.has(animal.id))this.createAnimalTrough(animal.id,center.x+(cow?20:17),center.y+12);
       const bounds={width:TILE_W*4,height:TILE_H*4};
       const actor=this.add.container(center.x,center.y);
@@ -918,7 +917,7 @@ export class FarmScene extends Phaser.Scene {
       // Chicken roam bounds follow the complete square coop pen, not the building's
       // small 2x2 footprint. This keeps hens/chicks distributed from the shelter
       // entrance through the open fenced yard while cows retain their barn behavior.
-      const marginX=cow?bounds.width/2-28:104,marginY=cow?bounds.height/2-25:88;
+      const marginX=cow?bounds.width/2-28:150,marginY=cow?bounds.height/2-25:112;
       if(animal.assigned===false&&!chickenAnimal){const sprite=this.animalSprites.get(actor);if(sprite){sprite.setAngle(0).setY(1).play('cow-rest',true);this.tweens.add({targets:sprite,y:2,duration:1900,yoyo:true,repeat:-1,ease:'Sine.inOut'});}}else this.time.delayedCall(Phaser.Math.Between(700,1600),()=>this.wanderAnimal(actor,roamCenter.x,roamCenter.y,marginX,marginY,cow));
     });
     this.updateAnimalHungryIndicators();
@@ -949,7 +948,7 @@ export class FarmScene extends Phaser.Scene {
   }
 
   private wanderAnimal(actor:Phaser.GameObjects.Container,cx:number,cy:number,limitX:number,limitY:number,cow:boolean):void{
-    if(!actor.active||this.layingHens.has(this.animalActors.indexOf(actor)))return;
+    if(!actor.active)return;
     const sprite=this.animalSprites.get(actor),baseScale=1;
     const current=this.toTile(actor.x,actor.y);
     if(!current)return;
@@ -966,12 +965,8 @@ export class FarmScene extends Phaser.Scene {
       const point=this.toWorld(candidate.col,candidate.row);
       // Keep hens and chicks roaming around their coop instead of drifting across the whole farm.
       if(Math.abs(point.x-cx)>limitX||Math.abs(point.y-cy)>limitY)continue;
-      if(chicken&&!this.isChickenPenCell(candidate))continue;
       if(this.animalCellBlocked(candidate,actor,chicken))continue;
-      // Adjacent pen tiles are connected by the open yard. Avoid the generic
-      // route sampler here: its intermediate isometric cells can overlap the
-      // coop's solid 2x2 shelter even when both endpoints are valid yard cells.
-      if(chicken||this.animalRouteIsClear({x:actor.x,y:actor.y},point,actor)){destination=candidate;break;}
+      if(this.animalRouteIsClear({x:actor.x,y:actor.y},point,actor)){destination=candidate;break;}
     }
     if(!destination){
       const spriteNow=this.animalSprites.get(actor);if(spriteNow)this.animateAnimalIdle(actor,spriteNow);
@@ -1029,45 +1024,6 @@ export class FarmScene extends Phaser.Scene {
     });
   }
 
-  private updateHenLayingAnimations():void {
-    const now=Date.now();
-    this.animals.forEach((animal,index)=>{
-      if(animal.id!=='hen'||animal.assigned===false||animal.readyAt<=0||animal.readyAt>now||this.layingHens.has(index))return;
-      const actor=this.animalActors[index],sprite=actor?this.animalSprites.get(actor):undefined;
-      if(!actor?.active||!sprite?.active||!this.decor.coop)return;
-      this.layingHens.add(index);
-      this.tweens.killTweensOf(actor);this.tweens.killTweensOf(sprite);
-      const yardX=actor.x,yardY=actor.y,home=this.decor.coop;
-      const coopWorld=this.toWorld(home.col+1,home.row+1);
-      const doorwayX=coopWorld.x,doorwayY=coopWorld.y-67;
-      const outsideDepth=actor.depth;
-      sprite.play('hen-walk',true);
-      this.tweens.add({targets:actor,x:doorwayX,y:doorwayY,duration:900,ease:'Sine.inOut',
-        onStart:()=>actor.setScale((doorwayX<actor.x?-1:1),1),
-        onComplete:()=>{
-          if(!actor.active||!sprite.active){this.layingHens.delete(index);return;}
-          actor.setDepth(this.toWorld(home.col,home.row).y+26);
-          // Brief pecking in the doorway/interior before the laying animation.
-          sprite.setAngle(0).setY(-2).play('hen-peck',true);
-          this.time.delayedCall(850,()=>{
-            if(!actor.active||!sprite.active){this.layingHens.delete(index);return;}
-            sprite.setAngle(0).setY(-2).play('hen-lay',true);
-            this.time.delayedCall(1100,()=>{
-            if(!actor.active||!sprite.active){this.layingHens.delete(index);return;}
-            actor.setDepth(outsideDepth+2);sprite.play('hen-walk',true);
-            this.tweens.add({targets:actor,x:yardX,y:yardY,duration:850,ease:'Sine.inOut',
-              onComplete:()=>{
-                if(!actor.active||!sprite.active){this.layingHens.delete(index);return;}
-                actor.setScale(1,1);actor.setDepth(Math.max(actor.y+24,this.toWorld(home.col,home.row).y+58)+index*0.01);
-                sprite.setAngle(0).setY(-2);this.animateAnimalIdle(actor,sprite);this.layingHens.delete(index);
-              }
-            });
-            });
-          });
-        }
-      });
-    });
-  }
 
   private createAnimalTrough(kind:AnimalId,x:number,y:number):void{
     const trough=this.add.container(x,y).setDepth(y+18);
