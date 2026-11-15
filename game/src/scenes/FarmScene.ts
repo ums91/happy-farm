@@ -1126,7 +1126,7 @@ export class FarmScene extends Phaser.Scene {
       const bx=actor.x+badge.x*actor.scaleX,by=actor.y+badge.y*actor.scaleY;
       return Phaser.Math.Distance.Between(world.x,world.y,bx,by)<42;
     });
-    if(hungryBadgeHit){const animal=this.animals[hungryBadgeHit[0]];if(animal)this.feedAnimalAt(hungryBadgeHit[0],animal.id);return;}
+    if(hungryBadgeHit&&this.activeTool==='select'){const animal=this.animals[hungryBadgeHit[0]];if(animal)this.feedAnimalAt(hungryBadgeHit[0],animal.id);return;}
     // On narrow touch screens the emoji badge can be difficult to hit precisely.
     // Give hungry animals a larger screen-consistent tap target around the sprite.
     const hungryAnimalIndex=this.animals.findIndex((animal,index)=>{
@@ -1134,7 +1134,7 @@ export class FarmScene extends Phaser.Scene {
       return animal.assigned!==false&&animal.readyAt===0&&!!actor?.active&&
         Phaser.Math.Distance.Between(world.x,world.y,actor.x,actor.y)<Math.max(48,68/this.cameras.main.zoom);
     });
-    if(hungryAnimalIndex>=0){this.feedAnimalAt(hungryAnimalIndex,this.animals[hungryAnimalIndex]!.id);return;}
+    if(hungryAnimalIndex>=0&&this.activeTool==='select'){this.feedAnimalAt(hungryAnimalIndex,this.animals[hungryAnimalIndex]!.id);return;}
     if(this.activeTool==='select'){
       // Ready water appears above the Well and is collected with one click.
       if(this.wellWaterBadge?.active&&Phaser.Math.Distance.Between(world.x,world.y,this.wellWaterBadge.x,this.wellWaterBadge.y)<26){this.collectWellWater();return;}
@@ -2787,6 +2787,12 @@ export class FarmScene extends Phaser.Scene {
     const fill = document.getElementById('progress-fill');
     if (progress) progress.textContent = this.farmerLevel >= 100 ? `${this.xp.toLocaleString()} total XP · MAX` : `${this.levelProgress} / ${this.xpNeededForNextLevel} XP · ${this.xp.toLocaleString()} total`;
     if (fill) (fill as HTMLElement).style.width = `${Math.min(100,this.levelProgress/this.xpNeededForNextLevel*100)}%`;
+    const mobileLevel=document.getElementById('mobile-level-label');
+    if(mobileLevel)mobileLevel.textContent=`LEVEL ${level}`;
+    const mobileProgress=document.getElementById('mobile-progress-text');
+    if(mobileProgress)mobileProgress.textContent=this.farmerLevel>=100?`${this.xp.toLocaleString()} XP · MAX`:`${this.levelProgress}/${this.xpNeededForNextLevel} XP`;
+    const mobileFill=document.getElementById('mobile-progress-fill');
+    if(mobileFill)(mobileFill as HTMLElement).style.width=`${Math.min(100,this.levelProgress/this.xpNeededForNextLevel*100)}%`;
     const animalStatus=document.getElementById('animal-status'); if(animalStatus){const now=Date.now();const ready=this.animals.filter(a=>a.readyAt>0&&a.readyAt<=now).length;const producing=this.animals.filter(a=>a.readyAt>now).length;const waiting=this.animals.filter(a=>a.readyAt===0).length;animalStatus.textContent=this.animals.length?this.animals.length+' animal(s) · '+ready+' ready · '+producing+' producing · '+waiting+' waiting · eggs '+this.produce.eggs+' / milk '+this.produce.milk+'.':'No animals yet. Visit the Coop or Dairy Barn to manage housing.';}
     const w=document.getElementById('wheat-count'); if(w) w.textContent=String(this.inventory.wheat);
     const inv=document.getElementById('inventory-count'); if(inv) inv.textContent=String(Object.values(this.inventory).reduce((a,b)=>a+b,0)+this.feed.hen+this.feed.cow);
