@@ -2660,14 +2660,18 @@ export class FarmScene extends Phaser.Scene {
       // Recovery for established farms: if a save still owns a coop (or has
       // chickens) but its placed coop coordinate is missing, restore the
       // existing building for free instead of requiring another purchase.
-      const ownsCoop=this.buildings.coopLevel>0||this.buildingLevels.coop>0||this.animals.some(a=>a.id==='hen'||a.id==='chick');
-      if(ownsCoop&&!this.decor.coop){
+      const coopWasStored=this.storedDecor.includes('coop');
+      const ownsCoop=this.buildings.coopLevel>0||this.buildingLevels.coop>0||coopWasStored||this.animals.some(a=>a.id==='hen'||a.id==='chick');
+      if(ownsCoop){
         this.buildings.coopLevel=Math.max(1,this.buildings.coopLevel);
         this.buildingLevels.coop=Math.max(1,this.buildingLevels.coop);
-        for(let row=0;row<MAX_FARM_SIZE&&!this.decor.coop;row++)for(let col=0;col<MAX_FARM_SIZE&&!this.decor.coop;col++){
-          const tile={col,row};
-          if(this.canPlaceDecor(tile,'coop'))this.decor.coop=tile;
+        if(!this.decor.coop){
+          for(let row=0;row<MAX_FARM_SIZE&&!this.decor.coop;row++)for(let col=0;col<MAX_FARM_SIZE&&!this.decor.coop;col++){
+            const tile={col,row};
+            if(this.canPlaceDecor(tile,'coop'))this.decor.coop=tile;
+          }
         }
+        if(this.decor.coop)this.storedDecor=this.storedDecor.filter(id=>id!=='coop');
       }
     } catch (error) {
       // Never turn an unreadable existing save into a new starter farm automatically.
