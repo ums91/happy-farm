@@ -1158,6 +1158,7 @@ export class FarmScene extends Phaser.Scene {
     const world=this.cameras.main.getWorldPoint(pointer.x,pointer.y);
     // Hungry status is a direct FarmVille action and must work regardless of
     // the currently selected farm tool, especially on touch screens.
+    if(this.activeTool==='select'&&this.decor.coop){const coop=this.toWorld(this.decor.coop.col,this.decor.coop.row);if(Math.abs(world.x-coop.x)<57&&Math.abs(world.y-(coop.y-28))<62){this.openBuilding('coop');return;}}
     const hungryBadgeHit=[...this.animalHungryBadges.entries()].find(([index,badge])=>{
       const actor=this.animalActors[index];
       if(!badge.active||!actor?.active||!badge.visible)return false;
@@ -1184,7 +1185,7 @@ export class FarmScene extends Phaser.Scene {
         if(!badge.active)return false;
         const pos=this.decor[id];if(!pos)return false;
         const p=this.toWorld(pos.col,pos.row);
-        return Phaser.Math.Distance.Between(world.x,world.y,badge.x,badge.y)<28|| (Math.abs(world.x-p.x)<66&&Math.abs(world.y-p.y)<94);
+        return Phaser.Math.Distance.Between(world.x,world.y,badge.x,badge.y)<28;
       });
       if(buildingHit){this.collectBuildingProduce(buildingHit[0]);return;}
       // Status symbols are children of their animal containers. Their x/y are local
