@@ -2665,17 +2665,34 @@ export class FarmScene extends Phaser.Scene {
       // existing building for free instead of requiring another purchase.
       const coopWasStored=this.storedDecor.includes('coop');
       const ownsCoop=this.buildings.coopLevel>0||this.buildingLevels.coop>0||coopWasStored||this.animals.some(a=>a.id==='hen'||a.id==='chick');
+      let coopPlacementChanged=false;
       if(ownsCoop){
         this.buildings.coopLevel=Math.max(1,this.buildings.coopLevel);
         this.buildingLevels.coop=Math.max(1,this.buildingLevels.coop);
-        if(!this.decor.coop){
-          for(let row=0;row<MAX_FARM_SIZE&&!this.decor.coop;row++)for(let col=0;col<MAX_FARM_SIZE&&!this.decor.coop;col++){
+        const currentCoop=this.decor.coop;
+        const currentFootprint=currentCoop?this.placementCells(currentCoop,'coop'):[];
+        const currentInsideOwnedLand=!!currentCoop&&currentFootprint.every(cell=>this.isFarmTile(cell.col,cell.row));
+        // Older saves can retain a coop coordinate from before land ownership
+        // was restored. Keep the building, but relocate it onto fully owned,
+        // clear 2x2 land rather than displaying it outside the buy-area.
+        if(!currentInsideOwnedLand){
+          const candidates:Array<{col:number;row:number;distance:number}>=[];
+          for(let row=0;row<MAX_FARM_SIZE;row++)for(let col=0;col<MAX_FARM_SIZE;col++){
             const tile={col,row};
-            if(this.canPlaceDecor(tile,'coop'))this.decor.coop=tile;
+            if(this.canPlaceDecor(tile,'coop')){
+              const distance=currentCoop?Math.abs(col-currentCoop.col)+Math.abs(row-currentCoop.row):row+col;
+              candidates.push({...tile,distance});
+            }
+          }
+          candidates.sort((a,b)=>a.distance-b.distance||a.row-b.row||a.col-b.col);
+          if(candidates.length){
+            this.decor.coop={col:candidates[0].col,row:candidates[0].row};
+            coopPlacementChanged=true;
           }
         }
         if(this.decor.coop)this.storedDecor=this.storedDecor.filter(id=>id!=='coop');
       }
+      if(coopPlacementChanged)this.saveFarm();
     } catch (error) {
       // Never turn an unreadable existing save into a new starter farm automatically.
       this.persistenceBlocked = true;
