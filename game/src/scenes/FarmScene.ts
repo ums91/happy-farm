@@ -1040,8 +1040,12 @@ export class FarmScene extends Phaser.Scene {
         onComplete:()=>{
           if(!actor.active||!sprite.active){this.layingHens.delete(index);return;}
           actor.setDepth(this.toWorld(home.col,home.row).y+26);
-          sprite.setAngle(0).setY(-2).play('hen-lay',true);
-          this.time.delayedCall(1100,()=>{
+          // Brief pecking in the doorway/interior before the laying animation.
+          sprite.setAngle(0).setY(-2).play('hen-peck',true);
+          this.time.delayedCall(850,()=>{
+            if(!actor.active||!sprite.active){this.layingHens.delete(index);return;}
+            sprite.setAngle(0).setY(-2).play('hen-lay',true);
+            this.time.delayedCall(1100,()=>{
             if(!actor.active||!sprite.active){this.layingHens.delete(index);return;}
             actor.setDepth(outsideDepth+2);sprite.play('hen-walk',true);
             this.tweens.add({targets:actor,x:yardX,y:yardY,duration:850,ease:'Sine.inOut',
@@ -1050,6 +1054,7 @@ export class FarmScene extends Phaser.Scene {
                 actor.setScale(1,1);actor.setDepth(Math.max(actor.y+24,this.toWorld(home.col,home.row).y+58)+index*0.01);
                 sprite.setAngle(0).setY(-2);this.animateAnimalIdle(actor,sprite);this.layingHens.delete(index);
               }
+            });
             });
           });
         }
