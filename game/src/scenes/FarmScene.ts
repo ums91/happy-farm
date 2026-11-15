@@ -863,7 +863,7 @@ export class FarmScene extends Phaser.Scene {
   }
 
   private renderOwnedAnimals(): void {
-    this.animalActors.forEach(actor=>{this.tweens.killTweensOf(actor);const sprite=this.animalSprites.get(actor);if(sprite)this.tweens.killTweensOf(sprite);actor.destroy();});this.animalActors=[];this.animalSprites.clear();this.animalReservedCells.clear();this.animalTroughs.forEach(t=>t.destroy());this.animalTroughs.clear();this.animalHungryBadges.forEach(b=>b.destroy());this.animalHungryBadges.clear();this.animalProduceBadges.forEach(b=>b.destroy());this.animalProduceBadges.clear();
+    this.animalActors.forEach(actor=>{this.tweens.killTweensOf(actor);const sprite=this.animalSprites.get(actor);if(sprite)this.tweens.killTweensOf(sprite);actor.destroy();});this.animalActors=[];this.animalSprites.clear();this.layingHens.clear();this.animalReservedCells.clear();this.animalTroughs.forEach(t=>t.destroy());this.animalTroughs.clear();this.animalHungryBadges.forEach(b=>b.destroy());this.animalHungryBadges.clear();this.animalProduceBadges.forEach(b=>b.destroy());this.animalProduceBadges.clear();
     // Resolve animal home anchors defensively: older saves may contain animals before
     // their matching building decor has been restored or placed.
     const farmhouse=this.decor.farmhouse||{col:3,row:1};
