@@ -955,7 +955,9 @@ export class FarmScene extends Phaser.Scene {
       const point=this.toWorld(candidate.col,candidate.row);
       // Keep hens and chicks roaming around their coop instead of drifting across the whole farm.
       if(Math.abs(point.x-cx)>limitX||Math.abs(point.y-cy)>limitY)continue;
-      if(this.animalCellBlocked(candidate,actor))continue;
+      const animalIndex=this.animalActors.indexOf(actor),animal=this.animals[animalIndex],chicken=animal?.id==='hen'||animal?.id==='chick';
+      if(chicken&&!this.isChickenPenCell(candidate))continue;
+      if(this.animalCellBlocked(candidate,actor,chicken))continue;
       if(this.animalRouteIsClear({x:actor.x,y:actor.y},point,actor)){destination=candidate;break;}
     }
     if(!destination){
@@ -1112,7 +1114,10 @@ export class FarmScene extends Phaser.Scene {
       const targetWidth = id === 'coop' ? 220 : 132;
       const targetHeight = id === 'coop' ? 190 : 124;
       const scale = Math.min(targetWidth / source.width, targetHeight / displayHeight);
-      const sprite = this.add.image(p.x, p.y + 24, texture)
+      // The coop enclosure spans a 3x3 land footprint. Render from its centre
+      // so the complete fenced yard stays inside the owned tile boundary.
+      const renderPoint=id==='coop'?this.toWorld(pos.col+1,pos.row+1):p;
+      const sprite = this.add.image(renderPoint.x, renderPoint.y + 24, texture)
         .setOrigin(0.5, id === 'well' ? (wellCropY + wellCropHeight) / source.height : 1)
         .setScale(scale)
         .setDepth(p.y + 30);
@@ -1296,6 +1301,7 @@ export class FarmScene extends Phaser.Scene {
 
   private placementFootprint(id:string):Array<{dc:number;dr:number}> {
     const buildings=['farmhouse','barn','coop','silo','bakery','greenhouse','windmill','stable','well','workshop','waterTower'];
+    if(id==='coop')return [{dc:0,dr:0},{dc:1,dr:0},{dc:2,dr:0},{dc:0,dr:1},{dc:1,dr:1},{dc:2,dr:1},{dc:0,dr:2},{dc:1,dr:2},{dc:2,dr:2}];
     if(buildings.includes(id))return [{dc:0,dr:0},{dc:1,dr:0},{dc:0,dr:1},{dc:1,dr:1}];
     const asset=this.decorAssetForId(id)||'';
     if(/gazebo|arch|swing|windmill|fountain|well|pond|waterfall|bridge|cart|market|campfire/.test(asset))return [{dc:0,dr:0},{dc:1,dr:0},{dc:0,dr:1},{dc:1,dr:1}];
@@ -1312,10 +1318,22 @@ export class FarmScene extends Phaser.Scene {
 
   private animalCellKey(tile:{col:number;row:number}):string{return this.key(tile.col,tile.row);}
 
-  private animalCellBlocked(tile:{col:number;row:number},actor?:Phaser.GameObjects.Container):boolean {
+  private isChickenPenCell(tile:{col:number;row:number},home=this.decor.coop):boolean {
+    if(!home)return false;
+    const dc=tile.col-home.col,dr=tile.row-home.row;
+    // The 3x3 coop enclosure reserves the rear 2x2 for the shelter;
+    // hens and chicks may roam only in the open front/right fenced yard.
+    return (dc===2&&dr>=0&&dr<=2)||(dr===2&&dc>=0&&dc<=1);
+  }
+
+  private animalCellBlocked(tile:{col:number;row:number},actor?:Phaser.GameObjects.Container,chickenPen=false):boolean {
     if(tile.col<0||tile.row<0||tile.col>=MAX_FARM_SIZE||tile.row>=MAX_FARM_SIZE||!this.isFarmTile(tile.col,tile.row))return true;
     const plot=this.plots.get(this.key(tile.col,tile.row));
-    if(!plot||plot.state!=='grass'||this.decorOccupiesCell(tile.col,tile.row))return true;
+    if(!plot||plot.state!=='grass')return true;
+    const inPen=chickenPen&&this.isChickenPenCell(tile);
+    if(inPen){
+      if(Object.entries(this.decor).some(([id,pos])=>id!=='coop'&&this.placementCells(pos,id).some(cell=>cell.col===tile.col&&cell.row===tile.row)))return true;
+    }else if(this.decorOccupiesCell(tile.col,tile.row))return true;
     const key=this.animalCellKey(tile);
     const actorTile=actor?this.toTile(actor.x,actor.y):null;
     if(this.animalReservedCells.has(key)&&(!actorTile||actorTile.col!==tile.col||actorTile.row!==tile.row))return true;
@@ -1337,14 +1355,14 @@ export class FarmScene extends Phaser.Scene {
   // yard in front. Spawn animals in valid grass cells around that footprint:
   // alternating near the shelter entrance and farther out in the pen.
   private coopAnimalSpawnCell(home:{col:number;row:number},index:number):{col:number;row:number}|null {
-    const shelterSide=[{dc:2,dr:0},{dc:0,dr:2},{dc:2,dr:1},{dc:1,dr:2}];
-    const openYard=[{dc:2,dr:2},{dc:3,dr:1},{dc:1,dr:3},{dc:3,dr:2},{dc:2,dr:3},{dc:3,dr:0},{dc:0,dr:3}];
-    const offsets=index%2===0?[...shelterSide,...openYard]:[...openYard,...shelterSide];
-    for(const offset of offsets){
+    const pen=[{dc:2,dr:0},{dc:2,dr:1},{dc:2,dr:2},{dc:1,dr:2},{dc:0,dr:2}];
+    const ordered=index%2===0?pen:[...pen.slice(2),...pen.slice(0,2)];
+    for(const offset of ordered){
       const tile={col:home.col+offset.dc,row:home.row+offset.dr};
-      if(!this.animalCellBlocked(tile))return tile;
+      if(this.animalCellBlocked(tile,undefined,true))return null;
+      if(!this.animalCellBlocked(tile,undefined,true))return tile;
     }
-    return this.nearestAnimalCell(home);
+    return null;
   }
 
   private animalRouteIsClear(from:{x:number;y:number},to:{x:number;y:number},actor:Phaser.GameObjects.Container):boolean {
@@ -2675,7 +2693,8 @@ export class FarmScene extends Phaser.Scene {
         // Older saves can retain a coop coordinate from before land ownership
         // was restored. Keep the building, but relocate it onto fully owned,
         // clear 2x2 land rather than displaying it outside the buy-area.
-        if(!currentInsideOwnedLand){
+        const coopFootprintValid=!!currentCoop&&this.placementCells(currentCoop,'coop').every(cell=>this.isFarmTile(cell.col,cell.row));
+        if(!coopFootprintValid){
           const candidates:Array<{col:number;row:number;distance:number}>=[];
           for(let row=0;row<MAX_FARM_SIZE;row++)for(let col=0;col<MAX_FARM_SIZE;col++){
             const tile={col,row};
