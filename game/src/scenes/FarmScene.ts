@@ -1359,8 +1359,8 @@ export class FarmScene extends Phaser.Scene {
     const ordered=index%2===0?pen:[...pen.slice(2),...pen.slice(0,2)];
     for(const offset of ordered){
       const tile={col:home.col+offset.dc,row:home.row+offset.dr};
-      if(this.animalCellBlocked(tile,undefined,true))return null;
-      if(!this.animalCellBlocked(tile,undefined,true))return tile;
+      if(this.animalCellBlocked(tile,undefined,true))continue;
+      return tile;
     }
     return null;
   }
@@ -1373,7 +1373,8 @@ export class FarmScene extends Phaser.Scene {
       const t=i/steps,worldX=Phaser.Math.Linear(from.x,to.x,t),worldY=Phaser.Math.Linear(from.y,to.y,t);
       const tile=this.toTile(worldX,worldY);if(!tile) return false;
       const key=this.animalCellKey(tile);if(checked.has(key))continue;checked.add(key);
-      if(this.animalCellBlocked(tile,actor))return false;
+      const animalIndex=this.animalActors.indexOf(actor),animal=this.animals[animalIndex],chicken=animal?.id==='hen'||animal?.id==='chick';
+      if(this.animalCellBlocked(tile,actor,chicken))return false;
     }
     return true;
   }
