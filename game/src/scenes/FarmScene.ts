@@ -955,16 +955,23 @@ export class FarmScene extends Phaser.Scene {
     if(!current)return;
     let destination:{col:number;row:number}|null=null;
     for(let attempt=0;attempt<28;attempt++){
-      const candidate={col:current.col+Phaser.Math.Between(-2,2),row:current.row+Phaser.Math.Between(-2,2)};
+      const animalIndex=this.animalActors.indexOf(actor),animal=this.animals[animalIndex],chicken=animal?.id==='hen'||animal?.id==='chick';
+      // Chickens take short, neighbouring steps inside the enclosure. Long
+      // diagonal tile routes crossed the coop footprint and were rejected,
+      // leaving every hen parked at its spawn position.
+      const step=chicken?1:2;
+      const candidate={col:current.col+Phaser.Math.Between(-step,step),row:current.row+Phaser.Math.Between(-step,step)};
       if(candidate.col===current.col&&candidate.row===current.row)continue;
       if(candidate.col<0||candidate.row<0||candidate.col>=COLS||candidate.row>=ROWS)continue;
       const point=this.toWorld(candidate.col,candidate.row);
       // Keep hens and chicks roaming around their coop instead of drifting across the whole farm.
       if(Math.abs(point.x-cx)>limitX||Math.abs(point.y-cy)>limitY)continue;
-      const animalIndex=this.animalActors.indexOf(actor),animal=this.animals[animalIndex],chicken=animal?.id==='hen'||animal?.id==='chick';
       if(chicken&&!this.isChickenPenCell(candidate))continue;
       if(this.animalCellBlocked(candidate,actor,chicken))continue;
-      if(this.animalRouteIsClear({x:actor.x,y:actor.y},point,actor)){destination=candidate;break;}
+      // Adjacent pen tiles are connected by the open yard. Avoid the generic
+      // route sampler here: its intermediate isometric cells can overlap the
+      // coop's solid 2x2 shelter even when both endpoints are valid yard cells.
+      if(chicken||this.animalRouteIsClear({x:actor.x,y:actor.y},point,actor)){destination=candidate;break;}
     }
     if(!destination){
       const spriteNow=this.animalSprites.get(actor);if(spriteNow)this.animateAnimalIdle(actor,spriteNow);
