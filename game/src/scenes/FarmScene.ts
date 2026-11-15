@@ -79,6 +79,7 @@ export class FarmScene extends Phaser.Scene {
   private crafted: Record<ProductId,number>={flour:0,bread:0,pastry:0,grapes:0};
   private workshopCompost=0;
   private animalActors: Phaser.GameObjects.Container[] = [];
+  private layingHens = new Set<number>();
   private animalSprites = new Map<Phaser.GameObjects.Container, Phaser.GameObjects.Sprite>();
   private animalReservedCells=new Set<string>();
   private animalTroughs=new Map<AnimalId,Phaser.GameObjects.Container>();
@@ -322,7 +323,7 @@ export class FarmScene extends Phaser.Scene {
     if (!sessionStorage.getItem('happyFarmVisitorModeV1')) initializeCloudSaves();
     initializeFriends();
     this.refreshSelection();
-    this.time.addEvent({ delay: 1000, loop: true, callback: () => { if((this.questRefreshAt>0&&Date.now()>=this.questRefreshAt)||(this.eventStartedAt>0&&Date.now()-this.eventStartedAt>=604800000)){this.ensureQuestAndEventCycles();this.renderSideRail();} this.updateCropLifecycle(); this.updateProduction(); this.updateProductionReadyBadges(); this.updateFruitTrees(); this.updateWellWaterBadge(); this.updateAnimalHungryIndicators(); this.updateBuildingProduceBadges(); this.updateCropWaterBadges(); this.refreshCropHoverTooltip(); if(this.activeBuilding==='coop'||this.activeBuilding==='barn')this.renderBuildingPanel(this.activeBuilding);else if(this.activeBuilding)this.renderGenericBuildingPanel(this.activeBuilding); } });
+    this.time.addEvent({ delay: 1000, loop: true, callback: () => { if((this.questRefreshAt>0&&Date.now()>=this.questRefreshAt)||(this.eventStartedAt>0&&Date.now()-this.eventStartedAt>=604800000)){this.ensureQuestAndEventCycles();this.renderSideRail();} this.updateCropLifecycle(); this.updateProduction(); this.updateProductionReadyBadges(); this.updateFruitTrees(); this.updateWellWaterBadge(); this.updateAnimalHungryIndicators(); this.updateBuildingProduceBadges(); this.updateHenLayingAnimations(); this.updateCropWaterBadges(); this.refreshCropHoverTooltip(); if(this.activeBuilding==='coop'||this.activeBuilding==='barn')this.renderBuildingPanel(this.activeBuilding);else if(this.activeBuilding)this.renderGenericBuildingPanel(this.activeBuilding); } });
     // Bind wheel zoom directly to the game container. This avoids Phaser's
     // input hit-testing swallowing wheel events on desktop browsers.
     document.getElementById('game')?.addEventListener('wheel', (event: WheelEvent) => {
@@ -948,7 +949,7 @@ export class FarmScene extends Phaser.Scene {
   }
 
   private wanderAnimal(actor:Phaser.GameObjects.Container,cx:number,cy:number,limitX:number,limitY:number,cow:boolean):void{
-    if(!actor.active)return;
+    if(!actor.active||this.layingHens.has(this.animalActors.indexOf(actor)))return;
     const sprite=this.animalSprites.get(actor),baseScale=1;
     const current=this.toTile(actor.x,actor.y);
     if(!current)return;
@@ -1018,6 +1019,41 @@ export class FarmScene extends Phaser.Scene {
           });
         }else this.time.delayedCall(3000,()=>this.wanderAnimal(actor,cx,cy,limitX,limitY,cow));
       }
+    });
+  }
+
+  private updateHenLayingAnimations():void {
+    const now=Date.now();
+    this.animals.forEach((animal,index)=>{
+      if(animal.id!=='hen'||animal.assigned===false||animal.readyAt<=0||animal.readyAt>now||this.layingHens.has(index))return;
+      const actor=this.animalActors[index],sprite=actor?this.animalSprites.get(actor):undefined;
+      if(!actor?.active||!sprite?.active||!this.decor.coop)return;
+      this.layingHens.add(index);
+      this.tweens.killTweensOf(actor);this.tweens.killTweensOf(sprite);
+      const yardX=actor.x,yardY=actor.y,home=this.decor.coop;
+      const coopWorld=this.toWorld(home.col+1,home.row+1);
+      const doorwayX=coopWorld.x,doorwayY=coopWorld.y-67;
+      const outsideDepth=actor.depth;
+      sprite.play('hen-walk',true);
+      this.tweens.add({targets:actor,x:doorwayX,y:doorwayY,duration:900,ease:'Sine.inOut',
+        onStart:()=>actor.setScale((doorwayX<actor.x?-1:1),1),
+        onComplete:()=>{
+          if(!actor.active||!sprite.active){this.layingHens.delete(index);return;}
+          actor.setDepth(this.toWorld(home.col,home.row).y+26);
+          sprite.setAngle(0).setY(-2).play('hen-lay',true);
+          this.time.delayedCall(1100,()=>{
+            if(!actor.active||!sprite.active){this.layingHens.delete(index);return;}
+            actor.setDepth(outsideDepth+2);sprite.play('hen-walk',true);
+            this.tweens.add({targets:actor,x:yardX,y:yardY,duration:850,ease:'Sine.inOut',
+              onComplete:()=>{
+                if(!actor.active||!sprite.active){this.layingHens.delete(index);return;}
+                actor.setScale(1,1);actor.setDepth(Math.max(actor.y+24,this.toWorld(home.col,home.row).y+58)+index*0.01);
+                sprite.setAngle(0).setY(-2);this.animateAnimalIdle(actor,sprite);this.layingHens.delete(index);
+              }
+            });
+          });
+        }
+      });
     });
   }
 
