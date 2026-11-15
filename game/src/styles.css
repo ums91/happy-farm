@@ -3442,3 +3442,55 @@ body.visitor-mode .audio-dock{display:none!important}
 .decor-catalog-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;}
 .decor-catalog-card{width:100%;min-width:0;}
 @media(max-width:700px){.decor-sort-bar{justify-content:space-between;position:sticky;top:44px;z-index:3;padding:7px 5px;background:#fff9e8;}.decor-sort-bar select{min-height:38px;flex:0 1 62%;min-width:0;}}
+
+
+/* Mobile HUD and touch-target refinement (kept isolated from desktop layout). */
+.mobile-level-xp{display:none}
+@media(max-width:700px){
+  .topbar{
+    grid-template-columns:minmax(0,1fr) auto!important;
+    grid-template-rows:auto auto!important;
+    align-items:center!important;
+    gap:5px 7px!important;
+    min-height:88px!important;
+    padding:6px 7px!important;
+  }
+  .farmer-hud{grid-column:1;grid-row:1;min-width:0!important;width:100%;height:44px!important;padding:2px 5px!important;gap:6px!important;border:0!important;background:transparent!important;box-shadow:none!important}
+  .farmer-hud .avatar{width:34px!important;height:34px!important;flex:0 0 34px!important;font-size:23px!important}
+  .farmer-meta{display:flex!important;flex:1 1 auto!important;min-width:0!important;flex-direction:column!important;align-items:stretch!important;justify-content:center!important;gap:2px!important}
+  .farmer-title{min-width:0!important;gap:4px!important;line-height:1!important}
+  .farmer-title strong{font-size:12px!important;max-width:100%!important}
+  #edit-farm-profile{width:20px!important;height:20px!important;flex:0 0 20px!important;font-size:11px!important}
+  .mobile-level-xp{display:grid!important;grid-template-columns:auto minmax(42px,1fr) auto;align-items:center;gap:5px;width:100%;min-width:0}
+  .mobile-level-xp>strong{font-size:8px;line-height:1;padding:2px 5px;border-radius:6px;background:linear-gradient(#b45cff,#6b26c2);border:1px solid #e2b4ff;color:#fff;white-space:nowrap}
+  .mobile-xp-track{height:6px;min-width:0;overflow:hidden;border:1px solid #b5d4ef;border-radius:8px;background:#153f6d}
+  .mobile-xp-track i{display:block;width:0;height:100%;background:linear-gradient(90deg,#3b9cf2,#b4eaff)}
+  .mobile-level-xp small{font-size:7px;line-height:1;color:#f8e8c8;white-space:nowrap}
+  .top-actions{grid-column:2;grid-row:1;display:flex!important;align-items:center;gap:3px!important}
+  .top-actions button{width:29px!important;height:29px!important;min-width:29px!important;min-height:29px!important;font-size:14px!important;padding:0!important}
+  .resources{grid-column:1/-1!important;grid-row:2!important;display:flex!important;width:100%;min-width:0!important;gap:5px!important}
+  .resources .resource{height:31px!important;min-height:31px!important;flex:1 1 0!important;min-width:0!important;padding:2px 6px!important;justify-content:center!important}
+  .resources .resource strong{font-size:11px!important;white-space:nowrap}
+  .resources .resource-icon{width:20px!important;height:20px!important;flex:0 0 20px!important;font-size:14px!important}
+  .resources .xp-resource{display:none!important}
+  .settings-mini{display:none!important}
+  .field-toolbar .tool{min-height:54px!important;height:54px!important}
+  .field-toolbar .tool span{font-size:20px!important}
+  .field-toolbar .tool small{font-size:8px!important}
+}
+@media(max-width:390px){
+  .topbar{min-height:84px!important;padding:5px!important;gap:4px!important}
+  .farmer-hud .avatar{width:30px!important;height:30px!important;flex-basis:30px!important;font-size:20px!important}
+  .farmer-title strong{font-size:11px!important}
+  .mobile-level-xp{grid-template-columns:auto minmax(30px,1fr) auto;gap:3px}
+  .mobile-level-xp>strong{font-size:7px;padding:2px 3px}
+  .mobile-level-xp small{font-size:6px}
+  .top-actions button{width:25px!important;height:25px!important;min-width:25px!important;min-height:25px!important;font-size:12px!important}
+  .resources .resource{padding:2px 3px!important}
+  .resources .resource strong{font-size:10px!important}
+}
+@media(pointer:coarse){
+  button,.nav-button,.market-buy,.market-tab,.tool,.dock-button,.left-nav button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+  .field-toolbar .tool,.left-nav button,.dock-button{user-select:none;-webkit-user-select:none}
+  .field-toolbar .tool{min-height:52px}
+}
