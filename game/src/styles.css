@@ -3494,3 +3494,24 @@ body.visitor-mode .audio-dock{display:none!important}
   .field-toolbar .tool,.left-nav button,.dock-button{user-select:none;-webkit-user-select:none}
   .field-toolbar .tool{min-height:52px}
 }
+
+
+/* Dedicated FarmVille-style chicken coop management window */
+#coop-modal{z-index:24;background:rgba(35,55,34,.62);backdrop-filter:blur(3px);padding:12px}
+#coop-modal .coop-window{width:min(650px,100%);max-height:min(88dvh,820px);overflow:auto;display:flex;flex-direction:column;gap:10px;background:linear-gradient(160deg,#fffdf2,#f0dfb8);border:7px solid #fff8e8;box-shadow:0 8px 0 #94683a,0 24px 70px #14201480}
+#coop-modal .market-header{background:linear-gradient(90deg,#f8e7b9,#fff8e8);border:2px solid #e1c58e;border-radius:14px;padding:12px 14px}
+#coop-modal .market-header:before{content:"🐔";display:grid;place-items:center;width:48px;height:48px;float:left;margin-right:12px;border-radius:13px;background:linear-gradient(#fff3c9,#e9c66d);border:2px solid #fff;box-shadow:0 3px 0 #bd9451;font-size:28px}
+#coop-modal .market-header h2{color:#628d3b!important;font-size:clamp(24px,4vw,34px)!important}
+#coop-modal .market-intro{margin:0 4px;color:#806b49;font-weight:700}
+#coop-modal .market-items{display:flex;flex-direction:column;gap:12px;overflow:visible}
+#coop-modal .inventory-section{background:rgba(255,250,235,.88);border:2px solid #e8d5aa;border-radius:15px;padding:13px}
+#coop-modal .inventory-section h3{color:#6c9142;font-size:15px}
+#coop-modal .inventory-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+#coop-modal .production-level{background:#e5f1d1;color:#5f873a;border-radius:20px;padding:5px 10px;font-weight:900}
+#coop-modal .building-levels{display:flex;gap:7px;justify-content:center;color:#d6c69f;font-size:21px}
+#coop-modal .building-levels .reached{color:#e4ad37;text-shadow:0 1px #fff}
+#coop-modal .coop-upgrade-card{border:2px solid #d6bd83;background:linear-gradient(145deg,#fff8df,#f3e2b9);box-shadow:inset 0 0 0 2px #fff}
+#coop-modal .coop-upgrade-card .market-buy{width:100%;padding:12px;font-size:13px;box-shadow:0 3px 0 #5d9138}
+#coop-modal .animal-progress{background:#fffdf6;border:1px solid #e8d7b5;border-radius:12px;padding:10px;margin:8px 0}
+#coop-modal .market-footer{position:sticky;bottom:-10px;background:linear-gradient(#fff8e8,#efdfbd);padding:10px;border-top:2px dashed #dfc99d}
+@media(max-width:560px){#coop-modal{padding:7px;align-items:center}#coop-modal .coop-window{width:100%;max-height:92dvh;padding:10px;border-width:5px;border-radius:19px}#coop-modal .inventory-grid{grid-template-columns:1fr 1fr;gap:6px}#coop-modal .inventory-section{padding:9px}#coop-modal .market-header{padding:8px 10px}#coop-modal .market-header:before{width:40px;height:40px;font-size:23px}#coop-modal .market-header h2{font-size:23px!important}}
