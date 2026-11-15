@@ -157,7 +157,10 @@ export class FarmScene extends Phaser.Scene {
     }
     for (const building of ['farmhouse','windmill','greenhouse','village-bakery','chicken-coop','cow-shed','barn','silo','well','workshop','stable','water-tower'] as const) {
       for (let level = 1; level <= 6; level += 1) {
-        this.load.image(`building-${building}-${level}`, `${import.meta.env.BASE_URL}assets/buildings/${building}/${building}-level-${level}.png`);
+        const filename = building === 'chicken-coop'
+          ? `chicken_coop_level_${level}.png`
+          : `${building}-level-${level}.png`;
+        this.load.image(`building-${building}-${level}`, `${import.meta.env.BASE_URL}assets/buildings/${building}/${filename}`);
       }
     }
     // Wheat and carrot use the newly uploaded five-stage horizontal sprite strips.
