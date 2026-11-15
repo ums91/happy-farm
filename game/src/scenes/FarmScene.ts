@@ -872,7 +872,6 @@ export class FarmScene extends Phaser.Scene {
     this.animals.forEach((animal,index)=>{
       const cow=animal.id==='cow'||animal.id==='calf',baby=this.isBabyAnimal(animal.id);
       const home=cow?cowHome:henHome;
-      const chickenIndex=cow?0:this.animals.slice(0,index).filter(a=>a.id==='hen'||a.id==='chick').length;
       const homeTile=this.nearestAnimalCell(home);
       if(!homeTile){this.toast('No clear grass tile available for an animal. Move a building or field first.');return;}
       const center=this.toWorld(homeTile.col,homeTile.row);
@@ -1126,12 +1125,12 @@ export class FarmScene extends Phaser.Scene {
       const wellCropY = source.height * 0.18;
       const wellCropHeight = source.height * 0.64;
       const displayHeight = id === 'well' ? wellCropHeight : source.height;
-      const targetWidth = id === 'coop' ? 220 : 132;
-      const targetHeight = id === 'coop' ? 190 : 124;
+      const targetWidth = id === 'coop' ? 180 : 132;
+      const targetHeight = id === 'coop' ? 155 : 124;
       const scale = Math.min(targetWidth / source.width, targetHeight / displayHeight);
-      // The coop enclosure spans a 3x3 land footprint. Render from its centre
-      // so the complete fenced yard stays inside the owned tile boundary.
-      const renderPoint=id==='coop'?this.toWorld(pos.col+1,pos.row+1):p;
+      // The compact coop occupies a 2x2 tile footprint; anchor its artwork
+      // at the centre of those four tiles.
+      const renderPoint=id==='coop'?this.toWorld(pos.col+0.5,pos.row+0.5):p;
       const sprite = this.add.image(renderPoint.x, renderPoint.y + 24, texture)
         .setOrigin(0.5, id === 'well' ? (wellCropY + wellCropHeight) / source.height : 1)
         .setScale(scale)
@@ -1316,7 +1315,7 @@ export class FarmScene extends Phaser.Scene {
 
   private placementFootprint(id:string):Array<{dc:number;dr:number}> {
     const buildings=['farmhouse','barn','coop','silo','bakery','greenhouse','windmill','stable','well','workshop','waterTower'];
-    if(id==='coop')return [{dc:0,dr:0},{dc:1,dr:0},{dc:2,dr:0},{dc:0,dr:1},{dc:1,dr:1},{dc:2,dr:1},{dc:0,dr:2},{dc:1,dr:2},{dc:2,dr:2}];
+    if(id==='coop')return [{dc:0,dr:0},{dc:1,dr:0},{dc:0,dr:1},{dc:1,dr:1}];
     if(buildings.includes(id))return [{dc:0,dr:0},{dc:1,dr:0},{dc:0,dr:1},{dc:1,dr:1}];
     const asset=this.decorAssetForId(id)||'';
     if(/gazebo|arch|swing|windmill|fountain|well|pond|waterfall|bridge|cart|market|campfire/.test(asset))return [{dc:0,dr:0},{dc:1,dr:0},{dc:0,dr:1},{dc:1,dr:1}];
@@ -1367,19 +1366,6 @@ export class FarmScene extends Phaser.Scene {
     return null;
   }
 
-  // The coop sprite contains a 2x2 shelter at the back and a larger fenced
-  // yard in front. Spawn animals in valid grass cells around that footprint:
-  // alternating near the shelter entrance and farther out in the pen.
-  private coopAnimalSpawnCell(home:{col:number;row:number},index:number):{col:number;row:number}|null {
-    const pen=[{dc:2,dr:-1},{dc:2,dr:0},{dc:2,dr:1},{dc:1,dr:1},{dc:0,dr:1}];
-    const ordered=index%2===0?pen:[...pen.slice(2),...pen.slice(0,2)];
-    for(const offset of ordered){
-      const tile={col:home.col+offset.dc,row:home.row+offset.dr};
-      if(this.animalCellBlocked(tile,undefined,true))continue;
-      return tile;
-    }
-    return null;
-  }
 
   private animalRouteIsClear(from:{x:number;y:number},to:{x:number;y:number},actor:Phaser.GameObjects.Container):boolean {
     const distance=Phaser.Math.Distance.Between(from.x,from.y,to.x,to.y);
