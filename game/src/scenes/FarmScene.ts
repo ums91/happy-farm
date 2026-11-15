@@ -879,7 +879,12 @@ export class FarmScene extends Phaser.Scene {
       const roamCenter=cow?center:this.toWorld(home.col+1,home.row+1);
       if(!this.animalTroughs.has(animal.id))this.createAnimalTrough(animal.id,center.x+(cow?20:17),center.y+12);
       const bounds={width:TILE_W*4,height:TILE_H*4};
-      const actor=this.add.container(center.x,center.y);actor.setDepth(center.y+24+index*0.01);
+      const actor=this.add.container(center.x,center.y);
+      // Chickens render above the coop artwork so they remain visibly inside
+      // the fenced yard instead of being hidden behind the coop sprite/roof.
+      const chickenAnimal=animal.id==='hen'||animal.id==='chick';
+      const coopDepthAnchor=this.decor.coop?this.toWorld(this.decor.coop.col,this.decor.coop.row).y:0;
+      actor.setDepth(chickenAnimal?Math.max(center.y+24,coopDepthAnchor+58)+index*0.01:center.y+24+index*0.01);
       this.animalReservedCells.add(this.animalCellKey(homeTile));
       // Keep animal sprites at a consistent world scale. The old cow container
       // multiplier (0.275) was applied on top of setDisplaySize and made cows
