@@ -918,7 +918,7 @@ export class FarmScene extends Phaser.Scene {
       // small 2x2 footprint. This keeps hens/chicks distributed from the shelter
       // entrance through the open fenced yard while cows retain their barn behavior.
       const marginX=cow?bounds.width/2-28:104,marginY=cow?bounds.height/2-25:88;
-      if(animal.assigned===false){const sprite=this.animalSprites.get(actor);if(sprite){sprite.setAngle(0).setY(1).play(cow?'cow-rest':'hen-rest',true);this.tweens.add({targets:sprite,y:2,duration:cow?1900:1250,yoyo:true,repeat:-1,ease:'Sine.inOut'});}}else this.time.delayedCall(Phaser.Math.Between(2200,5200),()=>this.wanderAnimal(actor,roamCenter.x,roamCenter.y,marginX,marginY,cow));
+      if(animal.assigned===false&&!chickenAnimal){const sprite=this.animalSprites.get(actor);if(sprite){sprite.setAngle(0).setY(1).play('cow-rest',true);this.tweens.add({targets:sprite,y:2,duration:1900,yoyo:true,repeat:-1,ease:'Sine.inOut'});}}else this.time.delayedCall(Phaser.Math.Between(700,1600),()=>this.wanderAnimal(actor,roamCenter.x,roamCenter.y,marginX,marginY,cow));
     });
     this.updateAnimalHungryIndicators();
   }
@@ -980,7 +980,13 @@ export class FarmScene extends Phaser.Scene {
     }
     this.tweens.add({targets:actor,x:dest.x,y:dest.y,duration,ease:'Sine.inOut',
       onStart:()=>actor.setScale((dest.x<actor.x?-1:1)*baseScale,baseScale),
-      onUpdate:()=>actor.setDepth(actor.y+this.animalActors.indexOf(actor)),
+      onUpdate:()=>{
+        const animalIndex=this.animalActors.indexOf(actor),animal=this.animals[animalIndex],chicken=animal?.id==='hen'||animal?.id==='chick';
+        const coopBase=this.decor.coop?this.toWorld(this.decor.coop.col,this.decor.coop.row).y:0;
+        // Keep chickens in front of the coop art for the full walk cycle;
+        // the normal depth sort otherwise sends them behind the opaque building.
+        actor.setDepth(chicken?Math.max(actor.y+24,coopBase+58)+animalIndex*0.01:actor.y+animalIndex);
+      },
       onComplete:()=>{
         if(!actor.active)return;
         this.animalReservedCells.delete(this.animalCellKey(current));
