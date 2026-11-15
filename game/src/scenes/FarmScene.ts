@@ -160,7 +160,8 @@ export class FarmScene extends Phaser.Scene {
         const filename = building === 'chicken-coop'
           ? `chicken_coop_level_${level}.png`
           : `${building}-level-${level}.png`;
-        this.load.image(`building-${building}-${level}`, `${import.meta.env.BASE_URL}assets/buildings/${building}/${filename}`);
+        const assetUrl=`${import.meta.env.BASE_URL}assets/buildings/${building}/${filename}${building==='chicken-coop'?'?v=coop-art-20261115-2':''}`;
+        this.load.image(`building-${building}-${level}`, assetUrl);
       }
     }
     // Wheat and carrot use the newly uploaded five-stage horizontal sprite strips.
@@ -1095,7 +1096,7 @@ export class FarmScene extends Phaser.Scene {
     const assets: Record<string, { folder: string; level: number }> = {
       farmhouse: { folder: 'farmhouse', level: Math.min(6,1+Math.floor((this.farmerLevel-1)/3)) },
       barn: { folder: 'cow-shed', level: this.buildings.barnLevel },
-      coop: { folder: 'chicken-coop', level: this.buildings.coopLevel },
+      coop: { folder: 'chicken-coop', level: this.buildings.coopLevel || this.buildingLevels.coop || 1 },
       silo: { folder: 'silo', level: this.buildings.warehouseLevel },
       bakery: { folder: 'village-bakery', level: this.buildingLevels.bakery || 1 },
       greenhouse: { folder: 'greenhouse', level: this.buildingLevels.greenhouse || 1 },
