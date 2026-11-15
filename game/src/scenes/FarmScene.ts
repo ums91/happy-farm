@@ -1040,14 +1040,14 @@ export class FarmScene extends Phaser.Scene {
     // reserved for cows and calves.
     if(kind==='hen'||kind==='chick')return;
     const trough=this.animalTroughs.get(kind);if(!trough?.active)return;
-    const chicken=kind==='hen'||kind==='chick',feedColor=chicken?0xf2b72f:0x82b84b;
+    const feedColor=0x82b84b;
     this.tweens.killTweensOf(trough);trough.setScale(1);
     this.tweens.add({targets:trough,scaleX:1.08,scaleY:0.94,duration:150,yoyo:true,repeat:5,ease:'Sine.inOut'});
     for(let i=0;i<7;i++){
       const morsel=this.add.circle(trough.x+Phaser.Math.Between(-11,11),trough.y-2,Phaser.Math.Between(2,4),feedColor,1).setDepth(trough.depth+9);
       this.tweens.add({targets:morsel,x:morsel.x+Phaser.Math.Between(-12,12),y:morsel.y-Phaser.Math.Between(9,22),alpha:0,scale:0.35,duration:Phaser.Math.Between(420,760),delay:i*65,ease:'Cubic.out',onComplete:()=>morsel.destroy()});
     }
-    const nibble=this.add.text(trough.x,trough.y-15,chicken?'✦':'✧',{fontSize:'14px',color:chicken?'#ffe18a':'#d8f0a0',stroke:'#5b4727',strokeThickness:2}).setOrigin(.5).setDepth(trough.depth+10);
+    const nibble=this.add.text(trough.x,trough.y-15,'✧',{fontSize:'14px',color:'#d8f0a0',stroke:'#5b4727',strokeThickness:2}).setOrigin(.5).setDepth(trough.depth+10);
     this.tweens.add({targets:nibble,y:nibble.y-19,alpha:0,scale:1.35,duration:850,ease:'Sine.out',onComplete:()=>nibble.destroy()});
   }
   private moveAnimalToTrough(actor:Phaser.GameObjects.Container,kind:AnimalId,index:number):void{
@@ -1055,16 +1055,16 @@ export class FarmScene extends Phaser.Scene {
     // Hens and chicks feed in place. Only cattle walk to their shared trough.
     if(kind==='hen'||kind==='chick'){this.playFeedingAnimation(actor);return;}
     const trough=this.animalTroughs.get(kind);if(!trough?.active)return;
-    const cow=kind==='cow'||kind==='calf',baseScale=1,spacing=cow?10:8;
+    const baseScale=1,spacing=10;
     const offset=(index%3-1)*spacing;
     const targetX=trough.x+offset,targetY=trough.y+(Math.floor(index/3)%2)*7+8;
     const sprite=this.animalSprites.get(actor);
     this.tweens.killTweensOf(actor);
-    if(sprite){this.tweens.killTweensOf(sprite);sprite.play(kind==='chick'?'chick-walk':cow?'cow-walk':'hen-walk',true);}
+    if(sprite){this.tweens.killTweensOf(sprite);sprite.play('cow-walk',true);}
     this.tweens.add({targets:actor,x:targetX,y:targetY,duration:Phaser.Math.Between(450,850),ease:'Sine.inOut',
       onStart:()=>actor.setScale((targetX<actor.x?-1:1)*baseScale,baseScale),
       onUpdate:()=>actor.setDepth(actor.y+this.animalActors.indexOf(actor)),
-      onComplete:()=>{if(!actor.active)return;actor.setScale(actor.scaleX<0?-baseScale:baseScale,baseScale);if(sprite){sprite.setAngle(0).setY(-2);sprite.play(kind==='chick'?'chick-peck':cow?'cow-eat':'hen-peck',true);}this.playFeedingAnimation(actor);}
+      onComplete:()=>{if(!actor.active)return;actor.setScale(actor.scaleX<0?-baseScale:baseScale,baseScale);if(sprite){sprite.setAngle(0).setY(-2);sprite.play('cow-eat',true);}this.playFeedingAnimation(actor);}
     });
   }
   private playFeedingAnimation(actor:Phaser.GameObjects.Container):void{
