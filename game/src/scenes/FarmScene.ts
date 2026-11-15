@@ -904,7 +904,7 @@ export class FarmScene extends Phaser.Scene {
         actor.add(body);
       }
       this.animalActors.push(actor);
-      const marginX=bounds.width/2-(cow?28:19),marginY=bounds.height/2-(cow?25:18);
+      const marginX=cow?bounds.width/2-28:82,marginY=cow?bounds.height/2-25:54;
       if(animal.assigned===false){const sprite=this.animalSprites.get(actor);if(sprite){sprite.setAngle(0).setY(1).play(cow?'cow-rest':'hen-rest',true);this.tweens.add({targets:sprite,y:2,duration:cow?1900:1250,yoyo:true,repeat:-1,ease:'Sine.inOut'});}}else this.time.delayedCall(Phaser.Math.Between(2200,5200),()=>this.wanderAnimal(actor,center.x,center.y,marginX,marginY,cow));
     });
     this.updateAnimalHungryIndicators();
@@ -1101,7 +1101,9 @@ export class FarmScene extends Phaser.Scene {
       const wellCropY = source.height * 0.18;
       const wellCropHeight = source.height * 0.64;
       const displayHeight = id === 'well' ? wellCropHeight : source.height;
-      const scale = Math.min(132 / source.width, 124 / displayHeight);
+      const targetWidth = id === 'coop' ? 220 : 132;
+      const targetHeight = id === 'coop' ? 190 : 124;
+      const scale = Math.min(targetWidth / source.width, targetHeight / displayHeight);
       const sprite = this.add.image(p.x, p.y + 24, texture)
         .setOrigin(0.5, id === 'well' ? (wellCropY + wellCropHeight) / source.height : 1)
         .setScale(scale)
