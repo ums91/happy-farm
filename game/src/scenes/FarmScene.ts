@@ -1125,16 +1125,18 @@ export class FarmScene extends Phaser.Scene {
       const wellCropY = source.height * 0.18;
       const wellCropHeight = source.height * 0.64;
       const displayHeight = id === 'well' ? wellCropHeight : source.height;
-      const targetWidth = id === 'coop' ? 180 : 132;
-      const targetHeight = id === 'coop' ? 155 : 124;
+      const targetWidth = id === 'coop' ? TILE_W * 2 : 132;
+      const targetHeight = id === 'coop' ? 157 : 124;
       const scale = Math.min(targetWidth / source.width, targetHeight / displayHeight);
-      // The compact coop occupies a 2x2 tile footprint; anchor its artwork
-      // at the centre of those four tiles.
+      // The coop's four occupied tiles form a 2x2 isometric diamond.
+      // Centre the artwork over those tiles and align the bottom of the fence
+      // with the diamond's south vertex (one full tile-height below centre).
       const renderPoint=id==='coop'?this.toWorld(pos.col+0.5,pos.row+0.5):p;
-      const sprite = this.add.image(renderPoint.x, renderPoint.y + 24, texture)
+      const renderY=id==='coop'?renderPoint.y+TILE_H:renderPoint.y+24;
+      const sprite = this.add.image(renderPoint.x, renderY, texture)
         .setOrigin(0.5, id === 'well' ? (wellCropY + wellCropHeight) / source.height : 1)
         .setScale(scale)
-        .setDepth(p.y + 30);
+        .setDepth(p.y + (id==='coop'?TILE_H+30:30));
       if (id === 'well') sprite.setCrop(0, wellCropY, source.width, wellCropHeight);
       this.buildingAssetSprites.set(id, sprite);
     }
