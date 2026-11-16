@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { initializeCloudSaves, queueCloudSave } from '../services/cloudSave';
 import { initializeFriends } from '../services/friends';
-import { playSfx, setCowPresence } from '../services/sfx';
+import { playSfx } from '../services/sfx';
 
 type Tool = 'select' | 'plow' | 'plant' | 'harvest' | 'move' | 'store' | 'remove' | 'feed-hen' | 'feed-cow';
 type PlotState = 'grass' | 'tilled' | 'growing' | 'ready' | 'withered';
@@ -2930,7 +2930,6 @@ export class FarmScene extends Phaser.Scene {
     if(mobileProgress)mobileProgress.textContent=this.farmerLevel>=100?`${this.xp.toLocaleString()} XP · MAX`:`${this.levelProgress}/${this.xpNeededForNextLevel} XP`;
     const mobileFill=document.getElementById('mobile-progress-fill');
     if(mobileFill)(mobileFill as HTMLElement).style.width=`${Math.min(100,this.levelProgress/this.xpNeededForNextLevel*100)}%`;
-    setCowPresence(this.animals.filter(a=>a.id==='cow'&&a.assigned!==false).length);
     const animalStatus=document.getElementById('animal-status'); if(animalStatus){const now=Date.now();const ready=this.animals.filter(a=>a.readyAt>0&&a.readyAt<=now).length;const producing=this.animals.filter(a=>a.readyAt>now).length;const waiting=this.animals.filter(a=>a.readyAt===0).length;animalStatus.textContent=this.animals.length?this.animals.length+' animal(s) · '+ready+' ready · '+producing+' producing · '+waiting+' waiting · eggs '+this.produce.eggs+' / milk '+this.produce.milk+'.':'No animals yet. Visit the Coop or Dairy Barn to manage housing.';}
     const w=document.getElementById('wheat-count'); if(w) w.textContent=String(this.inventory.wheat);
     const inv=document.getElementById('inventory-count'); if(inv) inv.textContent=String(Object.values(this.inventory).reduce((a,b)=>a+b,0)+this.feed.hen+this.feed.cow);
