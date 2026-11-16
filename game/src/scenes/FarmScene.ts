@@ -810,13 +810,14 @@ export class FarmScene extends Phaser.Scene {
       const tree=/tree|pine|evergreen|blossom/.test(slug);
       const tableOrSeat=/picnic_table|park_bench|wooden_park_bench|bench/.test(slug);
       const tinyProp=/birdhouse|bird_bath|sign|lamp|flower_pot|planter|rock|stone|firewood|hay|crate|barrel|pump|path|fence|hedge|bush|flowerbed|flower_bush|flower_hedge/.test(slug);
+      const cartProp=/cart/.test(slug);
       const large=/gazebo|arch|swing|windmill|fountain|well|pond|waterfall|bridge|cart|market|campfire/.test(slug);
       // Use building-relative world sizes: furniture and garden details should
       // occupy only a fraction of a tile, while trees and landmarks can rise above it.
-      // Keep the picnic table/benches deliberately compact so they read as furniture.
+      // Carts are decorative accents, not full-size landmarks; keep them slightly smaller.
       const appleTree=/^apple_tree/.test(slug);
-      const maxW=appleTree?64:tree?76:tableOrSeat?42:tinyProp?34:large?82:58;
-      const maxH=appleTree?82:tree?98:tableOrSeat?28:tinyProp?32:large?70:48;
+      const maxW=appleTree?64:tree?76:tableOrSeat?42:tinyProp?34:cartProp?68:large?82:58;
+      const maxH=appleTree?82:tree?98:tableOrSeat?28:tinyProp?32:cartProp?58:large?70:48;
       const scale=Math.min(maxW/source.width,maxH/source.height);
       const displayW=source.width*scale;
       const shadow=this.add.ellipse(p.x,p.y+1,Math.max(24,displayW*0.66),tree?11:large?15:9,0x34502a,0.22)
