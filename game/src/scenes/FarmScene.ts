@@ -158,7 +158,7 @@ export class FarmScene extends Phaser.Scene {
     this.load.spritesheet('animal-cow', `${import.meta.env.BASE_URL}assets/animals/cow.png`, { frameWidth: 384, frameHeight: 256 });
     this.load.spritesheet('animal-hen', `${import.meta.env.BASE_URL}assets/animals/hen.png`, { frameWidth: 48, frameHeight: 48 });
     this.load.spritesheet('animal-chick', `${import.meta.env.BASE_URL}assets/animals/chick.png`, { frameWidth: 44, frameHeight: 40 });
-    this.load.spritesheet('exotic-chickens',`${import.meta.env.BASE_URL}assets/animals/exotic/exotic_chickens_atlas.png`,{frameWidth:32,frameHeight:32});
+    for(const breed of ['golden','silkie','phoenix','lavender'] as const)for(const stage of ['chick','hen','rooster'] as const)this.load.image(`exotic-${breed}-${stage}`,`${import.meta.env.BASE_URL}assets/animals/exotic/${breed}_${stage}.png`);
     for (let stage = 1; stage <= 5; stage += 1) {
       this.load.image(`crop-tomato-${stage}`, `${import.meta.env.BASE_URL}assets/crops/tomato/tomato-stage-${stage}-${['seeds','sprout','young','flowering','ripe'][stage - 1]}.png`);
     }
@@ -902,14 +902,13 @@ export class FarmScene extends Phaser.Scene {
       // Adult cows should read only modestly larger than hens in the isometric view;
       // calves remain visibly smaller. Keep sprite dimensions explicit (no container multiplier).
       const growthScale=baby?0.65+Math.min(3,Math.max(0,Number(animal.growthFeedings)||0))/3*0.35:1;
-      const animalWidth=(animal.id==='chick'?24:cow?40:23)*growthScale;
-      const animalHeight=(animal.id==='chick'?23:cow?28:22)*growthScale;
+      const animalWidth=(animal.id==='chick'?24:cow?40:animal.exotic?30:23)*growthScale;
+      const animalHeight=(animal.id==='chick'?23:cow?28:animal.exotic?29:22)*growthScale;
       actor.add(this.add.ellipse(0,6,cow?(baby?21:31):animal.id==='chick'?15:21,cow?(baby?5:7):6,0x263e25,0.2));
       const exoticStage=animal.id==='chick'?'chick':animal.exotic?(animal.sex==='rooster'?'rooster':'hen'):null;
-      const texture=animal.exotic&&animal.breed?'exotic-chickens':animal.id==='chick'?'animal-chick':cow?'animal-cow':'animal-hen';
-      const exoticFrame=animal.exotic&&animal.breed?(['chick','hen','rooster'].indexOf(exoticStage||'hen')*4+(['golden','silkie','phoenix','lavender'] as const).indexOf(animal.breed)):0;
+      const texture=animal.exotic&&animal.breed?`exotic-${animal.breed}-${exoticStage||'hen'}`:animal.id==='chick'?'animal-chick':cow?'animal-cow':'animal-hen';
       if(this.textures.exists(texture)){
-        const sprite=this.add.sprite(0,-2,texture,exoticFrame).setDisplaySize(animalWidth,animalHeight).setAlpha(1).setVisible(true);
+        const sprite=this.add.sprite(0,-2,texture).setDisplaySize(animalWidth,animalHeight).setAlpha(1).setVisible(true);
         sprite.setDepth(2);
         actor.add(sprite);
         this.animalSprites.set(actor,sprite);
