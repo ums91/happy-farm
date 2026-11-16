@@ -2385,9 +2385,9 @@ export class FarmScene extends Phaser.Scene {
     else if(animal){quantity=this.produce[animal];price=animal==='eggs'?this.eggSellPrice():28;label=animal;if(quantity)this.produce[animal]=0;}
     else if(product&&product in this.crafted){quantity=this.crafted[product];price=({flour:24,bread:58,pastry:86,grapes:36} as Record<ProductId,number>)[product];label=this.productName(product);if(quantity)this.crafted[product]=0;}
     if(!quantity){this.toast('Nothing available to sell.');return;}
-    const total=quantity*price;playSfx('coin');this.coins+=total;this.xp+=Math.max(1,Math.floor(total/20));this.saveFarm();this.refreshHud();this.renderMarket('sell');this.toast('Sold '+quantity+' '+label+' for '+total+' coins · XP earned.');
+    const total=quantity*price;playSfx('sell');this.coins+=total;this.xp+=Math.max(1,Math.floor(total/20));this.saveFarm();this.refreshHud();this.renderMarket('sell');this.toast('Sold '+quantity+' '+label+' for '+total+' coins · XP earned.');
   }
-  private sellProduce(): void { const value=this.produce.eggs*this.eggSellPrice()+this.produce.milk*28; if(value<=0){this.toast('No animal products to sell yet.');return;}const eggs=this.produce.eggs,milk=this.produce.milk;this.produce={eggs:0,milk:0};playSfx('coin');this.coins+=value;this.xp+=eggs*2+milk*4;this.saveFarm();this.refreshHud();this.renderInventory();this.toast('Sold '+eggs+' eggs and '+milk+' milk for '+value+' coins!'); }
+  private sellProduce(): void { const value=this.produce.eggs*this.eggSellPrice()+this.produce.milk*28; if(value<=0){this.toast('No animal products to sell yet.');return;}const eggs=this.produce.eggs,milk=this.produce.milk;this.produce={eggs:0,milk:0};playSfx('sell');this.coins+=value;this.xp+=eggs*2+milk*4;this.saveFarm();this.refreshHud();this.renderInventory();this.toast('Sold '+eggs+' eggs and '+milk+' milk for '+value+' coins!'); }
   private openMarket(): void {
     playSfx('market');
     const modal=document.getElementById('market-modal');

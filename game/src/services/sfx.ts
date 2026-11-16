@@ -1,6 +1,6 @@
 const ENABLED_KEY='happyFarmSfxEnabledV1';
 const VOLUME_KEY='happyFarmSfxVolumeV1';
-type SfxName='plow'|'plant'|'harvest'|'feed'|'egg'|'milk'|'coin'|'purchase'|'level'|'hen'|'chick'|'cow'|'rooster'|'bird'|'market'|'quest'|'reward'|'delivery';
+type SfxName='plow'|'plant'|'harvest'|'feed'|'egg'|'milk'|'coin'|'purchase'|'level'|'hen'|'chick'|'cow'|'rooster'|'bird'|'market'|'quest'|'reward'|'delivery'|'sell';
 const audioAsset=(name:string):string=>import.meta.env.BASE_URL+'audio/'+name;
 // Locally bundled user-provided animal calls. Multiple variants keep repeated
 // feeding/collection actions from sounding identical. The short ambience clip
@@ -11,7 +11,8 @@ const sampleUrls:Partial<Record<SfxName,string[]>>={
   cow:[audioAsset('cow-moo-1.mp3'),audioAsset('cow-moo-2.mp3')],
   rooster:['https://sfxmint.com/dl/rooster-crow-02.mp3'],
   bird:[audioAsset('farm-ambient-birds.mp3')],
-  level:[audioAsset('level-up-celebration.mp3')]
+  level:[audioAsset('level-up-celebration.mp3')],
+  sell:[audioAsset('sell.mp3')]
 };
 function playSample(name:SfxName,rate=1):void{
   const variants=sampleUrls[name];if(!variants?.length)return;
@@ -89,6 +90,7 @@ export function playSfx(name:SfxName):void{
   if(!enabled)return;
   if(name==='hen'||name==='chick'||name==='cow'||name==='rooster'||name==='bird'){playSample(name,name==='chick'?1.35:1);return;}
   if(name==='level'){playSample('level');return;}
+  if(name==='sell'){playSample('sell');return;}
   if(name==='egg')playSample('hen');
   const ctx=audioContext();if(!ctx)return;const t=ctx.currentTime;
   switch(name){
