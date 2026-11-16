@@ -158,7 +158,7 @@ export class FarmScene extends Phaser.Scene {
     this.load.spritesheet('animal-cow', `${import.meta.env.BASE_URL}assets/animals/cow.png`, { frameWidth: 384, frameHeight: 256 });
     this.load.spritesheet('animal-hen', `${import.meta.env.BASE_URL}assets/animals/hen.png`, { frameWidth: 48, frameHeight: 48 });
     this.load.spritesheet('animal-chick', `${import.meta.env.BASE_URL}assets/animals/chick.png`, { frameWidth: 44, frameHeight: 40 });
-    for(const breed of ['golden','silkie','phoenix','lavender'] as const)for(const stage of ['chick','hen','rooster'] as const)this.load.image(`exotic-${breed}-${stage}`,`${import.meta.env.BASE_URL}assets/animals/exotic/${breed}_${stage}.png`);
+    this.load.spritesheet('exotic-chickens',`${import.meta.env.BASE_URL}assets/animals/exotic/exotic_chickens_atlas.png`,{frameWidth:32,frameHeight:32});
     for (let stage = 1; stage <= 5; stage += 1) {
       this.load.image(`crop-tomato-${stage}`, `${import.meta.env.BASE_URL}assets/crops/tomato/tomato-stage-${stage}-${['seeds','sprout','young','flowering','ripe'][stage - 1]}.png`);
     }
@@ -906,9 +906,10 @@ export class FarmScene extends Phaser.Scene {
       const animalHeight=(animal.id==='chick'?23:cow?28:22)*growthScale;
       actor.add(this.add.ellipse(0,6,cow?(baby?21:31):animal.id==='chick'?15:21,cow?(baby?5:7):6,0x263e25,0.2));
       const exoticStage=animal.id==='chick'?'chick':animal.exotic?(animal.sex==='rooster'?'rooster':'hen'):null;
-      const texture=animal.exotic&&animal.breed?`exotic-${animal.breed}-${exoticStage||'hen'}`:animal.id==='chick'?'animal-chick':cow?'animal-cow':'animal-hen';
+      const texture=animal.exotic&&animal.breed?'exotic-chickens':animal.id==='chick'?'animal-chick':cow?'animal-cow':'animal-hen';
+      const exoticFrame=animal.exotic&&animal.breed?(['chick','hen','rooster'].indexOf(exoticStage||'hen')*4+(['golden','silkie','phoenix','lavender'] as const).indexOf(animal.breed)):0;
       if(this.textures.exists(texture)){
-        const sprite=this.add.sprite(0,-2,texture).setDisplaySize(animalWidth,animalHeight).setAlpha(1).setVisible(true);
+        const sprite=this.add.sprite(0,-2,texture,exoticFrame).setDisplaySize(animalWidth,animalHeight).setAlpha(1).setVisible(true);
         sprite.setDepth(2);
         actor.add(sprite);
         this.animalSprites.set(actor,sprite);
@@ -2343,9 +2344,10 @@ export class FarmScene extends Phaser.Scene {
     const host=document.getElementById(id==='coop'?'coop-modal-items':'market-items');if(!host)return;
      if(id==='coop')host.onclick=(event)=>{const target=event.target as HTMLElement;const start=target.closest<HTMLButtonElement>('[data-start-incubation]');if(start){this.startIncubation();return;}const hatch=target.closest<HTMLButtonElement>('[data-hatch-egg]');if(hatch)this.claimHatchedEgg(hatch.dataset.hatchEgg||'');};
     const incubationReady=this.incubatingEggs.filter(e=>e.readyAt<=now).length;
+    const exoticAdults=family.filter(a=>a.exotic&&a.id==='hen').length,exoticChicks=family.filter(a=>a.exotic&&a.id==='chick').length,roosters=family.filter(a=>a.exotic&&a.sex==='rooster').length;
     const incubationActive=this.incubatingEggs.filter(e=>e.readyAt>now).length;
     const hatchRows=this.incubatingEggs.map(e=>{const remaining=Math.max(0,e.readyAt-now),pct=Math.max(0,Math.min(100,(1-remaining/300000)*100));return '<article class="animal-progress"><strong>🥚 '+e.breed+' exotic egg · '+(remaining?fmt(remaining)+' remaining':'Ready to hatch')+'</strong><div class="production-track"><i style="width:'+pct+'%"></i></div><button class="market-buy" data-hatch-egg="'+e.id+'" '+(remaining?'disabled':'')+'>🐣 Hatch chick</button></article>';}).join('');
-    host.innerHTML=(id==='coop'?'<section class="inventory-section"><h3>🥚 Exotic egg incubation</h3><p>Exotic eggs: '+this.exoticEggs+' · Incubating: '+incubationActive+' · Ready: '+incubationReady+'</p><button class="market-buy" data-start-incubation="1" '+(this.exoticEggs<=0||this.incubatingEggs.length>=Math.max(1,Math.floor(level/2)+1)?'disabled':'')+'>Incubate exotic egg · 5 minutes</button>'+(hatchRows||'<p>No eggs are incubating yet.</p>')+'</section>':'')+
+    host.innerHTML=(id==='coop'?'<section class="inventory-section"><h3>🥚 Exotic egg incubation</h3><p>Exotic eggs: '+this.exoticEggs+' · Incubating: '+incubationActive+' · Ready: '+incubationReady+'</p><p>Exotic flock: '+exoticChicks+' chicks · '+exoticAdults+' hens · '+roosters+' roosters</p><button class="market-buy" data-start-incubation="1" '+(this.exoticEggs<=0||this.incubatingEggs.length>=Math.max(1,Math.floor(level/2)+1)?'disabled':'')+'>Incubate exotic egg · 5 minutes</button>'+(hatchRows||'<p>No eggs are incubating yet.</p>')+'</section>':'')+
       '<section class="inventory-section production-building-heading"><div class="production-status-row"><h3>'+(id==='coop'?'🐔 Chicken Coop':'🐄 Cow Shed')+'</h3><span class="production-level">Level '+level+'/6</span></div><p>Manage your animals, feed stock and '+(id==='coop'?'egg':'milk')+' production from one place.</p><div class="building-levels">'+[1,2,3,4,5,6].map(n=>'<span class="'+(n<=level?'reached':'')+'">★</span>').join('')+'</div></section>'+
       '<section class="inventory-section"><h3>📊 Farm status</h3><div class="inventory-grid"><article class="market-item"><div class="market-art">🏡</div><div class="market-copy"><strong>'+family.length+' / '+capacity+' spaces</strong><small>'+adults.length+' adult · '+young+' young · '+resting+' resting</small></div></article><article class="market-item"><div class="market-art">'+(id==='coop'?'🥚':'🥛')+'</div><div class="market-copy"><strong>'+this.produce[field]+' / '+storage+' '+field+'</strong><small>'+ready+' ready to collect · '+producing+' producing</small></div></article></div></section>'+
       '<section class="inventory-section"><div class="production-status-row"><h3>🥣 Feed stock</h3><strong>× '+feedCount+'</strong></div><p>'+feedName+' · '+(id==='coop'?'10 minutes':'30 minutes')+' per adult production cycle. Baby animals need 3 feedings to mature.</p><div class="production-track"><i style="width:'+Math.min(100,feedCount*10)+'%"></i></div><div class="building-actions"><span class="market-intro">'+(feedCount>0?'Feed is ready. Tap a hungry animal on your farm to feed it.':'Out of feed. Use the Market tab to restock.')+'</span></div></section>'+
