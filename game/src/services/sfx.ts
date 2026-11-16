@@ -115,7 +115,7 @@ export function initializeSfxControls():void{
   // disabled, and a once-listener would be consumed without unlocking ambience.
   document.addEventListener('pointerdown',unlockAudio);
   document.addEventListener('keydown',unlockAudio);
-  document.addEventListener('visibilitychange',()=>{if(document.hidden){stopAmbientBirds();stopCowAmbient();}else{scheduleAmbientBird();scheduleCowAmbient();}});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)stopAmbientBirds();else scheduleAmbientBird();});
   window.addEventListener('happyfarm:sfx',event=>{const name=(event as CustomEvent<{sound:SfxName}>).detail?.sound;if(name)playSfx(name);});
   render();
 }
