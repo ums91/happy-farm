@@ -814,8 +814,9 @@ export class FarmScene extends Phaser.Scene {
       // Use building-relative world sizes: furniture and garden details should
       // occupy only a fraction of a tile, while trees and landmarks can rise above it.
       // Keep the picnic table/benches deliberately compact so they read as furniture.
-      const maxW=tree?76:tableOrSeat?42:tinyProp?34:large?82:58;
-      const maxH=tree?98:tableOrSeat?28:tinyProp?32:large?70:48;
+      const appleTree=/^apple_tree/.test(slug);
+      const maxW=appleTree?64:tree?76:tableOrSeat?42:tinyProp?34:large?82:58;
+      const maxH=appleTree?82:tree?98:tableOrSeat?28:tinyProp?32:large?70:48;
       const scale=Math.min(maxW/source.width,maxH/source.height);
       const displayW=source.width*scale;
       const shadow=this.add.ellipse(p.x,p.y+1,Math.max(24,displayW*0.66),tree?11:large?15:9,0x34502a,0.22)
