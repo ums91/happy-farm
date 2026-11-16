@@ -1,6 +1,6 @@
 const ENABLED_KEY='happyFarmSfxEnabledV1';
 const VOLUME_KEY='happyFarmSfxVolumeV1';
-type SfxName='plow'|'plant'|'harvest'|'feed'|'egg'|'milk'|'coin'|'purchase'|'level'|'hen'|'chick'|'cow'|'rooster'|'bird'|'market'|'quest'|'reward'|'delivery'|'sell';
+type SfxName='plow'|'plant'|'harvest'|'feed'|'egg'|'milk'|'coin'|'purchase'|'level'|'hen'|'chick'|'rooster'|'bird'|'market'|'quest'|'reward'|'delivery'|'sell';
 const audioAsset=(name:string):string=>import.meta.env.BASE_URL+'audio/'+name;
 // Locally bundled user-provided animal calls. Multiple variants keep repeated
 // feeding/collection actions from sounding identical. The short ambience clip
@@ -8,7 +8,6 @@ const audioAsset=(name:string):string=>import.meta.env.BASE_URL+'audio/'+name;
 const sampleUrls:Partial<Record<SfxName,string[]>>={
   hen:[audioAsset('chicken-cluck-1.mp3'),audioAsset('chicken-cluck-2.mp3')],
   chick:[audioAsset('chicken-cluck-1.mp3'),audioAsset('chicken-cluck-2.mp3')],
-  cow:[audioAsset('cow-moo-1.mp3'),audioAsset('cow-moo-2.mp3')],
   rooster:['https://sfxmint.com/dl/rooster-crow-02.mp3'],
   bird:[audioAsset('farm-ambient-birds.mp3')],
   level:[audioAsset('level-up-celebration.mp3')],
@@ -72,7 +71,9 @@ function noise(ctx:AudioContext,start:number,duration:number,gain:number,filter:
 }
 export function playSfx(name:SfxName):void{
   if(!enabled)return;
-  if(name==='hen'||name==='chick'||name==='cow'||name==='rooster'||name==='bird'){playSample(name,name==='chick'?1.35:1);return;}
+  // Cow vocal audio is intentionally disabled: never allow any interaction or stale event to trigger a moo.
+  if((name as string)==='cow')return;
+  if(name==='hen'||name==='chick'||name==='rooster'||name==='bird'){playSample(name,name==='chick'?1.35:1);return;}
   if(name==='level'){playSample('level');return;}
   if(name==='plow'||name==='harvest'||name==='sell'){playSample(name);return;}
   if(name==='egg')playSample('hen');
