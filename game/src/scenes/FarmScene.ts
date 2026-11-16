@@ -8,14 +8,15 @@ type PlotState = 'grass' | 'tilled' | 'growing' | 'ready' | 'withered';
 type CropId = 'wheat' | 'carrot' | 'corn' | 'strawberry' | 'tomato' | 'pumpkin' | 'blueberry' | 'watermelon';
 interface Plot { col: number; row: number; state: PlotState; watered: boolean; growth: number; crop: CropId; readyAt: number; witherAt: number }
 type AnimalId = 'hen' | 'cow' | 'chick' | 'calf';
-interface Animal { id: AnimalId; readyAt: number; assigned?: boolean; growthFeedings?: number; exotic?: boolean }
-interface IncubatingEgg { id:string; breed:'golden'|'silkie'|'phoenix'|'lavender'; startedAt:number; readyAt:number }
+type ExoticBreed = 'golden'|'silkie'|'phoenix'|'lavender';
+interface Animal { id: AnimalId; readyAt: number; assigned?: boolean; growthFeedings?: number; exotic?: boolean; breed?: ExoticBreed; sex?: 'hen'|'rooster' }
+interface IncubatingEgg { id:string; breed:ExoticBreed; startedAt:number; readyAt:number }
 interface BuildingProgress { coopLevel: number; barnLevel: number; warehouseLevel: number }
 interface AnimalProduce { eggs: number; milk: number }
 type BuildingId = 'coop'|'barn'|'silo'|'bakery'|'greenhouse'|'windmill'|'stable'|'well'|'workshop'|'waterTower';
 type ProductId='flour'|'bread'|'pastry'|'grapes';
 interface ProductionJob { recipe:string; readyAt:number }
-interface FarmSave { version: 20; exoticEggs?:number; incubatingEggs?:IncubatingEgg[]; workshopCompost?:number; water?:number; waterCollectedAt?:number; farmExpansionLevel?:number; landTiles?:string[]; landExpansionCount?:number; questRefreshAt?:number; questProgressBaseline?:Partial<Record<'harvests'|'hens'|'cows'|'eggs'|'milk',number>>; eventStartedAt?:number; eventStartHarvests?:number; eventClaimed?:boolean; claimedMilestones?:number[]; claimedRibbons?:string[]; harvestedCrops?:Partial<Record<CropId,number>>; fruitInventory?:Record<'apples'|'pears'|'cherries'|'oranges',number>; fruitTreeReadyAt?:Record<string,number>; fruitTreeHarvests?:Record<string,number>; fruitTreeDormantUntil?:Record<string,number>; farmerName?:string; farmName?:string; buildingLevels?:Partial<Record<BuildingId,number>>; productionJobs?:Partial<Record<BuildingId,ProductionJob|null>>; crafted?:Partial<Record<ProductId,number>>; randomQuests?: Array<{id:string;title:string;description:string;target:number;coins:number;xp:number;icon:string;metric:'harvests'|'hens'|'cows'|'eggs'|'milk'}>; claimedQuests?: string[]; ordersCompleted?: Record<string,number>; animals: Animal[]; harvests: number; coins: number; xp: number; selectedCrop?: CropId; decor?: Record<string,{col:number;row:number}>; storedDecor?:string[]; feed: { hen: number; cow: number }; buildings?: BuildingProgress; produce?: AnimalProduce; inventory: Record<CropId, number>; plots: Array<{ col:number; row:number; state:PlotState; watered:boolean; growth:number; crop?:CropId; readyAt?:number; witherAt?:number }> }
+interface FarmSave { version: 21; exoticEggs?:number; incubatingEggs?:IncubatingEgg[]; workshopCompost?:number; water?:number; waterCollectedAt?:number; farmExpansionLevel?:number; landTiles?:string[]; landExpansionCount?:number; questRefreshAt?:number; questProgressBaseline?:Partial<Record<'harvests'|'hens'|'cows'|'eggs'|'milk',number>>; eventStartedAt?:number; eventStartHarvests?:number; eventClaimed?:boolean; claimedMilestones?:number[]; claimedRibbons?:string[]; harvestedCrops?:Partial<Record<CropId,number>>; fruitInventory?:Record<'apples'|'pears'|'cherries'|'oranges',number>; fruitTreeReadyAt?:Record<string,number>; fruitTreeHarvests?:Record<string,number>; fruitTreeDormantUntil?:Record<string,number>; farmerName?:string; farmName?:string; buildingLevels?:Partial<Record<BuildingId,number>>; productionJobs?:Partial<Record<BuildingId,ProductionJob|null>>; crafted?:Partial<Record<ProductId,number>>; randomQuests?: Array<{id:string;title:string;description:string;target:number;coins:number;xp:number;icon:string;metric:'harvests'|'hens'|'cows'|'eggs'|'milk'}>; claimedQuests?: string[]; ordersCompleted?: Record<string,number>; animals: Animal[]; harvests: number; coins: number; xp: number; selectedCrop?: CropId; decor?: Record<string,{col:number;row:number}>; storedDecor?:string[]; feed: { hen: number; cow: number }; buildings?: BuildingProgress; produce?: AnimalProduce; inventory: Record<CropId, number>; plots: Array<{ col:number; row:number; state:PlotState; watered:boolean; growth:number; crop?:CropId; readyAt?:number; witherAt?:number }> }
 const CROPS: Record<CropId,{name:string;emoji:string;cost:number;reward:number;xp:number;growMs:number;color:number;unlockLevel:number}> = {
  wheat:{name:'Wheat',emoji:'🌾',cost:8,reward:22,xp:2,growMs:5*60*1000,color:0xe4b83f,unlockLevel:1},
  carrot:{name:'Carrot',emoji:'🥕',cost:14,reward:38,xp:3,growMs:10*60*1000,color:0xef873e,unlockLevel:1},
@@ -73,6 +74,7 @@ export class FarmScene extends Phaser.Scene {
   private produce: AnimalProduce = { eggs: 0, milk: 0 };
    private exoticEggs=0;
    private incubatingEggs:IncubatingEgg[]=[];
+   private incubationUiSecond=0;
   private activeBuilding: BuildingId|null = null;
   private farmerName='New Farmer';
   private farmName='My Farm';
@@ -156,6 +158,7 @@ export class FarmScene extends Phaser.Scene {
     this.load.spritesheet('animal-cow', `${import.meta.env.BASE_URL}assets/animals/cow.png`, { frameWidth: 384, frameHeight: 256 });
     this.load.spritesheet('animal-hen', `${import.meta.env.BASE_URL}assets/animals/hen.png`, { frameWidth: 48, frameHeight: 48 });
     this.load.spritesheet('animal-chick', `${import.meta.env.BASE_URL}assets/animals/chick.png`, { frameWidth: 44, frameHeight: 40 });
+    for(const breed of ['golden','silkie','phoenix','lavender'] as const)for(const stage of ['chick','hen','rooster'] as const)this.load.image(`exotic-${breed}-${stage}`,`${import.meta.env.BASE_URL}assets/animals/exotic/${breed}_${stage}.png`);
     for (let stage = 1; stage <= 5; stage += 1) {
       this.load.image(`crop-tomato-${stage}`, `${import.meta.env.BASE_URL}assets/crops/tomato/tomato-stage-${stage}-${['seeds','sprout','young','flowering','ripe'][stage - 1]}.png`);
     }
@@ -902,13 +905,14 @@ export class FarmScene extends Phaser.Scene {
       const animalWidth=(animal.id==='chick'?24:cow?40:23)*growthScale;
       const animalHeight=(animal.id==='chick'?23:cow?28:22)*growthScale;
       actor.add(this.add.ellipse(0,6,cow?(baby?21:31):animal.id==='chick'?15:21,cow?(baby?5:7):6,0x263e25,0.2));
-      const texture=animal.id==='chick'?'animal-chick':cow?'animal-cow':'animal-hen';
+      const exoticStage=animal.id==='chick'?'chick':animal.exotic?(animal.sex==='rooster'?'rooster':'hen'):null;
+      const texture=animal.exotic&&animal.breed?`exotic-${animal.breed}-${exoticStage||'hen'}`:animal.id==='chick'?'animal-chick':cow?'animal-cow':'animal-hen';
       if(this.textures.exists(texture)){
         const sprite=this.add.sprite(0,-2,texture).setDisplaySize(animalWidth,animalHeight).setAlpha(1).setVisible(true);
         sprite.setDepth(2);
         actor.add(sprite);
         this.animalSprites.set(actor,sprite);
-        if(animal.id==='chick')sprite.play('chick-idle',true);else this.animateAnimalIdle(actor,sprite);
+        if(animal.exotic){this.tweens.add({targets:sprite,y:-4,duration:900,yoyo:true,repeat:-1,ease:'Sine.inOut'});}else if(animal.id==='chick')sprite.play('chick-idle',true);else this.animateAnimalIdle(actor,sprite);
       }else{
         // Keep the original vector animal as a graceful fallback while artwork loads.
         const body=this.add.graphics();
@@ -2019,7 +2023,7 @@ export class FarmScene extends Phaser.Scene {
   private animalProductionDuration(kind:AnimalId):number{return kind==='hen'?10*60*1000:30*60*1000;}
   private animalFeedType(kind:AnimalId):'hen'|'cow'{return kind==='chick'?'hen':kind==='calf'?'cow':kind;}
   private isBabyAnimal(kind:AnimalId):boolean{return kind==='chick'||kind==='calf';}
-  private matureAnimal(index:number):void{const animal=this.animals[index];if(!animal||!this.isBabyAnimal(animal.id))return;animal.id=animal.id==='chick'?'hen':'cow';animal.readyAt=0;animal.growthFeedings=undefined;this.renderOwnedAnimals();this.saveFarm();this.refreshHud();this.toast(animal.id==='hen'?'Your chick has grown into a hen!':'Your calf has grown into a cow!');}
+  private matureAnimal(index:number):void{const animal=this.animals[index];if(!animal||!this.isBabyAnimal(animal.id))return;const wasChick=animal.id==='chick';animal.id=wasChick?'hen':'cow';animal.readyAt=0;animal.growthFeedings=undefined;if(wasChick&&animal.exotic)animal.sex=Math.random()<0.5?'hen':'rooster';this.renderOwnedAnimals();this.saveFarm();this.refreshHud();this.toast(wasChick?(animal.exotic?'Your '+(animal.breed||'exotic')+' chick grew into an exotic '+(animal.sex||'hen')+'!':'Your chick has grown into a hen!'):'Your calf has grown into a cow!');}
   private productionCapacity(kind:AnimalId):number{return Math.max(10,10+((kind==='hen'?this.buildings.coopLevel:this.buildings.barnLevel)-1)*5+(this.buildings.warehouseLevel-1)*10);}
   private eggSellPrice():number{return 12+Math.max(0,Math.min(5,this.buildings.coopLevel-1))*2;}
   private coopUpgradeCost(level=this.buildings.coopLevel):number{return level>=6?0:level*350;}
@@ -2129,16 +2133,16 @@ export class FarmScene extends Phaser.Scene {
       if(this.feed[feedType]<=0){this.openFeedMarketFor(kind);return;}
       this.feed[feedType]--;playSfx(kind==='chick'?'chick':kind==='hen'?'hen':'cow');playSfx('feed');animal.growthFeedings=(animal.growthFeedings||0)+1;
       animal.readyAt=Date.now()+this.animalProductionDuration(feedType);
-      if(actor){this.moveAnimalToTrough(actor,kind,this.animals.slice(0,index).filter(a=>a.id===kind).length);const sprite=this.animalSprites.get(actor);if(sprite)this.sizeAnimalSprite(actor,sprite);}
-      this.animateAnimalTrough(kind);
+      if(actor){if(kind==='calf')this.moveAnimalToTrough(actor,kind,this.animals.slice(0,index).filter(a=>a.id===kind).length);const sprite=this.animalSprites.get(actor);if(sprite)this.sizeAnimalSprite(actor,sprite);}
+      if(kind==='calf')this.animateAnimalTrough(kind);
       if(animal.growthFeedings>=3){this.matureAnimal(index);return;}
       this.saveFarm();this.refreshHud();this.updateAnimalHungryIndicators();this.toast((kind==='chick'?'Chick':'Calf')+' fed · '+(3-animal.growthFeedings)+' more feedings to grow.');return;
     }
     if(animal.readyAt>0){this.toast('This animal has already been fed.');return;}
     if(this.feed[feedType]<=0){this.openFeedMarketFor(kind);return;}
     this.feed[feedType]--;playSfx(kind==='hen'?'hen':'cow');playSfx('feed');animal.readyAt=Date.now()+this.animalProductionDuration(kind);
-    if(actor)this.moveAnimalToTrough(actor,kind,this.animals.slice(0,index).filter(a=>a.id===kind).length);
-    this.animateAnimalTrough(kind);this.saveFarm();this.refreshHud();this.updateAnimalHungryIndicators();
+    if(actor&&kind==='cow')this.moveAnimalToTrough(actor,kind,this.animals.slice(0,index).filter(a=>a.id===kind).length);
+    if(kind==='cow')this.animateAnimalTrough(kind);this.saveFarm();this.refreshHud();this.updateAnimalHungryIndicators();
     this.toast((kind==='hen'?'Hen':'Cow')+' fed · '+(kind==='hen'?'Egg':'Milk')+' production started.');
     if(this.activeBuilding===(kind==='hen'?'coop':'barn'))this.renderBuildingPanel(kind==='hen'?'coop':'barn');
   }
@@ -2295,9 +2299,9 @@ export class FarmScene extends Phaser.Scene {
     this.saveFarm();this.refreshHud();this.renderInventory();this.renderSideRail();this.toast('Crafted-goods delivery complete · +'+order.coins+' coins · +'+order.xp+' XP');
   }
 
-  private updateIncubation():void{if(this.activeBuilding==='coop'&&this.incubatingEggs.length)this.renderBuildingPanel('coop');}
+  private updateIncubation():void{if(this.activeBuilding!=='coop'||!this.incubatingEggs.length)return;const second=Math.floor(Date.now()/1000);if(second!==this.incubationUiSecond){this.incubationUiSecond=second;this.renderBuildingPanel('coop');}}
    private startIncubation():void{const cap=Math.max(1,Math.floor(this.buildings.coopLevel/2)+1);if(this.exoticEggs<=0||this.incubatingEggs.length>=cap)return;const breeds:Array<IncubatingEgg['breed']>=['golden','silkie','phoenix','lavender'];const breed=breeds[Math.floor(Math.random()*breeds.length)]||'golden',now=Date.now();this.exoticEggs--;this.incubatingEggs.push({id:'egg-'+now+'-'+Math.random().toString(36).slice(2),breed,startedAt:now,readyAt:now+300000});this.saveFarm();this.renderBuildingPanel('coop');}
-   private claimHatchedEgg(id:string):void{const egg=this.incubatingEggs.find(e=>e.id===id);if(!egg||egg.readyAt>Date.now())return;if(this.animals.length>=this.buildingCapacity('hen')){this.toast('Your coop is full. Upgrade it or make room before hatching.');return;}this.incubatingEggs=this.incubatingEggs.filter(e=>e.id!==id);this.animals.push({id:'chick',readyAt:0,assigned:true,growthFeedings:0,exotic:true});this.renderOwnedAnimals();this.saveFarm();this.refreshHud();this.renderBuildingPanel('coop');this.toast('An exotic chick has hatched!');}
+   private claimHatchedEgg(id:string):void{const egg=this.incubatingEggs.find(e=>e.id===id);if(!egg||egg.readyAt>Date.now())return;if(this.animals.length>=this.buildingCapacity('hen')){this.toast('Your coop is full. Upgrade it or make room before hatching.');return;}this.incubatingEggs=this.incubatingEggs.filter(e=>e.id!==id);this.animals.push({id:'chick',readyAt:0,assigned:true,growthFeedings:0,exotic:true,breed:egg.breed});this.renderOwnedAnimals();this.saveFarm();this.refreshHud();this.renderBuildingPanel('coop');this.toast('An exotic chick has hatched!');}
    private openBuilding(id: 'coop'|'barn'): void { if(id==='coop'){this.activeBuilding='coop';const modal=document.getElementById('coop-modal');modal?.classList.add('open');modal?.setAttribute('aria-hidden','false');this.renderBuildingPanel('coop');return;}document.getElementById('market-modal')?.classList.remove('inventory-mode');this.activeBuilding=id;const modal=document.getElementById('market-modal');const title=modal?.querySelector('.market-header h2');if(title)title.textContent='Cow Pasture';modal?.querySelector('.market-tabs')?.classList.add('inventory-hidden');const intro=document.getElementById('market-intro');if(intro)intro.textContent='Manage housing, collect products and keep production moving.';modal?.classList.add('open');modal?.setAttribute('aria-hidden','false');this.renderBuildingPanel(id); }
   private renderBuildingPanel(id:'coop'|'barn'):void{
     const kind:AnimalId=id==='coop'?'hen':'cow';
@@ -2306,7 +2310,7 @@ export class FarmScene extends Phaser.Scene {
     const capacity=this.buildingCapacity(kind),storage=this.productionCapacity(kind);
     const field=id==='coop'?'eggs':'milk',feedCount=this.feed[kind];
     const family=this.animals.filter(a=>a.id===kind||a.id===babyKind);
-    const adults=this.animals.filter(a=>a.id===kind);
+    const adults=this.animals.filter(a=>a.id===kind&&a.sex!=='rooster');
     const young=family.filter(a=>a.id===babyKind).length;
     const now=Date.now();
     const ready=adults.filter(a=>a.assigned!==false&&a.readyAt>0&&a.readyAt<=now).length;
@@ -2327,8 +2331,8 @@ export class FarmScene extends Phaser.Scene {
       const status=a.assigned===false?'Resting':a.readyAt===0?'Needs feed':remaining>0?(isBaby?'Growing · ':'Producing · ')+fmt(remaining):isBaby?'Ready for next feeding':'Ready to collect';
       const pct=a.assigned===false||a.readyAt===0?0:remaining===0?100:Math.max(0,Math.min(100,(1-remaining/cycle)*100));
       const progressLabel=isBaby?'Growth progress · '+(a.growthFeedings||0)+'/3 feedings':(kind==='hen'?'Egg':'Milk')+' cycle progress';
-      const animalName=isBaby?(id==='coop'?'Baby Chick':'Baby Calf'):(id==='coop'?'Hen':'Cow');
-      const animalIcon=isBaby?(id==='coop'?'🐣':'🐮'):(id==='coop'?'🐔':'🐄');
+      const animalName=isBaby?(id==='coop'?(a.exotic?(a.breed||'Exotic')+' Chick':'Baby Chick'):'Baby Calf'):(id==='coop'?(a.sex==='rooster'?(a.breed||'Exotic')+' Rooster':a.exotic?(a.breed||'Exotic')+' Hen':'Hen'):'Cow');
+      const animalIcon=isBaby?(id==='coop'?(a.exotic?'🐤':'🐣'):'🐮'):(id==='coop'?(a.sex==='rooster'?'🐓':'🐔'):'🐄');
       const actionLabel=a.assigned===false?'Resume production':'Set to rest';
       return '<article class="animal-progress animal-state-'+statusKey+'"><div class="animal-progress-top"><span class="animal-avatar">'+animalIcon+'</span><div class="animal-identity"><strong>'+animalName+'</strong><small>'+progressLabel+'</small></div><span class="animal-status-pill">'+(statusKey==='ready'?'Ready':statusKey==='hungry'?'Hungry':statusKey==='resting'?'Resting':statusKey==='growing'?'Growing':'Producing')+'</span></div><div class="animal-progress-detail"><span>'+status+'</span><b>'+(isBaby?(a.growthFeedings||0)+'/3':statusKey==='ready'?'100%':statusKey==='hungry'?'0%':statusKey==='resting'?'Paused':Math.round(pct)+'%')+'</b></div><div class="production-track animal-track"><i style="width:'+(isBaby?Math.min(100,(a.growthFeedings||0)/3*100):pct)+'%"></i></div><button class="market-buy" data-animal-toggle="'+index+'">'+actionLabel+'</button></article>';
     }).join('');
@@ -2646,7 +2650,7 @@ export class FarmScene extends Phaser.Scene {
         return;
       }
       const save = JSON.parse(raw) as any;
-      if (![1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20].includes(save.version) || !Array.isArray(save.plots)) {
+      if (![1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21].includes(save.version) || !Array.isArray(save.plots)) {
         this.persistenceBlocked = true;
         console.error('Happy Farm found an unsupported or incomplete save. Saving is disabled to protect the existing data.');
         const status = document.getElementById('cloud-save-status');
@@ -2698,7 +2702,7 @@ export class FarmScene extends Phaser.Scene {
        this.exoticEggs=Math.max(0,Math.floor(Number(save.exoticEggs)||0));
        this.incubatingEggs=Array.isArray(save.incubatingEggs)?save.incubatingEggs.filter((e:any)=>e&&typeof e.id==='string'&&['golden','silkie','phoenix','lavender'].includes(e.breed)&&Number(e.readyAt)>0).map((e:any)=>({...e,startedAt:Number(e.startedAt)||Date.now(),readyAt:Number(e.readyAt)})):[];
       this.animals=this.animals.map(a=>({...a,assigned:a.assigned!==false,growthFeedings:Math.max(0,Math.min(3,Number(a.growthFeedings)||0))}));
-      if (save.version >= 3) { this.animals = Array.isArray(save.animals) ? save.animals.map((a:Animal)=>({...a,assigned:a.assigned!==false,growthFeedings:Math.max(0,Math.min(3,Number(a.growthFeedings)||0))})) : []; this.harvests = Number(save.harvests) || 0; }
+      if (save.version >= 3) { this.animals = Array.isArray(save.animals) ? save.animals.map((a:Animal)=>({...a,assigned:a.assigned!==false,growthFeedings:Math.max(0,Math.min(3,Number(a.growthFeedings)||0)),breed:['golden','silkie','phoenix','lavender'].includes(a.breed||'')?a.breed:undefined,sex:a.sex==='rooster'?'rooster':a.sex==='hen'?'hen':undefined})) : []; this.harvests = Number(save.harvests) || 0; }
       for (const saved of save.plots) {
         const plot = this.plots.get(this.key(saved.col, saved.row));
         if (!plot || !['grass', 'tilled', 'growing', 'ready', 'withered'].includes(saved.state)) continue;
@@ -2756,7 +2760,7 @@ export class FarmScene extends Phaser.Scene {
 
   private saveFarm(): void {
     const save: FarmSave = {
-      version: 20,
+      version: 21,
        exoticEggs:this.exoticEggs,
        incubatingEggs:this.incubatingEggs.map(e=>({...e})),
       water:this.waterUnits,
