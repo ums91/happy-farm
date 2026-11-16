@@ -29,9 +29,27 @@ let volume=0.55;
 let initialized=false;
 let ambientTimer:number|null=null;
 let ambientUnlocked=false;
+let cowsPresent=0;
+let cowAmbientTimer:number|null=null;
 
 function stopAmbientBirds():void{
   if(ambientTimer!==null){window.clearTimeout(ambientTimer);ambientTimer=null;}
+}
+function stopCowAmbient():void{
+  if(cowAmbientTimer!==null){window.clearTimeout(cowAmbientTimer);cowAmbientTimer=null;}
+}
+function scheduleCowAmbient():void{
+  if(cowAmbientTimer!==null||!ambientUnlocked||!enabled||document.hidden||cowsPresent<=0)return;
+  cowAmbientTimer=window.setTimeout(()=>{
+    cowAmbientTimer=null;
+    if(enabled&&!document.hidden&&cowsPresent>0)playSample('cow',.92+Math.random()*.16);
+    scheduleCowAmbient();
+  },35000+Math.random()*40000);
+}
+export function setCowPresence(count:number):void{
+  cowsPresent=Math.max(0,Math.floor(Number(count)||0));
+  if(cowsPresent===0)stopCowAmbient();
+  else scheduleCowAmbient();
 }
 function scheduleAmbientBird():void{
   stopAmbientBirds();
@@ -70,7 +88,6 @@ export function playSfx(name:SfxName):void{
   if(!enabled)return;
   if(name==='hen'||name==='chick'||name==='cow'||name==='rooster'||name==='bird'){playSample(name,name==='chick'?1.35:1);return;}
   if(name==='egg')playSample('hen');
-  if(name==='milk')playSample('cow');
   const ctx=audioContext();if(!ctx)return;const t=ctx.currentTime;
   switch(name){
     case'plow':noise(ctx,t,.22,.12,650);tone(ctx,115,t,.18,.08,'triangle',75);break;
@@ -98,7 +115,7 @@ export function initializeSfxControls():void{
   const stored=localStorage.getItem(VOLUME_KEY);const parsed=stored===null?.55:Number(stored);
   volume=Number.isFinite(parsed)?Math.min(1,Math.max(0,parsed)):.55;
   const render=()=>{toggle.textContent='♪';toggle.setAttribute('aria-label',enabled?'Turn sound effects off':'Turn sound effects on');toggle.setAttribute('aria-pressed',String(enabled));toggle.title=enabled?'Turn sound effects off':'Turn sound effects on';slider.value=String(Math.round(volume*100));output.value=Math.round(volume*100)+'%';output.textContent=output.value;};
-  toggle.addEventListener('click',()=>{enabled=!enabled;localStorage.setItem(ENABLED_KEY,String(enabled));if(enabled){void audioContext();ambientUnlocked=true;playSample('bird');scheduleAmbientBird();}else stopAmbientBirds();render();});
+  toggle.addEventListener('click',()=>{enabled=!enabled;localStorage.setItem(ENABLED_KEY,String(enabled));if(enabled){void audioContext();ambientUnlocked=true;playSample('bird');scheduleAmbientBird();scheduleCowAmbient();}else{stopAmbientBirds();stopCowAmbient();}render();});
   slider.addEventListener('input',()=>{volume=Math.min(1,Math.max(0,Number(slider.value)/100));localStorage.setItem(VOLUME_KEY,String(volume));render();});
   const unlockAudio=():void=>{
     if(!enabled)return;
@@ -108,12 +125,13 @@ export function initializeSfxControls():void{
     // policies cannot block the initial sound. Later clips are scheduled normally.
     playSample('bird');
     scheduleAmbientBird();
+    scheduleCowAmbient();
   };
   // Keep these listeners active: the first interaction may happen while SFX is
   // disabled, and a once-listener would be consumed without unlocking ambience.
   document.addEventListener('pointerdown',unlockAudio);
   document.addEventListener('keydown',unlockAudio);
-  document.addEventListener('visibilitychange',()=>{if(document.hidden)stopAmbientBirds();else scheduleAmbientBird();});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden){stopAmbientBirds();stopCowAmbient();}else{scheduleAmbientBird();scheduleCowAmbient();}});
   window.addEventListener('happyfarm:sfx',event=>{const name=(event as CustomEvent<{sound:SfxName}>).detail?.sound;if(name)playSfx(name);});
   render();
 }
