@@ -104,11 +104,11 @@ export function initializeSfxControls():void{
   toggle.addEventListener('click',()=>{enabled=!enabled;localStorage.setItem(ENABLED_KEY,String(enabled));if(enabled){void audioContext();ambientUnlocked=true;playSample('bird');scheduleAmbientBird();}else{stopAmbientBirds();}render();});
   slider.addEventListener('input',()=>{volume=Math.min(1,Math.max(0,Number(slider.value)/100));localStorage.setItem(VOLUME_KEY,String(volume));render();});
   const unlockAudio=():void=>{
-    if(!enabled)return;
+    if(!enabled||ambientUnlocked)return;
     void audioContext();
     ambientUnlocked=true;
-    // Play the first ambience clip inside the user's gesture so browser autoplay
-    // policies cannot block the initial sound. Later clips are scheduled normally.
+    // Unlock audio once only. Replaying the ambience sample on every pointerdown
+    // made it sound as though an animal vocal played on every tap/click.
     playSample('bird');
     scheduleAmbientBird();
   };
