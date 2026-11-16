@@ -96,9 +96,7 @@ export function playSfx(name:SfxName):void{
   if(name==='egg')playSample('hen');
   const ctx=audioContext();if(!ctx)return;const t=ctx.currentTime;
   switch(name){
-    case'plow':noise(ctx,t,.22,.12,650);tone(ctx,115,t,.18,.08,'triangle',75);break;
     case'plant':tone(ctx,540,t,.08,.10,'sine',760);tone(ctx,820,t+.07,.10,.07,'sine',980);break;
-    case'harvest':tone(ctx,660,t,.18,.13,'sine',880);tone(ctx,990,t+.10,.22,.11,'sine',1320);tone(ctx,1320,t+.22,.25,.08,'sine',1580);break;
     case'feed':noise(ctx,t,.13,.09,1100);tone(ctx,420,t+.05,.13,.07,'sine',520);break;
     case'egg':tone(ctx,880,t,.12,.12,'sine',1040);tone(ctx,1175,t+.11,.18,.09,'sine',1390);break;
     case'milk':tone(ctx,440,t,.16,.10,'sine',550);tone(ctx,660,t+.12,.20,.09,'sine',880);break;
