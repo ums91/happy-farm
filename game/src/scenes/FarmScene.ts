@@ -1291,10 +1291,18 @@ export class FarmScene extends Phaser.Scene {
     if(this.activeTool==='select'){
       const fruitBadgeHit=Object.entries(this.fruitTreeBadges).find(([,badge])=>badge.active&&badge.visible&&Phaser.Math.Distance.Between(world.x,world.y,badge.x,badge.y)<27);
       if(fruitBadgeHit){this.harvestFruitTree(fruitBadgeHit[0]);return;}
-      const fruitTreeHit=Object.keys(this.decor).find(id=>this.fruitKind(id)!==null&&(()=>{
-        const p=this.toWorld(this.decor[id]!.col,this.decor[id]!.row);
-        return Phaser.Math.Distance.Between(world.x,world.y-38,p.x,p.y-49)<48;
-      })());
+      // Only the visible fruit-tree artwork (or its own ground anchor) is a
+      // fruit-tree hit target. The previous broad circular canopy radius could
+      // overlap nearby decorations such as the sunflower cart and report the
+      // neighbouring apple tree when the cart was tapped.
+      const fruitTreeHit=Object.keys(this.decor).find(id=>{
+        if(this.fruitKind(id)===null)return false;
+        const sprite=this.decorAssetSprites.get(id);
+        if(sprite?.active&&sprite.getBounds().contains(world.x,world.y))return true;
+        const pos=this.decor[id];if(!pos)return false;
+        const p=this.toWorld(pos.col,pos.row);
+        return Math.abs(world.x-p.x)<Math.max(16,TILE_W*0.22)&&Math.abs(world.y-p.y)<Math.max(12,TILE_H*0.22);
+      });
       if(fruitTreeHit){this.harvestFruitTree(fruitTreeHit);return;}
       const farmhousePos=this.decor.farmhouse;
       if(farmhousePos){
