@@ -19,7 +19,7 @@ function playSample(name:SfxName,rate=1):void{
   let source=sampleCache.get(url);
   if(!source){source=new Audio(url);source.preload='auto';sampleCache.set(url,source);}
   const audio=source.cloneNode(true) as HTMLAudioElement;
-  audio.volume=Math.min(1,Math.max(0,volume*(name==='bird'?.18:.72)));
+  audio.volume=Math.min(1,Math.max(0,volume*(name==='bird'?.38:.72)));
   audio.playbackRate=rate;
   void audio.play().catch(()=>{/* Browser may require another user gesture before audio playback. */});
 }
@@ -40,7 +40,7 @@ function scheduleAmbientBird():void{
     ambientTimer=null;
     if(enabled&&!document.hidden)playSample('bird');
     scheduleAmbientBird();
-  },26000+Math.random()*22000);
+  },16000+Math.random()*10000);
 }
 
 function audioContext():AudioContext|null{
@@ -98,12 +98,15 @@ export function initializeSfxControls():void{
   const stored=localStorage.getItem(VOLUME_KEY);const parsed=stored===null?.55:Number(stored);
   volume=Number.isFinite(parsed)?Math.min(1,Math.max(0,parsed)):.55;
   const render=()=>{toggle.textContent='♪';toggle.setAttribute('aria-label',enabled?'Turn sound effects off':'Turn sound effects on');toggle.setAttribute('aria-pressed',String(enabled));toggle.title=enabled?'Turn sound effects off':'Turn sound effects on';slider.value=String(Math.round(volume*100));output.value=Math.round(volume*100)+'%';output.textContent=output.value;};
-  toggle.addEventListener('click',()=>{enabled=!enabled;localStorage.setItem(ENABLED_KEY,String(enabled));if(enabled){void audioContext();scheduleAmbientBird();}else stopAmbientBirds();render();});
+  toggle.addEventListener('click',()=>{enabled=!enabled;localStorage.setItem(ENABLED_KEY,String(enabled));if(enabled){void audioContext();if(ambientUnlocked)playSample('bird');scheduleAmbientBird();}else stopAmbientBirds();render();});
   slider.addEventListener('input',()=>{volume=Math.min(1,Math.max(0,Number(slider.value)/100));localStorage.setItem(VOLUME_KEY,String(volume));render();});
   const unlockAudio=():void=>{
     if(!enabled)return;
     void audioContext();
     ambientUnlocked=true;
+    // Play the first ambience clip inside the user's gesture so browser autoplay
+    // policies cannot block the initial sound. Later clips are scheduled normally.
+    playSample('bird');
     scheduleAmbientBird();
   };
   document.addEventListener('pointerdown',unlockAudio,{once:true});
