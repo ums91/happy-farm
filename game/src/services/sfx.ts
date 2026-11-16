@@ -10,7 +10,8 @@ const sampleUrls:Partial<Record<SfxName,string[]>>={
   chick:[audioAsset('chicken-cluck-1.mp3'),audioAsset('chicken-cluck-2.mp3')],
   cow:[audioAsset('cow-moo-1.mp3'),audioAsset('cow-moo-2.mp3')],
   rooster:['https://sfxmint.com/dl/rooster-crow-02.mp3'],
-  bird:[audioAsset('farm-ambient-birds.mp3')]
+  bird:[audioAsset('farm-ambient-birds.mp3')],
+  level:[audioAsset('level-up-celebration.mp3')]
 };
 function playSample(name:SfxName,rate=1):void{
   const variants=sampleUrls[name];if(!variants?.length)return;
@@ -87,6 +88,7 @@ function noise(ctx:AudioContext,start:number,duration:number,gain:number,filter:
 export function playSfx(name:SfxName):void{
   if(!enabled)return;
   if(name==='hen'||name==='chick'||name==='cow'||name==='rooster'||name==='bird'){playSample(name,name==='chick'?1.35:1);return;}
+  if(name==='level'){playSample('level');return;}
   if(name==='egg')playSample('hen');
   const ctx=audioContext();if(!ctx)return;const t=ctx.currentTime;
   switch(name){
@@ -102,7 +104,6 @@ export function playSfx(name:SfxName):void{
     case'reward':[659,784,988,1318].forEach((f,i)=>tone(ctx,f,t+i*.09,.22,.11,'sine',f*1.04));break;
     case'delivery':tone(ctx,523,t,.10,.09,'sine',659);tone(ctx,784,t+.11,.13,.10,'sine',988);tone(ctx,1175,t+.25,.20,.10,'sine',1397);break;
     case'purchase':tone(ctx,523,t,.12,.10,'sine',659);tone(ctx,659,t+.12,.12,.10,'sine',784);tone(ctx,784,t+.24,.20,.10,'sine',1047);break;
-    case'level':[523,659,784,1047,1318].forEach((f,i)=>tone(ctx,f,t+i*.11,.28,.10,'sine',f*1.03));break;
   }
 }
 export function initializeSfxControls():void{
