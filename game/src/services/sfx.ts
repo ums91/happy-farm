@@ -1,21 +1,25 @@
 const ENABLED_KEY='happyFarmSfxEnabledV1';
 const VOLUME_KEY='happyFarmSfxVolumeV1';
 type SfxName='plow'|'plant'|'harvest'|'feed'|'egg'|'milk'|'coin'|'purchase'|'level'|'hen'|'chick'|'cow'|'rooster'|'bird'|'market'|'quest'|'reward'|'delivery';
-// CC0 animal recordings/stylized calls from SFXMint. URLs are immutable and may be hotlinked under CC0 1.0.
-const sampleUrls:Partial<Record<SfxName,string>>={
-  hen:'https://sfxmint.com/dl/hen-cluck-02.mp3',
-  chick:'https://sfxmint.com/dl/hen-cluck-02.mp3',
-  cow:'https://sfxmint.com/dl/cow-moo-02.mp3',
-  rooster:'https://sfxmint.com/dl/rooster-crow-02.mp3',
-  bird:'https://sfxmint.com/dl/animal-bird-24.mp3'
+const audioAsset=(name:string):string=>import.meta.env.BASE_URL+'audio/'+name;
+// Locally bundled user-provided animal calls. Multiple variants keep repeated
+// feeding/collection actions from sounding identical. The short ambience clip
+// is played sparingly at low volume rather than looped into an obvious 3-second repeat.
+const sampleUrls:Partial<Record<SfxName,string[]>>={
+  hen:[audioAsset('chicken-cluck-1.mp3'),audioAsset('chicken-cluck-2.mp3')],
+  chick:[audioAsset('chicken-cluck-1.mp3'),audioAsset('chicken-cluck-2.mp3')],
+  cow:[audioAsset('cow-moo-1.mp3'),audioAsset('cow-moo-2.mp3')],
+  rooster:['https://sfxmint.com/dl/rooster-crow-02.mp3'],
+  bird:[audioAsset('farm-ambient-birds.mp3')]
 };
 const sampleCache=new Map<string,HTMLAudioElement>();
 function playSample(name:SfxName,rate=1):void{
-  const url=sampleUrls[name];if(!url)return;
+  const variants=sampleUrls[name];if(!variants?.length)return;
+  const url=variants[Math.floor(Math.random()*variants.length)];
   let source=sampleCache.get(url);
   if(!source){source=new Audio(url);source.preload='auto';sampleCache.set(url,source);}
   const audio=source.cloneNode(true) as HTMLAudioElement;
-  audio.volume=Math.min(1,Math.max(0,volume*(name==='bird'?.22:.72)));
+  audio.volume=Math.min(1,Math.max(0,volume*(name==='bird'?.18:.72)));
   audio.playbackRate=rate;
   void audio.play().catch(()=>{/* Browser may require another user gesture before audio playback. */});
 }
