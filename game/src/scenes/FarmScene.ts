@@ -1187,7 +1187,6 @@ export class FarmScene extends Phaser.Scene {
       const buildingHit=[...this.buildingProduceBadges.entries()].find(([id,badge])=>{
         if(!badge.active)return false;
         const pos=this.decor[id];if(!pos)return false;
-        const p=this.toWorld(pos.col,pos.row);
         return Phaser.Math.Distance.Between(world.x,world.y,badge.x,badge.y)<28;
       });
       if(buildingHit){this.collectBuildingProduce(buildingHit[0]);return;}
