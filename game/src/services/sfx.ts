@@ -12,6 +12,8 @@ const sampleUrls:Partial<Record<SfxName,string[]>>={
   rooster:['https://sfxmint.com/dl/rooster-crow-02.mp3'],
   bird:[audioAsset('farm-ambient-birds.mp3')],
   level:[audioAsset('level-up-celebration.mp3')],
+  plow:[audioAsset('plow-action.mp3')],
+  harvest:[audioAsset('harvest-action.mp3')],
   sell:[audioAsset('sell.mp3')]
 };
 function playSample(name:SfxName,rate=1):void{
@@ -90,7 +92,7 @@ export function playSfx(name:SfxName):void{
   if(!enabled)return;
   if(name==='hen'||name==='chick'||name==='cow'||name==='rooster'||name==='bird'){playSample(name,name==='chick'?1.35:1);return;}
   if(name==='level'){playSample('level');return;}
-  if(name==='sell'){playSample('sell');return;}
+  if(name==='plow'||name==='harvest'||name==='sell'){playSample(name);return;}
   if(name==='egg')playSample('hen');
   const ctx=audioContext();if(!ctx)return;const t=ctx.currentTime;
   switch(name){
