@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { initializeCloudSaves, queueCloudSave } from '../services/cloudSave';
 import { initializeFriends } from '../services/friends';
-import { playSfx } from '../services/sfx';
+import { playSfx, setCowPresence } from '../services/sfx';
 
 type Tool = 'select' | 'plow' | 'plant' | 'harvest' | 'move' | 'store' | 'remove' | 'feed-hen' | 'feed-cow';
 type PlotState = 'grass' | 'tilled' | 'growing' | 'ready' | 'withered';
@@ -2131,7 +2131,7 @@ export class FarmScene extends Phaser.Scene {
     if(this.isBabyAnimal(kind)){
       if(animal.readyAt>Date.now()){this.toast('This young animal has been fed. It will need feed again later.');return;}
       if(this.feed[feedType]<=0){this.openFeedMarketFor(kind);return;}
-      this.feed[feedType]--;playSfx(kind==='chick'?'chick':kind==='hen'?'hen':'cow');playSfx('feed');animal.growthFeedings=(animal.growthFeedings||0)+1;
+      this.feed[feedType]--;if(kind==='chick'||kind==='hen')playSfx(kind);playSfx('feed');animal.growthFeedings=(animal.growthFeedings||0)+1;
       animal.readyAt=Date.now()+this.animalProductionDuration(feedType);
       if(actor){if(kind==='calf')this.moveAnimalToTrough(actor,kind,this.animals.slice(0,index).filter(a=>a.id===kind).length);const sprite=this.animalSprites.get(actor);if(sprite)this.sizeAnimalSprite(actor,sprite);}
       if(kind==='calf')this.animateAnimalTrough(kind);
@@ -2140,7 +2140,7 @@ export class FarmScene extends Phaser.Scene {
     }
     if(animal.readyAt>0){this.toast('This animal has already been fed.');return;}
     if(this.feed[feedType]<=0){this.openFeedMarketFor(kind);return;}
-    this.feed[feedType]--;playSfx(kind==='hen'?'hen':'cow');playSfx('feed');animal.readyAt=Date.now()+this.animalProductionDuration(kind);
+    this.feed[feedType]--;if(kind==='hen')playSfx('hen');playSfx('feed');animal.readyAt=Date.now()+this.animalProductionDuration(kind);
     if(actor&&kind==='cow')this.moveAnimalToTrough(actor,kind,this.animals.slice(0,index).filter(a=>a.id===kind).length);
     if(kind==='cow')this.animateAnimalTrough(kind);this.saveFarm();this.refreshHud();this.updateAnimalHungryIndicators();
     this.toast((kind==='hen'?'Hen':'Cow')+' fed · '+(kind==='hen'?'Egg':'Milk')+' production started.');
@@ -2923,6 +2923,7 @@ export class FarmScene extends Phaser.Scene {
     if(mobileProgress)mobileProgress.textContent=this.farmerLevel>=100?`${this.xp.toLocaleString()} XP · MAX`:`${this.levelProgress}/${this.xpNeededForNextLevel} XP`;
     const mobileFill=document.getElementById('mobile-progress-fill');
     if(mobileFill)(mobileFill as HTMLElement).style.width=`${Math.min(100,this.levelProgress/this.xpNeededForNextLevel*100)}%`;
+    setCowPresence(this.animals.filter(a=>a.id==='cow'&&a.assigned!==false).length);
     const animalStatus=document.getElementById('animal-status'); if(animalStatus){const now=Date.now();const ready=this.animals.filter(a=>a.readyAt>0&&a.readyAt<=now).length;const producing=this.animals.filter(a=>a.readyAt>now).length;const waiting=this.animals.filter(a=>a.readyAt===0).length;animalStatus.textContent=this.animals.length?this.animals.length+' animal(s) · '+ready+' ready · '+producing+' producing · '+waiting+' waiting · eggs '+this.produce.eggs+' / milk '+this.produce.milk+'.':'No animals yet. Visit the Coop or Dairy Barn to manage housing.';}
     const w=document.getElementById('wheat-count'); if(w) w.textContent=String(this.inventory.wheat);
     const inv=document.getElementById('inventory-count'); if(inv) inv.textContent=String(Object.values(this.inventory).reduce((a,b)=>a+b,0)+this.feed.hen+this.feed.cow);
