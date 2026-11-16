@@ -12,16 +12,16 @@ const sampleUrls:Partial<Record<SfxName,string[]>>={
   rooster:['https://sfxmint.com/dl/rooster-crow-02.mp3'],
   bird:[audioAsset('farm-ambient-birds.mp3')]
 };
-const sampleCache=new Map<string,HTMLAudioElement>();
 function playSample(name:SfxName,rate=1):void{
   const variants=sampleUrls[name];if(!variants?.length)return;
   const url=variants[Math.floor(Math.random()*variants.length)];
-  let source=sampleCache.get(url);
-  if(!source){source=new Audio(url);source.preload='auto';sampleCache.set(url,source);}
-  const audio=source.cloneNode(true) as HTMLAudioElement;
-  audio.volume=Math.min(1,Math.max(0,volume*(name==='bird'?.38:.72)));
+  // Create a fresh media element for each one-shot. Cloning a not-yet-loaded
+  // HTMLAudioElement can produce silent clones in some browsers.
+  const audio=new Audio(url);
+  audio.preload='auto';
+  audio.volume=Math.min(1,Math.max(0,volume*(name==='bird'?.6:.72)));
   audio.playbackRate=rate;
-  void audio.play().catch(()=>{/* Browser may require another user gesture before audio playback. */});
+  void audio.play().catch(error=>console.warn('[Happy Farm] SFX playback failed:',name,url,error));
 }
 let context:AudioContext|null=null;
 let enabled=true;
@@ -98,7 +98,7 @@ export function initializeSfxControls():void{
   const stored=localStorage.getItem(VOLUME_KEY);const parsed=stored===null?.55:Number(stored);
   volume=Number.isFinite(parsed)?Math.min(1,Math.max(0,parsed)):.55;
   const render=()=>{toggle.textContent='♪';toggle.setAttribute('aria-label',enabled?'Turn sound effects off':'Turn sound effects on');toggle.setAttribute('aria-pressed',String(enabled));toggle.title=enabled?'Turn sound effects off':'Turn sound effects on';slider.value=String(Math.round(volume*100));output.value=Math.round(volume*100)+'%';output.textContent=output.value;};
-  toggle.addEventListener('click',()=>{enabled=!enabled;localStorage.setItem(ENABLED_KEY,String(enabled));if(enabled){void audioContext();if(ambientUnlocked)playSample('bird');scheduleAmbientBird();}else stopAmbientBirds();render();});
+  toggle.addEventListener('click',()=>{enabled=!enabled;localStorage.setItem(ENABLED_KEY,String(enabled));if(enabled){void audioContext();ambientUnlocked=true;playSample('bird');scheduleAmbientBird();}else stopAmbientBirds();render();});
   slider.addEventListener('input',()=>{volume=Math.min(1,Math.max(0,Number(slider.value)/100));localStorage.setItem(VOLUME_KEY,String(volume));render();});
   const unlockAudio=():void=>{
     if(!enabled)return;
@@ -109,8 +109,10 @@ export function initializeSfxControls():void{
     playSample('bird');
     scheduleAmbientBird();
   };
-  document.addEventListener('pointerdown',unlockAudio,{once:true});
-  document.addEventListener('keydown',unlockAudio,{once:true});
+  // Keep these listeners active: the first interaction may happen while SFX is
+  // disabled, and a once-listener would be consumed without unlocking ambience.
+  document.addEventListener('pointerdown',unlockAudio);
+  document.addEventListener('keydown',unlockAudio);
   document.addEventListener('visibilitychange',()=>{if(document.hidden)stopAmbientBirds();else scheduleAmbientBird();});
   window.addEventListener('happyfarm:sfx',event=>{const name=(event as CustomEvent<{sound:SfxName}>).detail?.sound;if(name)playSfx(name);});
   render();
