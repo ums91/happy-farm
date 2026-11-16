@@ -1898,14 +1898,21 @@ export class FarmScene extends Phaser.Scene {
 
   private updateToolCursor():void{
     const canvas=this.game.canvas;if(!canvas)return;
-    const cursors:Partial<Record<Tool,string>>={
-      select:'<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path d="M5 3 L25 20 L16 21 L12 29 Z" fill="#fff" stroke="#26351f" stroke-width="2" stroke-linejoin="round"/></svg>',
-      plow:'<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path d="M7 27 L23 7" stroke="#8b542c" stroke-width="4" stroke-linecap="round"/><path d="M17 5 L27 9 L22 15 L13 11 Z" fill="#b8c6ce" stroke="#26351f" stroke-width="1.6"/></svg>',
-      harvest:'<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path d="M7 27 L21 12" stroke="#8b542c" stroke-width="4" stroke-linecap="round"/><path d="M20 12 Q29 2 29 12 Q27 22 15 22 Q22 18 20 12Z" fill="#d9e3d1" stroke="#26351f" stroke-width="1.6"/></svg>',
-      move:'<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path d="M16 3 L11 9 H14 V14 H9 V11 L3 16 L9 21 V18 H14 V23 H11 L16 29 L21 23 H18 V18 H23 V21 L29 16 L23 11 V14 H18 V9 H21 Z" fill="#fff" stroke="#26351f" stroke-width="1.7" stroke-linejoin="round"/></svg>'
+    const cursorAssets:Partial<Record<Tool,string>>={
+      plow:import.meta.env.BASE_URL+'assets/cursors/plough.png',
+      move:import.meta.env.BASE_URL+'assets/cursors/move.png',
+      harvest:import.meta.env.BASE_URL+'assets/cursors/harvest.png'
     };
-    const svg=cursors[this.activeTool];
-    canvas.style.cursor=svg?'url("data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg)+'") 3 3, auto':'default';
+    const cursorAsset=cursorAssets[this.activeTool];
+    if(cursorAsset){
+      // The arrow tip is the click hotspot in all three supplied 41×49 cursors.
+      canvas.style.cursor='url("'+cursorAsset+'") 5 5, auto';
+      return;
+    }
+    if(this.activeTool==='select'){
+      const svg='<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path d="M5 3 L25 20 L16 21 L12 29 Z" fill="#fff" stroke="#26351f" stroke-width="2" stroke-linejoin="round"/></svg>';
+      canvas.style.cursor='url("data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg)+'") 3 3, auto';
+    }else canvas.style.cursor='default';
   }
 
   private bindToolbar(): void {
