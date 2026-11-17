@@ -1160,7 +1160,6 @@ export class FarmScene extends Phaser.Scene {
       const scale = id === 'coop'
         ? (targetWidth * 0.9 * 0.8) / source.width
         : Math.min(targetWidth / source.width, targetHeight / displayHeight);
-      const spansMultipleTiles=footprint.length>1;
       // Use the footprint centre for every 2x2 building. Keep the coop's
       // screenshot-tuned offset; other buildings start at the true centre.
       const buildingOffsetX=id==='coop'?-10:0;
