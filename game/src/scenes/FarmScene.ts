@@ -4,7 +4,7 @@ import { initializeFriends } from '../services/friends';
 import { playSfx } from '../services/sfx';
 
 type Tool = 'select' | 'plow' | 'plant' | 'harvest' | 'move' | 'store' | 'remove' | 'feed-hen' | 'feed-cow';
-type PlotState = 'grass' | 'tilled' | 'growing' | 'ready' | 'withered';
+type PlotState = 'grass' | 'tilled' | 'harvested' | 'growing' | 'ready' | 'withered';
 type CropId = 'wheat' | 'carrot' | 'corn' | 'strawberry' | 'tomato' | 'pumpkin' | 'blueberry' | 'watermelon';
 interface Plot { col: number; row: number; state: PlotState; watered: boolean; growth: number; crop: CropId; readyAt: number; witherAt: number }
 type AnimalId = 'hen' | 'cow' | 'chick' | 'calf';
@@ -16,7 +16,7 @@ interface AnimalProduce { eggs: number; milk: number }
 type BuildingId = 'coop'|'barn'|'silo'|'bakery'|'greenhouse'|'windmill'|'stable'|'well'|'workshop'|'waterTower';
 type ProductId='flour'|'bread'|'pastry'|'grapes';
 interface ProductionJob { recipe:string; readyAt:number }
-interface FarmSave { version: 21; exoticEggs?:number; incubatingEggs?:IncubatingEgg[]; workshopCompost?:number; water?:number; waterCollectedAt?:number; farmExpansionLevel?:number; landTiles?:string[]; landExpansionCount?:number; questRefreshAt?:number; questProgressBaseline?:Partial<Record<'harvests'|'hens'|'cows'|'eggs'|'milk',number>>; eventStartedAt?:number; eventStartHarvests?:number; eventClaimed?:boolean; claimedMilestones?:number[]; claimedRibbons?:string[]; harvestedCrops?:Partial<Record<CropId,number>>; fruitInventory?:Record<'apples'|'pears'|'cherries'|'oranges',number>; fruitTreeReadyAt?:Record<string,number>; fruitTreeHarvests?:Record<string,number>; fruitTreeDormantUntil?:Record<string,number>; farmerName?:string; farmName?:string; buildingLevels?:Partial<Record<BuildingId,number>>; productionJobs?:Partial<Record<BuildingId,ProductionJob|null>>; crafted?:Partial<Record<ProductId,number>>; randomQuests?: Array<{id:string;title:string;description:string;target:number;coins:number;xp:number;icon:string;metric:'harvests'|'hens'|'cows'|'eggs'|'milk'}>; claimedQuests?: string[]; ordersCompleted?: Record<string,number>; animals: Animal[]; harvests: number; coins: number; xp: number; selectedCrop?: CropId; decor?: Record<string,{col:number;row:number}>; storedDecor?:string[]; feed: { hen: number; cow: number }; buildings?: BuildingProgress; produce?: AnimalProduce; inventory: Record<CropId, number>; plots: Array<{ col:number; row:number; state:PlotState; watered:boolean; growth:number; crop?:CropId; readyAt?:number; witherAt?:number }> }
+interface FarmSave { version: 22; exoticEggs?:number; incubatingEggs?:IncubatingEgg[]; workshopCompost?:number; water?:number; waterCollectedAt?:number; farmExpansionLevel?:number; landTiles?:string[]; landExpansionCount?:number; questRefreshAt?:number; questProgressBaseline?:Partial<Record<'harvests'|'hens'|'cows'|'eggs'|'milk',number>>; eventStartedAt?:number; eventStartHarvests?:number; eventClaimed?:boolean; claimedMilestones?:number[]; claimedRibbons?:string[]; harvestedCrops?:Partial<Record<CropId,number>>; fruitInventory?:Record<'apples'|'pears'|'cherries'|'oranges',number>; fruitTreeReadyAt?:Record<string,number>; fruitTreeHarvests?:Record<string,number>; fruitTreeDormantUntil?:Record<string,number>; farmerName?:string; farmName?:string; buildingLevels?:Partial<Record<BuildingId,number>>; productionJobs?:Partial<Record<BuildingId,ProductionJob|null>>; crafted?:Partial<Record<ProductId,number>>; randomQuests?: Array<{id:string;title:string;description:string;target:number;coins:number;xp:number;icon:string;metric:'harvests'|'hens'|'cows'|'eggs'|'milk'}>; claimedQuests?: string[]; ordersCompleted?: Record<string,number>; animals: Animal[]; harvests: number; coins: number; xp: number; selectedCrop?: CropId; decor?: Record<string,{col:number;row:number}>; storedDecor?:string[]; feed: { hen: number; cow: number }; buildings?: BuildingProgress; produce?: AnimalProduce; inventory: Record<CropId, number>; plots: Array<{ col:number; row:number; state:PlotState; watered:boolean; growth:number; crop?:CropId; readyAt?:number; witherAt?:number }> }
 const CROPS: Record<CropId,{name:string;emoji:string;cost:number;reward:number;xp:number;growMs:number;color:number;unlockLevel:number}> = {
  wheat:{name:'Wheat',emoji:'🌾',cost:8,reward:22,xp:2,growMs:5*60*1000,color:0xe4b83f,unlockLevel:1},
  carrot:{name:'Carrot',emoji:'🥕',cost:14,reward:38,xp:3,growMs:10*60*1000,color:0xef873e,unlockLevel:1},
@@ -1329,6 +1329,7 @@ export class FarmScene extends Phaser.Scene {
       this.selected=plot;
       this.resolvePlotState(plot);
       if(this.activeTool==='select'){
+        if(plot.state==='harvested'&&pointer.wasTouch){this.plowPlot(plot);return;}
         if(plot.state==='tilled'){
           this.openFieldSeedPicker();
         }else if(plot.state==='ready'){
@@ -1719,7 +1720,7 @@ export class FarmScene extends Phaser.Scene {
     this.resolvePlotState(plot);
     if(plot.state!=='ready'){this.toast('This crop is not ready to harvest yet.');return;}
     const crop=CROPS[plot.crop],reward=this.toWorld(plot.col,plot.row);
-    plot.state='tilled';plot.growth=0;plot.readyAt=0;plot.witherAt=0;plot.watered=false;
+    plot.state='harvested';plot.growth=0;plot.readyAt=0;plot.witherAt=0;plot.watered=false;
     this.growthTimers.get(this.key(plot.col,plot.row))?.remove(false);
     this.growthTimers.delete(this.key(plot.col,plot.row));
     this.harvestedCrops[plot.crop]++;
@@ -1734,7 +1735,20 @@ export class FarmScene extends Phaser.Scene {
     this.showHarvestReward(reward.x,reward.y-28,crop.reward);
     this.redrawPlot(plot);this.refreshHud();this.saveFarm();
     this.refreshSelection();this.drawSelection();
-    this.toast(crop.emoji+' '+crop.name+' harvested · sell value '+crop.reward+' coins · added to Sell inventory');
+    this.toast(crop.emoji+' '+crop.name+' harvested · '+crop.reward+' coins value added · field needs re-ploughing (2 coins).');
+  }
+
+  private plowPlot(plot:Plot):void{
+    if(plot.state!=='grass'&&plot.state!=='harvested'&&plot.state!=='withered')return;
+    if(plot.state==='grass'&&this.establishedFieldCount>=this.plowLimit){
+      const nextLevel=this.farmerLevel<13?13:13+3*(Math.floor((this.farmerLevel-13)/3)+1);
+      this.toast('Field limit reached ('+this.plowLimit+'). Next field unlocks at Level '+nextLevel+'.');return;
+    }
+    const cost=plot.state==='harvested'?2:0;
+    if(this.coins<cost){this.toast('Not enough coins to re-plough. You need 2 coins.');return;}
+    this.coins-=cost;plot.state='tilled';plot.witherAt=0;plot.readyAt=0;plot.growth=0;plot.watered=false;
+    playSfx('plow');this.redrawPlot(plot);this.refreshHud();this.refreshSelection();this.drawSelection();this.saveFarm();
+    this.toast(cost?'Field re-ploughed · 2 coins deducted. Tap again to choose seeds.':'Field ploughed. Ready for seeds.');
   }
 
   private applyTool(plot: Plot): void {
@@ -1750,7 +1764,7 @@ export class FarmScene extends Phaser.Scene {
           this.toast('Field limit reached ('+this.plowLimit+'). Next field unlocks at Level '+nextLevel+'.');
           break;
         }
-        if (plot.state === 'grass' || plot.state === 'withered') { plot.state = 'tilled'; plot.witherAt = 0; plot.readyAt = 0; plot.growth = 0; playSfx('plow'); }
+        this.plowPlot(plot);
         break;
       case 'plant':
         if (plot.state === 'tilled') this.sowSelectedPlot();
@@ -1828,6 +1842,7 @@ export class FarmScene extends Phaser.Scene {
     // plots. Crop PNGs have their embedded soil removed at load time.
     const field=this.add.image(p.x,p.y,'field-tilled');
     field.setOrigin(0.5,0.5).setDisplaySize(88,88).setDepth(p.y-5);
+    if(plot.state==='harvested')field.setTint(0x9b846b);
     this.plotOverlays.set(id,field);
 
     if(!growing)return;
@@ -2745,7 +2760,7 @@ export class FarmScene extends Phaser.Scene {
       if (save.version >= 3) { this.animals = Array.isArray(save.animals) ? save.animals.map((a:Animal)=>({...a,assigned:a.assigned!==false,growthFeedings:Math.max(0,Math.min(3,Number(a.growthFeedings)||0)),breed:['golden','silkie','phoenix','lavender'].includes(a.breed||'')?a.breed:undefined,sex:a.sex==='rooster'?'rooster':a.sex==='hen'?'hen':undefined})) : []; this.harvests = Number(save.harvests) || 0; }
       for (const saved of save.plots) {
         const plot = this.plots.get(this.key(saved.col, saved.row));
-        if (!plot || !['grass', 'tilled', 'growing', 'ready', 'withered'].includes(saved.state)) continue;
+        if (!plot || !['grass', 'tilled', 'harvested', 'growing', 'ready', 'withered'].includes(saved.state)) continue;
         // Legacy withered crops are restored as harvest-ready; crops no
         // longer expire. Preserve their crop type and farm progress.
         plot.state = saved.state === 'withered' ? 'ready' : saved.state;
@@ -2800,7 +2815,7 @@ export class FarmScene extends Phaser.Scene {
 
   private saveFarm(): void {
     const save: FarmSave = {
-      version: 21,
+      version: 22,
        exoticEggs:this.exoticEggs,
        incubatingEggs:this.incubatingEggs.map(e=>({...e})),
       water:this.waterUnits,
@@ -2963,8 +2978,8 @@ export class FarmScene extends Phaser.Scene {
       host.innerHTML = '<span class="selection-kicker">SELECTED LAND</span><strong>Choose a plot</strong><p>Select a field tile to see what you can do there.</p>';
       return;
     }
-    const names: Record<PlotState, string> = { grass: 'Open grassland', tilled: 'Freshly plowed soil', growing: 'Growing crop', ready: 'Ready to harvest', withered: 'Ready to harvest' };
-    const actions: Record<Tool, string> = { select: 'Choose a tool to work this plot.', plow: 'Plow open or withered land to prepare the soil.', plant: `Plant ${CROPS[this.selectedCrop].name} · ${CROPS[this.selectedCrop].cost} coins per field.`, harvest: 'Harvest ripe crops whenever you are ready; crops do not wither.', move: 'Drag a tree, farmhouse, barn, silo or animal pen to a new grid position.', store: 'Tap a placed tree, decoration or building to move it into your inventory.', remove: 'Tap a placed tree, decoration or building to permanently remove it.', 'feed-hen':'Select Hen Feed, then tap a hungry hen to feed it.', 'feed-cow':'Select Cow Feed, then tap a hungry cow to feed it.' };
+    const names: Record<PlotState, string> = { grass: 'Open grassland', tilled: 'Freshly plowed soil', harvested: 'Harvested · needs ploughing', growing: 'Growing crop', ready: 'Ready to harvest', withered: 'Ready to harvest' };
+    const actions: Record<Tool, string> = { select: 'Choose a tool to work this plot.', plow: 'Plow open land for free, or re-plow a harvested field for 2 coins.', plant: `Plant ${CROPS[this.selectedCrop].name} · ${CROPS[this.selectedCrop].cost} coins per field.`, harvest: 'Harvest ripe crops whenever you are ready; crops do not wither.', move: 'Drag a tree, farmhouse, barn, silo or animal pen to a new grid position.', store: 'Tap a placed tree, decoration or building to move it into your inventory.', remove: 'Tap a placed tree, decoration or building to permanently remove it.', 'feed-hen':'Select Hen Feed, then tap a hungry hen to feed it.', 'feed-cow':'Select Cow Feed, then tap a hungry cow to feed it.' };
     host.innerHTML = `<span class="selection-kicker">LAND · ${this.selected.col + 1}, ${this.selected.row + 1}</span><strong>${names[this.selected.state]}</strong><p>${actions[this.activeTool]}</p>`;
   }
 }
