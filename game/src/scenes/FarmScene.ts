@@ -1141,8 +1141,6 @@ export class FarmScene extends Phaser.Scene {
       if (!this.textures.exists(texture)) continue;
       const source = this.textures.get(texture).getSourceImage() as HTMLImageElement;
       // Well upgrades use individually cropped transparent PNGs, not sprite strips.
-      const wellCropY = 0;
-      const wellCropHeight = source.height;
       const displayHeight = source.height;
       const targetWidth = (id === 'coop' || id === 'well') ? TILE_W * 2 : 132;
       const targetHeight = id === 'well' ? 160 : 124;
