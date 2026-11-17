@@ -1145,8 +1145,10 @@ export class FarmScene extends Phaser.Scene {
       // The coop spans 2x2 tiles; the well is a compact, single-tile object.
       const targetWidth = id === 'coop' ? TILE_W * 2 : id === 'well' ? 72 : 132;
       const targetHeight = id === 'well' ? 78 : 124;
+      // Scale the coop to the full 2-tile footprint width while keeping
+      // the PNG's original aspect ratio (no stretching or squashing).
       const scale = id === 'coop'
-        ? targetWidth / source.width * 0.5
+        ? targetWidth / source.width
         : Math.min(targetWidth / source.width, targetHeight / displayHeight);
       const spansTwoTiles = id === 'coop';
       const renderPoint=spansTwoTiles?this.toWorld(pos.col+0.5,pos.row+0.5):p;
