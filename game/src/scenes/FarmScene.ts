@@ -1144,18 +1144,20 @@ export class FarmScene extends Phaser.Scene {
       const wellCropY = 0;
       const wellCropHeight = source.height;
       const displayHeight = source.height;
-      const targetWidth = id === 'coop' ? TILE_W * 2 : 132;
-      const targetHeight = 124;
-      // Scale the complete coop uniformly. The fence in the source art spans
-      // nearly the full canvas, so the 2x2 footprint needs a smaller overall
-      // sprite rather than a vertically compressed image.
-      const scale = id === 'coop' ? targetWidth / source.width * 0.5 : Math.min(targetWidth / source.width, targetHeight / displayHeight);
-      const renderPoint=id==='coop'?this.toWorld(pos.col+0.5,pos.row+0.5):p;
-      const renderY=id==='coop'?renderPoint.y+TILE_H*0.5: p.y+24;
+      const targetWidth = (id === 'coop' || id === 'well') ? TILE_W * 2 : 132;
+      const targetHeight = id === 'well' ? 160 : 124;
+      // Coop and Well occupy a 2x2 isometric footprint. Center their artwork
+      // over all four tiles and anchor the base at the footprint's lower edge.
+      const scale = id === 'coop'
+        ? targetWidth / source.width * 0.5
+        : Math.min(targetWidth / source.width, targetHeight / displayHeight);
+      const spansTwoTiles = id === 'coop' || id === 'well';
+      const renderPoint=spansTwoTiles?this.toWorld(pos.col+0.5,pos.row+0.5):p;
+      const renderY=spansTwoTiles?renderPoint.y+TILE_H*0.5:p.y+24;
       const sprite = this.add.image(renderPoint.x, renderY, texture)
-        .setOrigin(0.5, id === 'well' ? (wellCropY + wellCropHeight) / source.height : 1)
+        .setOrigin(0.5, 1)
         .setScale(scale)
-        .setDepth(p.y + (id==='coop'?TILE_H+30:30));
+        .setDepth(p.y + (spansTwoTiles?TILE_H+30:30));
       // The well PNG already contains only its own artwork; no source crop is needed.
       this.buildingAssetSprites.set(id, sprite);
     }
