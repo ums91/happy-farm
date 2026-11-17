@@ -1124,15 +1124,25 @@ export class FarmScene extends Phaser.Scene {
       if (!pos) continue;
       const level = Phaser.Math.Clamp(Math.floor(asset.level), 1, 6);
       const p = this.toWorld(pos.col, pos.row);
+      // Buildings with multi-tile footprints are anchored to the average of
+      // every occupied tile centre, not the top-left placement tile.
+      const footprint=this.placementCells(pos,id);
+      const spansMultipleTiles=footprint.length>1;
+      const footprintCenter=spansMultipleTiles
+        ? new Phaser.Math.Vector2(
+            footprint.reduce((sum,cell)=>sum+this.toWorld(cell.col,cell.row).x,0)/footprint.length,
+            footprint.reduce((sum,cell)=>sum+this.toWorld(cell.col,cell.row).y,0)/footprint.length
+          )
+        : p;
       if(id==='windmill'&&this.textures.exists('windmill-body')&&this.textures.exists('windmill-rotor')){
         const source=this.textures.get('windmill-body').getSourceImage() as HTMLImageElement;
         const scale=Math.min(132/source.width,124/source.height);
-        const body=this.add.image(p.x,p.y+24,'windmill-body').setOrigin(0.5,1).setScale(scale).setDepth(p.y+24);
+        const body=this.add.image(footprintCenter.x,footprintCenter.y,'windmill-body').setOrigin(0.5,0.5).setScale(scale).setDepth(p.y+TILE_H+30);
         this.buildingAssetSprites.set(id,body);
         // The axle sits at roughly 75% width and 36% height in the prepared body art.
-        const axleX=p.x-source.width*scale/2+source.width*0.75*scale;
-        const axleY=p.y+24-source.height*scale+source.height*0.36*scale;
-        const rotor=this.add.image(axleX,axleY,'windmill-rotor').setOrigin(0.5,0.5).setScale(scale).setDepth(p.y+26);
+        const axleX=footprintCenter.x-source.width*scale/2+source.width*0.75*scale;
+        const axleY=footprintCenter.y-source.height*scale/2+source.height*0.36*scale;
+        const rotor=this.add.image(axleX,axleY,'windmill-rotor').setOrigin(0.5,0.5).setScale(scale).setDepth(p.y+TILE_H+32);
         this.windmillRotorSprites.set(id,rotor);
         this.tweens.add({targets:rotor,angle:360,duration:9000,repeat:-1,ease:'Linear'});
         continue;
@@ -1150,25 +1160,19 @@ export class FarmScene extends Phaser.Scene {
       const scale = id === 'coop'
         ? (targetWidth * 0.9 * 0.8) / source.width
         : Math.min(targetWidth / source.width, targetHeight / displayHeight);
-      const spansTwoTiles = id === 'coop';
-      // Average the centres of all four occupied tiles. This is the exact
-      // geometric centre of the coop's 2x2 isometric footprint.
-      const coopCells=spansTwoTiles?this.placementCells(pos,'coop'):[];
-      const renderPoint=spansTwoTiles
-        ? new Phaser.Math.Vector2(
-            coopCells.reduce((sum,cell)=>sum+this.toWorld(cell.col,cell.row).x,0)/coopCells.length,
-            coopCells.reduce((sum,cell)=>sum+this.toWorld(cell.col,cell.row).y,0)/coopCells.length
-          )
-        : p;
-      // Small visual correction based on the in-game screenshot: shift the
-      // coop up and left without changing its 2x2 placement footprint.
-      const coopOffsetX=id==='coop'?-10:0;
-      const coopOffsetY=id==='coop'?-15:0;
-      const renderY=(spansTwoTiles?renderPoint.y:p.y+24)+coopOffsetY;
-      const sprite = this.add.image(renderPoint.x+coopOffsetX, renderY, texture)
-        .setOrigin(0.5, id==='coop'?0.5:1)
+      const spansMultipleTiles=footprint.length>1;
+      // Use the footprint centre for every 2x2 building. Keep the coop's
+      // screenshot-tuned offset; other buildings start at the true centre.
+      const buildingOffsetX=id==='coop'?-10:0;
+      const buildingOffsetY=id==='coop'?-15:0;
+      const sprite = this.add.image(
+        footprintCenter.x+buildingOffsetX,
+        footprintCenter.y+buildingOffsetY,
+        texture
+      )
+        .setOrigin(0.5,0.5)
         .setScale(scale)
-        .setDepth(p.y + (spansTwoTiles?TILE_H+30:30));
+        .setDepth(p.y + (spansMultipleTiles?TILE_H+30:30));
       // The well PNG already contains only its own artwork; no source crop is needed.
       this.buildingAssetSprites.set(id, sprite);
     }
