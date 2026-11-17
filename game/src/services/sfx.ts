@@ -15,6 +15,29 @@ const sampleUrls:Partial<Record<SfxName,string[]>>={
   harvest:[audioAsset('harvest-action.mp3')],
   sell:[audioAsset('sell.mp3')]
 };
+let levelBuffer:AudioBuffer|null=null;
+let levelBufferLoading=false;
+function preloadLevelSound():void{
+  if(levelBuffer||levelBufferLoading)return;
+  const ctx=audioContext(),url=sampleUrls.level?.[0];if(!ctx||!url)return;
+  levelBufferLoading=true;
+  void fetch(url).then(response=>{if(!response.ok)throw new Error('HTTP '+response.status);return response.arrayBuffer();})
+    .then(data=>ctx.decodeAudioData(data))
+    .then(buffer=>{levelBuffer=buffer;})
+    .catch(error=>console.warn('[Happy Farm] Level-up sound preload failed:',error))
+    .finally(()=>{levelBufferLoading=false;});
+}
+function playLevelSound():void{
+  if(!enabled)return;
+  const ctx=audioContext();
+  if(ctx&&levelBuffer){
+    const source=ctx.createBufferSource(),gain=ctx.createGain();
+    source.buffer=levelBuffer;gain.gain.value=Math.min(1,Math.max(0,volume*.85));
+    source.connect(gain);gain.connect(ctx.destination);source.start(0);return;
+  }
+  // Fallback while the Web Audio buffer is loading.
+  playSample('level');
+}
 function playSample(name:SfxName,rate=1):void{
   const variants=sampleUrls[name];if(!variants?.length)return;
   const url=variants[Math.floor(Math.random()*variants.length)];
@@ -74,7 +97,7 @@ export function playSfx(name:SfxName):void{
   // Cow vocal audio is intentionally disabled: never allow any interaction or stale event to trigger a moo.
   if((name as string)==='cow')return;
   if(name==='hen'||name==='chick'||name==='rooster'||name==='bird'){playSample(name,name==='chick'?1.35:1);return;}
-  if(name==='level'){playSample('level');return;}
+  if(name==='level'){playLevelSound();return;}
   if(name==='plow'||name==='harvest'||name==='sell'){playSample(name);return;}
   if(name==='egg')playSample('hen');
   const ctx=audioContext();if(!ctx)return;const t=ctx.currentTime;
@@ -98,14 +121,16 @@ export function initializeSfxControls():void{
   const output=document.getElementById('sfx-volume-value') as HTMLOutputElement|null;
   if(!toggle||!slider||!output)return;
   enabled=localStorage.getItem(ENABLED_KEY)!=='false';
+  preloadLevelSound();
   const stored=localStorage.getItem(VOLUME_KEY);const parsed=stored===null?.55:Number(stored);
   volume=Number.isFinite(parsed)?Math.min(1,Math.max(0,parsed)):.55;
   const render=()=>{toggle.textContent='♪';toggle.setAttribute('aria-label',enabled?'Turn sound effects off':'Turn sound effects on');toggle.setAttribute('aria-pressed',String(enabled));toggle.title=enabled?'Turn sound effects off':'Turn sound effects on';slider.value=String(Math.round(volume*100));output.value=Math.round(volume*100)+'%';output.textContent=output.value;};
-  toggle.addEventListener('click',()=>{enabled=!enabled;localStorage.setItem(ENABLED_KEY,String(enabled));if(enabled){void audioContext();ambientUnlocked=true;playSample('bird');scheduleAmbientBird();}else{stopAmbientBirds();}render();});
+  toggle.addEventListener('click',()=>{enabled=!enabled;localStorage.setItem(ENABLED_KEY,String(enabled));if(enabled){void audioContext();preloadLevelSound();ambientUnlocked=true;playSample('bird');scheduleAmbientBird();}else{stopAmbientBirds();}render();});
   slider.addEventListener('input',()=>{volume=Math.min(1,Math.max(0,Number(slider.value)/100));localStorage.setItem(VOLUME_KEY,String(volume));render();});
   const unlockAudio=():void=>{
     if(!enabled||ambientUnlocked)return;
     void audioContext();
+    preloadLevelSound();
     ambientUnlocked=true;
     // Unlock audio once only. Replaying the ambience sample on every pointerdown
     // made it sound as though an animal vocal played on every tap/click.
