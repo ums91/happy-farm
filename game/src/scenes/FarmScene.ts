@@ -2705,7 +2705,7 @@ export class FarmScene extends Phaser.Scene {
         return;
       }
       const save = JSON.parse(raw) as any;
-      if (![1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21].includes(save.version) || !Array.isArray(save.plots)) {
+      if (![1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22].includes(save.version) || !Array.isArray(save.plots)) {
         this.persistenceBlocked = true;
         console.error('Happy Farm found an unsupported or incomplete save. Saving is disabled to protect the existing data.');
         const status = document.getElementById('cloud-save-status');
