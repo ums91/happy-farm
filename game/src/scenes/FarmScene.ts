@@ -1140,11 +1140,10 @@ export class FarmScene extends Phaser.Scene {
       const texture = `building-${asset.folder}-${level}`;
       if (!this.textures.exists(texture)) continue;
       const source = this.textures.get(texture).getSourceImage() as HTMLImageElement;
-      // Well level PNGs are sprite strips: the intended well is the middle band.
-      // Cropping to that band prevents neighbouring asset fragments appearing above/below it.
-      const wellCropY = source.height * 0.18;
-      const wellCropHeight = source.height * 0.64;
-      const displayHeight = id === 'well' ? wellCropHeight : source.height;
+      // Well upgrades use individually cropped transparent PNGs, not sprite strips.
+      const wellCropY = 0;
+      const wellCropHeight = source.height;
+      const displayHeight = source.height;
       const targetWidth = id === 'coop' ? TILE_W * 2 : 132;
       const targetHeight = 124;
       // Scale the complete coop uniformly. The fence in the source art spans
@@ -1157,7 +1156,7 @@ export class FarmScene extends Phaser.Scene {
         .setOrigin(0.5, id === 'well' ? (wellCropY + wellCropHeight) / source.height : 1)
         .setScale(scale)
         .setDepth(p.y + (id==='coop'?TILE_H+30:30));
-      if (id === 'well') sprite.setCrop(0, wellCropY, source.width, wellCropHeight);
+      // The well PNG already contains only its own artwork; no source crop is needed.
       this.buildingAssetSprites.set(id, sprite);
     }
   }
