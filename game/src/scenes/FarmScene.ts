@@ -1853,7 +1853,10 @@ export class FarmScene extends Phaser.Scene {
     // One canonical soil base for freshly tilled, growing and harvest-ready
     // plots. Crop PNGs have their embedded soil removed at load time.
     const field=this.add.image(p.x,p.y,'field-tilled');
-    field.setOrigin(0.5,0.5).setDisplaySize(88,88).setDepth(p.y-5);
+    // The 160x160 field PNG contains an isometric diamond inset to ~152x80.
+    // Scale its canvas to ~92.6x88 so the visible diamond matches the 88x44
+    // ground tile exactly; crop stages keep their shared 160x160 coordinate space.
+    field.setOrigin(0.5,0.5).setDisplaySize(TILE_W*160/152, TILE_H*2).setDepth(p.y-5);
     if(plot.state==='harvested')field.setTint(0x9b846b);
     this.plotOverlays.set(id,field);
 
