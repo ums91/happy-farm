@@ -1143,12 +1143,13 @@ export class FarmScene extends Phaser.Scene {
       // Well upgrades use individually cropped transparent PNGs, not sprite strips.
       const displayHeight = source.height;
       const targetWidth = (id === 'coop' || id === 'well') ? TILE_W * 2 : 132;
-      const targetHeight = id === 'well' ? 160 : 124;
-      // Coop and Well occupy a 2x2 isometric footprint. Center their artwork
-      // over all four tiles and anchor the base at the footprint's lower edge.
+      // Keep the well compact while centering it over its complete 2x2 footprint.
+      const targetHeight = id === 'well' ? 112 : 124;
       const scale = id === 'coop'
         ? targetWidth / source.width * 0.5
-        : Math.min(targetWidth / source.width, targetHeight / displayHeight);
+        : id === 'well'
+          ? Math.min(112 / source.width, targetHeight / displayHeight)
+          : Math.min(targetWidth / source.width, targetHeight / displayHeight);
       const spansTwoTiles = id === 'coop' || id === 'well';
       const renderPoint=spansTwoTiles?this.toWorld(pos.col+0.5,pos.row+0.5):p;
       const renderY=spansTwoTiles?renderPoint.y+TILE_H*0.5:p.y+24;
