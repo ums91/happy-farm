@@ -1164,12 +1164,15 @@ export class FarmScene extends Phaser.Scene {
       // screenshot-tuned offset; other buildings start at the true centre.
       const buildingOffsetX=id==='coop'?-10:0;
       const buildingOffsetY=id==='coop'?-15:0;
+      // Preserve the well's pre-footprint-centering alignment: its compact
+      // single-tile artwork is bottom-anchored 24px below the tile centre.
+      const isWell=id==='well';
       const sprite = this.add.image(
-        footprintCenter.x+buildingOffsetX,
-        footprintCenter.y+buildingOffsetY,
+        isWell?p.x:footprintCenter.x+buildingOffsetX,
+        isWell?p.y+24:footprintCenter.y+buildingOffsetY,
         texture
       )
-        .setOrigin(0.5,0.5)
+        .setOrigin(0.5,isWell?1:0.5)
         .setScale(scale)
         .setDepth(p.y + (spansMultipleTiles?TILE_H+30:30));
       // The well PNG already contains only its own artwork; no source crop is needed.
