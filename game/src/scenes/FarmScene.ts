@@ -1163,7 +1163,7 @@ export class FarmScene extends Phaser.Scene {
       // Small visual correction based on the in-game screenshot: shift the
       // coop up and left without changing its 2x2 placement footprint.
       const coopOffsetX=id==='coop'?-10:0;
-      const coopOffsetY=id==='coop'?-10:0;
+      const coopOffsetY=id==='coop'?-15:0;
       const renderY=(spansTwoTiles?renderPoint.y:p.y+24)+coopOffsetY;
       const sprite = this.add.image(renderPoint.x+coopOffsetX, renderY, texture)
         .setOrigin(0.5, id==='coop'?0.5:1)
