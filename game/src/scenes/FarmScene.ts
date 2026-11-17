@@ -978,7 +978,7 @@ export class FarmScene extends Phaser.Scene {
       const point=this.toWorld(candidate.col,candidate.row);
       // Keep hens and chicks roaming around their coop instead of drifting across the whole farm.
       if(Math.abs(point.x-cx)>limitX||Math.abs(point.y-cy)>limitY)continue;
-      if(this.animalCellBlocked(candidate,actor,chicken))continue;
+      if(this.animalCellBlocked(candidate,actor))continue;
       if(this.animalRouteIsClear({x:actor.x,y:actor.y},point,actor)){destination=candidate;break;}
     }
     if(!destination){
@@ -1390,7 +1390,7 @@ export class FarmScene extends Phaser.Scene {
 
   private animalCellKey(tile:{col:number;row:number}):string{return this.key(tile.col,tile.row);}
 
-  private animalCellBlocked(tile:{col:number;row:number},actor?:Phaser.GameObjects.Container,chickenPen=false):boolean {
+  private animalCellBlocked(tile:{col:number;row:number},actor?:Phaser.GameObjects.Container):boolean {
     if(tile.col<0||tile.row<0||tile.col>=MAX_FARM_SIZE||tile.row>=MAX_FARM_SIZE||!this.isFarmTile(tile.col,tile.row))return true;
     const plot=this.plots.get(this.key(tile.col,tile.row));
     if(!plot||plot.state!=='grass')return true;
@@ -1428,7 +1428,7 @@ export class FarmScene extends Phaser.Scene {
       const t=i/steps,worldX=Phaser.Math.Linear(from.x,to.x,t),worldY=Phaser.Math.Linear(from.y,to.y,t);
       const tile=this.toTile(worldX,worldY);if(!tile)return false;
       const key=this.animalCellKey(tile);if(checked.has(key))continue;checked.add(key);
-      if(this.animalCellBlocked(tile,actor,chicken))return false;
+      if(this.animalCellBlocked(tile,actor))return false;
     }
     return true;
   }
