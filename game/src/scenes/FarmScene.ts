@@ -1167,6 +1167,14 @@ export class FarmScene extends Phaser.Scene {
 
   private handleWorldTap(pointer: Phaser.Input.Pointer): void {
     if (sessionStorage.getItem('happyFarmVisitorModeV1')) return;
+    // Touch devices do not generate pointer-move events like a mouse, so a
+    // crop status popup could remain pinned after the player tapped elsewhere.
+    // Dismiss the previous crop/fruit tooltip on every world tap; tapping a
+    // growing crop below will immediately show its own fresh status again.
+    if(this.cropHoverTooltip)this.cropHoverTooltip.style.display='none';
+    this.cropActionPlot=null;
+    this.hoveredCropPlot=null;
+    this.hoveredFruitTreeId=null;
     const world=this.cameras.main.getWorldPoint(pointer.x,pointer.y);
     // Hungry status is a direct FarmVille action and must work regardless of
     // the currently selected farm tool, especially on touch screens.
