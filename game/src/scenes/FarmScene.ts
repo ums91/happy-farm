@@ -1148,7 +1148,7 @@ export class FarmScene extends Phaser.Scene {
       // Scale the coop to the full 2-tile footprint width while keeping
       // the PNG's original aspect ratio (no stretching or squashing).
       const scale = id === 'coop'
-        ? targetWidth / source.width
+        ? (targetWidth * 0.9) / source.width
         : Math.min(targetWidth / source.width, targetHeight / displayHeight);
       const spansTwoTiles = id === 'coop';
       const renderPoint=spansTwoTiles?this.toWorld(pos.col+0.5,pos.row+0.5):p;
