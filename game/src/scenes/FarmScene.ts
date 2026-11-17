@@ -1404,9 +1404,10 @@ export class FarmScene extends Phaser.Scene {
     const plot=this.plots.get(this.key(tile.col,tile.row));
     if(!plot||plot.state!=='grass')return true;
     const inPen=chickenPen&&this.isChickenPenCell(tile);
-    if(inPen){
-      if(Object.entries(this.decor).some(([id,pos])=>id!=='coop'&&this.placementCells(pos,id).some(cell=>cell.col===tile.col&&cell.row===tile.row)))return true;
-    }else if(this.decorOccupiesCell(tile.col,tile.row))return true;
+    // The coop footprint is occupied too. The old pen exception explicitly
+    // ignored the coop, and some pen coordinates overlap its 2x2 footprint;
+    // that allowed hens/chicks to walk through the building tiles.
+    if(this.decorOccupiesCell(tile.col,tile.row))return true;
     const key=this.animalCellKey(tile);
     const actorTile=actor?this.toTile(actor.x,actor.y):null;
     if(this.animalReservedCells.has(key)&&(!actorTile||actorTile.col!==tile.col||actorTile.row!==tile.row))return true;
