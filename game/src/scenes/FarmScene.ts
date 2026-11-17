@@ -1390,20 +1390,10 @@ export class FarmScene extends Phaser.Scene {
 
   private animalCellKey(tile:{col:number;row:number}):string{return this.key(tile.col,tile.row);}
 
-  private isChickenPenCell(tile:{col:number;row:number},home=this.decor.coop):boolean {
-    if(!home)return false;
-    const dc=tile.col-home.col,dr=tile.row-home.row;
-    // Keep chickens within the visible fenced yard. The earlier outer-edge
-    // L-shape projected below the fence in isometric space, so use the inner
-    // yard cells one row closer to the shelter instead.
-    return (dc===2&&dr>=-1&&dr<=1)||(dr===1&&dc>=0&&dc<=1);
-  }
-
   private animalCellBlocked(tile:{col:number;row:number},actor?:Phaser.GameObjects.Container,chickenPen=false):boolean {
     if(tile.col<0||tile.row<0||tile.col>=MAX_FARM_SIZE||tile.row>=MAX_FARM_SIZE||!this.isFarmTile(tile.col,tile.row))return true;
     const plot=this.plots.get(this.key(tile.col,tile.row));
     if(!plot||plot.state!=='grass')return true;
-    const inPen=chickenPen&&this.isChickenPenCell(tile);
     // The coop footprint is occupied too. The old pen exception explicitly
     // ignored the coop, and some pen coordinates overlap its 2x2 footprint;
     // that allowed hens/chicks to walk through the building tiles.
