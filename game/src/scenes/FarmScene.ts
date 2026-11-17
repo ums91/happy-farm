@@ -1423,14 +1423,17 @@ export class FarmScene extends Phaser.Scene {
 
 
   private animalRouteIsClear(from:{x:number;y:number},to:{x:number;y:number},actor:Phaser.GameObjects.Container):boolean {
+    // Check the complete movement segment at fine intervals. A coarse sample can
+    // jump over an occupied diamond, especially on diagonal isometric movement.
     const distance=Phaser.Math.Distance.Between(from.x,from.y,to.x,to.y);
-    const steps=Math.max(2,Math.ceil(distance/12));
+    const steps=Math.max(2,Math.ceil(distance/4));
     const checked=new Set<string>();
-    for(let i=1;i<=steps;i++){
+    const animalIndex=this.animalActors.indexOf(actor),animal=this.animals[animalIndex];
+    const chicken=animal?.id==='hen'||animal?.id==='chick';
+    for(let i=0;i<=steps;i++){
       const t=i/steps,worldX=Phaser.Math.Linear(from.x,to.x,t),worldY=Phaser.Math.Linear(from.y,to.y,t);
-      const tile=this.toTile(worldX,worldY);if(!tile) return false;
+      const tile=this.toTile(worldX,worldY);if(!tile)return false;
       const key=this.animalCellKey(tile);if(checked.has(key))continue;checked.add(key);
-      const animalIndex=this.animalActors.indexOf(actor),animal=this.animals[animalIndex],chicken=animal?.id==='hen'||animal?.id==='chick';
       if(this.animalCellBlocked(tile,actor,chicken))return false;
     }
     return true;
