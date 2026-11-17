@@ -1152,9 +1152,10 @@ export class FarmScene extends Phaser.Scene {
         : Math.min(targetWidth / source.width, targetHeight / displayHeight);
       const spansTwoTiles = id === 'coop';
       const renderPoint=spansTwoTiles?this.toWorld(pos.col+0.5,pos.row+0.5):p;
-      const renderY=spansTwoTiles?renderPoint.y+TILE_H*0.5:p.y+24;
+      // Position the coop's image centre on the geometric centre of its 2x2 tile footprint.
+      const renderY=id==='coop'?renderPoint.y:spansTwoTiles?renderPoint.y+TILE_H*0.5:p.y+24;
       const sprite = this.add.image(renderPoint.x, renderY, texture)
-        .setOrigin(0.5, 1)
+        .setOrigin(0.5, id==='coop'?0.5:1)
         .setScale(scale)
         .setDepth(p.y + (spansTwoTiles?TILE_H+30:30));
       // The well PNG already contains only its own artwork; no source crop is needed.
