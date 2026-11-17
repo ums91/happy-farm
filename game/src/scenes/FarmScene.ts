@@ -221,10 +221,12 @@ export class FarmScene extends Phaser.Scene {
           const i=p*4;
           if(data[i+3]<=8)return false;
           const r=data[i],g=data[i+1],b=data[i+2];
-          // Brown/umber pixels in the lower quarter belong to the baked-in
-          // soil bed. Bright orange roots, fruit and yellow seed highlights
-          // are kept by the red/green upper bounds.
-          return r>38&&r<225&&g>18&&g<165&&b<112&&r>g*1.10&&g>b*1.08;
+          // The crop source artwork contains its own tilted soil diamond,
+          // including a bright orange rim around the darker brown bed. Remove
+          // that whole connected bed so only the plant artwork remains over
+          // the canonical isometric field tile. Yellow seed/fruit highlights
+          // stay because their green channel is higher than this soil mask.
+          return r>38&&r<255&&g>18&&g<190&&b<150&&r>g*1.05&&g>b*1.05;
         };
         let head=0,tail=0;
         const add=(x:number,y:number)=>{
