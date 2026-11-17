@@ -1422,8 +1422,6 @@ export class FarmScene extends Phaser.Scene {
     const distance=Phaser.Math.Distance.Between(from.x,from.y,to.x,to.y);
     const steps=Math.max(2,Math.ceil(distance/4));
     const checked=new Set<string>();
-    const animalIndex=this.animalActors.indexOf(actor),animal=this.animals[animalIndex];
-    const chicken=animal?.id==='hen'||animal?.id==='chick';
     for(let i=0;i<=steps;i++){
       const t=i/steps,worldX=Phaser.Math.Linear(from.x,to.x,t),worldY=Phaser.Math.Linear(from.y,to.y,t);
       const tile=this.toTile(worldX,worldY);if(!tile)return false;
