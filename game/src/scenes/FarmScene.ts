@@ -1151,9 +1151,16 @@ export class FarmScene extends Phaser.Scene {
         ? (targetWidth * 0.9 * 0.8) / source.width
         : Math.min(targetWidth / source.width, targetHeight / displayHeight);
       const spansTwoTiles = id === 'coop';
-      const renderPoint=spansTwoTiles?this.toWorld(pos.col+0.5,pos.row+0.5):p;
-      // Position the coop's image centre on the geometric centre of its 2x2 tile footprint.
-      const renderY=id==='coop'?renderPoint.y:spansTwoTiles?renderPoint.y+TILE_H*0.5:p.y+24;
+      // Average the centres of all four occupied tiles. This is the exact
+      // geometric centre of the coop's 2x2 isometric footprint.
+      const coopCells=spansTwoTiles?this.placementCells(pos,'coop'):[];
+      const renderPoint=spansTwoTiles
+        ? new Phaser.Math.Vector2(
+            coopCells.reduce((sum,cell)=>sum+this.toWorld(cell.col,cell.row).x,0)/coopCells.length,
+            coopCells.reduce((sum,cell)=>sum+this.toWorld(cell.col,cell.row).y,0)/coopCells.length
+          )
+        : p;
+      const renderY=spansTwoTiles?renderPoint.y:p.y+24;
       const sprite = this.add.image(renderPoint.x, renderY, texture)
         .setOrigin(0.5, id==='coop'?0.5:1)
         .setScale(scale)
