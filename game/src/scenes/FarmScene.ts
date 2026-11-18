@@ -800,8 +800,11 @@ export class FarmScene extends Phaser.Scene {
       // decoration when rendered on the farm.
       const key=id.slice(6);
       const asset=DECOR_ASSETS
-        .filter(candidate=>key===candidate||(key.startsWith(candidate)&&/^\\d+$/.test(key.slice(candidate.length))))
+        .filter(candidate=>key===candidate||(key.startsWith(candidate)&&/^\d+$/.test(key.slice(candidate.length))))
         .sort((a,b)=>b.length-a.length)[0];
+      if(asset)return DECOR_ASSET_ALIASES[asset]||asset;
+      return null;
+    }
   }
 
   private renderDecorAssets():void {
