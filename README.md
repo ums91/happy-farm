@@ -1,38 +1,42 @@
-# Happy Farm
+# 🌻 Happy Farm
 
-An original browser-based farming game inspired by classic social farming games. Happy Farm is in active early development, with a modular Phaser + TypeScript client now established alongside the original prototype.
+A browser-based farming game inspired by classic social farm games. Grow crops, raise animals, build your farm, visit neighbours and work together on community goals.
 
-**Play current prototype:** https://ums91.github.io/happy-farm/  
-**Source:** https://github.com/ums91/happy-farm
+## 🎮 Play
 
-## Product vision
-A rich, persistent farming world with crop cycles, animals, production buildings, progression, land expansion, decoration and future social play. The project is being developed as a maintainable game codebase, not constrained to a single-file demo.
+**[Play Happy Farm](https://ums91.github.io/happy-farm/)**
 
-## Repository layout
-- Root `index.html`: currently published prototype; retained during migration.
-- `game/`: next-generation Phaser + TypeScript client, built with Vite.
-- `docs/`: architecture, development and release documentation.
-- `.github/workflows/`: manually triggered quality checks.
+Open the game in your browser, create your farmer and start building your farm. Your progress is saved through the game's cloud-save system.
 
-## Current engineering status
-The modular client foundation includes a Phaser bootstrap, responsive game canvas, isometric tile-world rendering, original vector placeholder scenery, camera zoom/pan and an initial farm-tool interaction scaffold. It is not yet the production game and is not yet deployed to the public Pages URL.
+## 🤝 Play with friends
 
-To run the new client, see [game/README.md](game/README.md). The existing root-level prototype remains live until the new client is validated and the Pages deployment is deliberately switched.
+1. Open the game and sign in when prompted.
+2. Find your **Friend Code** in the Friends area and share it with another player.
+3. Add each other and accept the friend request.
+4. Visit a neighbour's farm, help out and take part in shared cooperative farming jobs.
 
-## Documentation
-- [Roadmap](ROADMAP.md)
-- [Changelog](CHANGELOG.md)
-- [Architecture](docs/ARCHITECTURE.md)
-- [Development guide](docs/DEVELOPMENT.md)
-- [Release process](docs/RELEASE_PROCESS.md)
-- [Contributing](CONTRIBUTING.md)
-- [Security policy](SECURITY.md)
+You can share this repository and the game link with friends to invite them to join.
 
-## GitHub Actions usage
-Workflows are manual-only through `workflow_dispatch`. There are no push, pull-request or scheduled triggers. Run validation only when a meaningful checkpoint is ready to be checked.
+## 🧑‍🌾 What you can do
 
-## Versioning
-Formal releases will follow [Semantic Versioning](https://semver.org/). The initial prototype is recorded as the 0.1.0 development baseline. The modular client currently identifies itself as 0.2.0 development work; neither is a stable public release. GitHub Releases will be published after reproducible builds and release checks are in place.
+- Plant and harvest crops; grow fruit trees.
+- Raise chickens and cows, collect eggs and milk.
+- Build and upgrade farm buildings.
+- Expand and decorate your land.
+- Visit friends and contribute to cooperative community goals.
 
-## Licensing
-No open-source license is granted to this repository at this stage. Do not assume code or assets may be reused outside the project. Third-party content must have a compatible license and documented attribution before inclusion.
+The game is actively developed, so features and balance may change.
+
+## 🛠️ Contribute
+
+Ideas, bug reports and code contributions are welcome!
+
+- **[Report a bug or suggest a feature](https://github.com/ums91/happy-farm/issues)**
+- **[Browse the source code](https://github.com/ums91/happy-farm)**
+- Open a pull request with a clear description of your change.
+
+For local development, see [game/README.md](game/README.md).
+
+## 📌 Project status and licensing
+
+Happy Farm is an independent, early-stage project. It is inspired by classic farming games but is not affiliated with them. No open-source license is currently granted; please do not reuse code or artwork without permission. Contributions are welcome, but proposed changes may be reviewed before merging.
