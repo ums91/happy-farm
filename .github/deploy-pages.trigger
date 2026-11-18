@@ -4,3 +4,4 @@ Publish consolidated mobile gameplay fixes.
 Mobile toolbar visibility and touch controls fix.
 
 Deploy latest exotic egg discovery and incubation update (2026-11-16).
+Deploy decoration thumbnail naming update (2026-11-18).
