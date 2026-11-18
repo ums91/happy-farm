@@ -39,4 +39,4 @@ For local development, see [game/README.md](game/README.md).
 
 ## 📌 Project status and licensing
 
-Happy Farm is an independent, early-stage project. It is inspired by classic farming games but is not affiliated with them. No open-source license is currently granted; please do not reuse code or artwork without permission. Contributions are welcome, but proposed changes may be reviewed before merging.
+Happy Farm is an independent, early-stage project. It is inspired by classic farmville 1 but is not affiliated with them. please do not reuse code without permission. Contributions are welcome, but proposed changes may be reviewed before merging.
