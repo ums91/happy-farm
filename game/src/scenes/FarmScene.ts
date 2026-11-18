@@ -805,6 +805,7 @@ export class FarmScene extends Phaser.Scene {
       if(asset)return DECOR_ASSET_ALIASES[asset]||asset;
       return null;
     }
+    return null;
   }
 
   private renderDecorAssets():void {
@@ -3016,14 +3017,6 @@ export class FarmScene extends Phaser.Scene {
     const names: Record<PlotState, string> = { grass: 'Open grassland', tilled: 'Freshly plowed soil', harvested: 'Harvested · needs ploughing', growing: 'Growing crop', ready: 'Ready to harvest', withered: 'Ready to harvest' };
     const actions: Record<Tool, string> = { select: 'Choose a tool to work this plot.', plow: 'Plow open land for free, or re-plow a harvested field for 2 coins.', plant: `Plant ${CROPS[this.selectedCrop].name} · ${CROPS[this.selectedCrop].cost} coins per field.`, harvest: 'Harvest ripe crops whenever you are ready; crops do not wither.', move: 'Drag a tree, farmhouse, barn, silo or animal pen to a new grid position.', store: 'Tap a placed tree, decoration or building to move it into your inventory.', remove: 'Tap a placed tree, decoration or building to permanently remove it.', 'feed-hen':'Select Hen Feed, then tap a hungry hen to feed it.', 'feed-cow':'Select Cow Feed, then tap a hungry cow to feed it.' };
     host.innerHTML = `<span class="selection-kicker">LAND · ${this.selected.col + 1}, ${this.selected.row + 1}</span><strong>${names[this.selected.state]}</strong><p>${actions[this.activeTool]}</p>`;
-  }
-}
-).test(key))
-        .sort((a,b)=>b.length-a.length)[0];
-      if(asset)return DECOR_ASSET_ALIASES[asset]||asset;
-      return null;
-    }
-    return null;
   }
 
   private renderDecorAssets():void {
