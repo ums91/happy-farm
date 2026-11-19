@@ -561,7 +561,7 @@
   },
   {
     "filename": "apple_barrels_crate_sheet2.png",
-    "display_name": "Apple Barrels Crate",
+    "display_name": "Hay Cart",
     "asset_id": "apple_barrels_crate",
     "source_sheet": "Colorful Farm Decor Sprite Sheet-3.png",
     "source_index": 10,
@@ -577,7 +577,7 @@
   },
   {
     "filename": "flower_cart_sheet2.png",
-    "display_name": "Flower Cart",
+    "display_name": "Hay Bales with Pitchfork",
     "asset_id": "flower_cart",
     "source_sheet": "Colorful Farm Decor Sprite Sheet-3.png",
     "source_index": 11,
@@ -593,7 +593,7 @@
   },
   {
     "filename": "bird_bath_stone_sheet2.png",
-    "display_name": "Bird Bath Stone",
+    "display_name": "Apple Crates and Barrels",
     "asset_id": "bird_bath_stone",
     "source_sheet": "Colorful Farm Decor Sprite Sheet-3.png",
     "source_index": 12,
@@ -609,7 +609,7 @@
   },
   {
     "filename": "wisteria_swing_sheet2.png",
-    "display_name": "Wisteria Swing",
+    "display_name": "Flower Cart",
     "asset_id": "wisteria_swing",
     "source_sheet": "Colorful Farm Decor Sprite Sheet-3.png",
     "source_index": 13,
@@ -657,7 +657,7 @@
   },
   {
     "filename": "picnic_table_sheet2.png",
-    "display_name": "Picnic Table",
+    "display_name": "Garden Gazebo",
     "asset_id": "picnic_table",
     "source_sheet": "Colorful Farm Decor Sprite Sheet-3.png",
     "source_index": 16,
@@ -673,7 +673,7 @@
   },
   {
     "filename": "campfire_stumps_sheet2.png",
-    "display_name": "Campfire Stumps",
+    "display_name": "Flower Market Stall",
     "asset_id": "campfire_stumps",
     "source_sheet": "Colorful Farm Decor Sprite Sheet-3.png",
     "source_index": 17,
@@ -705,7 +705,7 @@
   },
   {
     "filename": "lily_pond_sheet2.png",
-    "display_name": "Lily Pond",
+    "display_name": "Picnic Table",
     "asset_id": "lily_pond",
     "source_sheet": "Colorful Farm Decor Sprite Sheet-3.png",
     "source_index": 19,
@@ -721,7 +721,7 @@
   },
   {
     "filename": "sunflower_cart_sheet2.png",
-    "display_name": "Sunflower Cart",
+    "display_name": "Campfire Circle",
     "asset_id": "sunflower_cart",
     "source_sheet": "Colorful Farm Decor Sprite Sheet-3.png",
     "source_index": 20,
@@ -737,7 +737,7 @@
   },
   {
     "filename": "pink_blossom_tree_variant_sheet2.png",
-    "display_name": "Pink Blossom Tree Variant",
+    "display_name": "Waterfall Pond",
     "asset_id": "pink_blossom_tree_variant",
     "source_sheet": "Colorful Farm Decor Sprite Sheet-3.png",
     "source_index": 21,
@@ -753,7 +753,7 @@
   },
   {
     "filename": "orange_blossom_tree_sheet2.png",
-    "display_name": "Orange Blossom Tree",
+    "display_name": "Lily Pond",
     "asset_id": "orange_blossom_tree",
     "source_sheet": "Colorful Farm Decor Sprite Sheet-3.png",
     "source_index": 22,
@@ -785,7 +785,7 @@
   },
   {
     "filename": "orange_fruit_tree_sheet2.png",
-    "display_name": "Orange Fruit Tree",
+    "display_name": "Pink Blossom Tree",
     "asset_id": "orange_fruit_tree",
     "source_sheet": "Colorful Farm Decor Sprite Sheet-3.png",
     "source_index": 24,
@@ -817,7 +817,7 @@
   },
   {
     "filename": "string_lights_sheet2.png",
-    "display_name": "String Lights",
+    "display_name": "Apple Tree",
     "asset_id": "string_lights",
     "source_sheet": "Colorful Farm Decor Sprite Sheet-3.png",
     "source_index": 26,
@@ -833,7 +833,7 @@
   },
   {
     "filename": "festival_bunting_sheet2.png",
-    "display_name": "Festival Bunting",
+    "display_name": "Orange Tree",
     "asset_id": "festival_bunting",
     "source_sheet": "Colorful Farm Decor Sprite Sheet-3.png",
     "source_index": 27,
@@ -849,7 +849,7 @@
   },
   {
     "filename": "stepping_stone_path_sheet2.png",
-    "display_name": "Stepping Stone Path",
+    "display_name": "Pine Tree",
     "asset_id": "stepping_stone_path",
     "source_sheet": "Colorful Farm Decor Sprite Sheet-3.png",
     "source_index": 28,
@@ -897,7 +897,7 @@
   },
   {
     "filename": "rose_bush_sheet2.png",
-    "display_name": "Rose Bush",
+    "display_name": "Stepping Stone Path",
     "asset_id": "rose_bush",
     "source_sheet": "Colorful Farm Decor Sprite Sheet-3.png",
     "source_index": 31,
@@ -929,7 +929,7 @@
   },
   {
     "filename": "rock_cluster_sheet2.png",
-    "display_name": "Rock Cluster",
+    "display_name": "Pink Flower Bush",
     "asset_id": "rock_cluster",
     "source_sheet": "Colorful Farm Decor Sprite Sheet-3.png",
     "source_index": 33,
@@ -1393,7 +1393,7 @@
   },
   {
     "filename": "wisteria_garden_arch.png",
-    "display_name": "Wisteria Garden Arch",
+    "display_name": "Stepping Stone Path",
     "asset_id": "wisteria_garden_arch",
     "source_sheet": "Colorful Isometric Farm Decorations Collection-2.png",
     "source_index": 26,
@@ -1505,7 +1505,7 @@
   },
   {
     "filename": "double_lantern_post.png",
-    "display_name": "Double Lantern Post",
+    "display_name": "Farm Direction Sign",
     "asset_id": "double_lantern_post",
     "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
     "source_index": 7,
@@ -1537,7 +1537,7 @@
   },
   {
     "filename": "scarecrow_variant.png",
-    "display_name": "Scarecrow Variant",
+    "display_name": "Garden Swing Bench",
     "asset_id": "scarecrow_variant",
     "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
     "source_index": 9,
@@ -1585,7 +1585,7 @@
   },
   {
     "filename": "cushioned_swing.png",
-    "display_name": "Cushioned Swing",
+    "display_name": "Birdhouse",
     "asset_id": "cushioned_swing",
     "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
     "source_index": 12,
@@ -1601,7 +1601,7 @@
   },
   {
     "filename": "red_roof_well_variant2.png",
-    "display_name": "Red Roof Well Variant2",
+    "display_name": "Bird Bath",
     "asset_id": "red_roof_well_variant2",
     "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
     "source_index": 13,
@@ -1617,7 +1617,7 @@
   },
   {
     "filename": "tiered_fountain_variant.png",
-    "display_name": "Tiered Fountain Variant",
+    "display_name": "Flower Cart",
     "asset_id": "tiered_fountain_variant",
     "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
     "source_index": 14,
@@ -1681,7 +1681,7 @@
   },
   {
     "filename": "park_bench_variant.png",
-    "display_name": "Park Bench Variant",
+    "display_name": "Flower Planter Box",
     "asset_id": "park_bench_variant",
     "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
     "source_index": 18,
@@ -1745,7 +1745,7 @@
   },
   {
     "filename": "purple_flower_pot.png",
-    "display_name": "Purple Flower Pot",
+    "display_name": "Red Hand Pump",
     "asset_id": "purple_flower_pot",
     "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
     "source_index": 22,
@@ -1761,7 +1761,7 @@
   },
   {
     "filename": "round_flowerbed.png",
-    "display_name": "Round Flowerbed",
+    "display_name": "Lily Pond",
     "asset_id": "round_flowerbed",
     "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
     "source_index": 23,
@@ -1777,7 +1777,7 @@
   },
   {
     "filename": "rock_flowerbed.png",
-    "display_name": "Rock Flowerbed",
+    "display_name": "Wisteria Trellis",
     "asset_id": "rock_flowerbed",
     "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
     "source_index": 24,
@@ -1793,7 +1793,7 @@
   },
   {
     "filename": "red_hand_pump.png",
-    "display_name": "Red Hand Pump",
+    "display_name": "Pink Blossom Tree",
     "asset_id": "red_hand_pump",
     "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
     "source_index": 25,
@@ -1809,7 +1809,7 @@
   },
   {
     "filename": "lily_pond_reeds.png",
-    "display_name": "Lily Pond Reeds",
+    "display_name": "Apple Tree",
     "asset_id": "lily_pond_reeds",
     "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
     "source_index": 26,
@@ -1825,7 +1825,7 @@
   },
   {
     "filename": "wisteria_trellis.png",
-    "display_name": "Wisteria Trellis",
+    "display_name": "Orange Tree",
     "asset_id": "wisteria_trellis",
     "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
     "source_index": 27,
@@ -1841,7 +1841,7 @@
   },
   {
     "filename": "pink_blossom_tree_variant2.png",
-    "display_name": "Pink Blossom Tree Variant2",
+    "display_name": "Orange Tree",
     "asset_id": "pink_blossom_tree_variant2",
     "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
     "source_index": 28,
@@ -1889,7 +1889,7 @@
   },
   {
     "filename": "pear_tree.png",
-    "display_name": "Pear Tree",
+    "display_name": "Evergreen Tree",
     "asset_id": "pear_tree",
     "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
     "source_index": 31,
@@ -1905,7 +1905,7 @@
   },
   {
     "filename": "wisteria_tree.png",
-    "display_name": "Wisteria Tree",
+    "display_name": "Small Green Tree",
     "asset_id": "wisteria_tree",
     "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
     "source_index": 32,
@@ -1937,7 +1937,7 @@
   },
   {
     "filename": "pine_tree_variant.png",
-    "display_name": "Pine Tree Variant",
+    "display_name": "Hay Bale Stack",
     "asset_id": "pine_tree_variant",
     "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
     "source_index": 34,
@@ -1953,7 +1953,7 @@
   },
   {
     "filename": "small_green_tree.png",
-    "display_name": "Small Green Tree",
+    "display_name": "Firewood Stack",
     "asset_id": "small_green_tree",
     "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
     "source_index": 35,
@@ -1969,7 +1969,7 @@
   },
   {
     "filename": "white_blossom_tree.png",
-    "display_name": "White Blossom Tree",
+    "display_name": "Rock Cluster",
     "asset_id": "white_blossom_tree",
     "source_sheet": "Farm Market Decoration Sprite Sheet-1.png",
     "source_index": 36,
